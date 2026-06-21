@@ -1,0 +1,2225 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage[table]{xcolor}
+% ===== PACKAGES =====
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}           % Times New Roman font
+\usepackage{anyfontsize}
+\usepackage[english]{babel}
+
+% Page layout: Left 1.25in, Right/Top/Bottom 1in
+\usepackage[left=1.25in, right=1in, top=1in, bottom=1in, headheight=15pt]{geometry}
+
+\usepackage{setspace}
+\onehalfspacing                 % 1.5 line spacing
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{longtable,booktabs,array,multirow}
+\usepackage{calc}
+\usepackage{etoolbox}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\hypersetup{hidelinks, pdfcreator={LaTeX}}
+
+% ===== HEADINGS FORMAT =====
+
+% First-level (Chapter): Times New Roman, 16 Bold, Left
+% Leaves 2 blank lines (approx 36pt) between heading and first line of text
+\titleformat{\chapter}[display]
+  {\normalfont\fontsize{16}{19}\bfseries\raggedright}
+  {Chapter \thechapter}
+  {0pt}
+  {\fontsize{16}{19}\bfseries\raggedright}
+\titlespacing*{\chapter}{0pt}{-20pt}{36pt}  
+
+% Second-level (Section): Times New Roman, 14 Bold, Left
+% Leaves 2 blank lines before (36pt) and 1 blank line after (18pt)
+\titleformat{\section}
+  {\normalfont\fontsize{14}{17}\bfseries\raggedright}
+  {\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{36pt}{18pt} 
+
+% Third-level (Subsection): Times New Roman, 12 Bold, Left
+% Leaves 2 blank lines before (36pt) and 1 blank line after (18pt)
+\titleformat{\subsection}
+  {\normalfont\fontsize{12}{15}\bfseries\raggedright}
+  {\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{36pt}{18pt}
+
+% Fourth level
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{12}{15}\bfseries\raggedright}
+  {\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{24pt}{12pt}
+
+% ===== HEADER / FOOTER =====
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\nouppercase{\leftmark}}   % Chapter title left
+\fancyhead[R]{\thepage}                   % Page number right
+\renewcommand{\chaptermark}[1]{\markboth{Chapter \thechapter\ - #1}{}}
+
+% Plain style for chapter first page to enforce header rules universally
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyhead[L]{\nouppercase{\leftmark}}
+  \fancyhead[R]{\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+}
+
+% Normal text justified (default in LaTeX report class)
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{0pt}
+
+% Caption formatting strictly by guidelines
+\captionsetup[figure]{labelfont=bf, labelsep=colon, justification=centering, position=below}
+\captionsetup[table]{labelfont=bf, labelsep=colon, justification=centering, position=above}
+
+% TOC formatting (dotted leaders, nice numbering)
+\renewcommand{\cftchapdotsep}{\cftdotsep}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+% Listings style
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny
+}
+
+\begin{document}
+
+% ===== FRONT MATTER (Roman numerals) =====
+\pagenumbering{roman}
+\pagestyle{plain}
+
+% ---------- TITLE PAGE ----------
+\begin{titlepage}
+\centering
+\vspace*{0.5in}
+
+{\fontsize{28}{34}\selectfont\bfseries SIVO\par}
+\vspace{0.4in}
+
+\includegraphics[width=1.86in]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image1.jpeg}\par
+\vspace{0.4in}
+
+{\fontsize{14}{17}\selectfont\bfseries Muhammad Abubakr \quad BSE223219\par}
+\vspace{0.15in}
+{\fontsize{14}{17}\selectfont\bfseries Ahmad Abdullah Hashmi \quad BSE223105\par}
+\vspace{0.15in}
+{\fontsize{14}{17}\selectfont\bfseries Saail Abbas \quad BSE223144\par}
+\vspace{0.6in}
+
+{\fontsize{14}{17}\selectfont\bfseries Supervised By\par}
+\vspace{0.1in}
+{\fontsize{14}{17}\selectfont\bfseries Miss Khizra Bibi\par}
+\vspace{0.5in}
+
+{\fontsize{14}{17}\selectfont\bfseries Fall 2025\par}
+\vspace{0.2in}
+{\fontsize{14}{17}\selectfont\bfseries BSSE\par}
+\vspace{0.4in}
+
+{\fontsize{14}{17}\selectfont\bfseries Department of Software Engineering\par}
+\vspace{0.15in}
+{\fontsize{14}{17}\selectfont\bfseries Capital University of Science \& Technology, Islamabad\par}
+
+\vfill
+\end{titlepage}
+
+% ---------- PROJECT REPORT PAGE ----------
+\newpage
+\thispagestyle{empty}
+
+\vspace*{0.4in}
+
+% --- Header with Centered Title and Right-Aligned Logo ---
+\noindent
+\begin{minipage}{0.33\textwidth}
+\strut
+\end{minipage}%
+\begin{minipage}{0.33\textwidth}
+\centering
+{\fontsize{20}{24}\selectfont\bfseries Project Report\par}
+\end{minipage}%
+\begin{minipage}{0.33\textwidth}
+\raggedleft
+\includegraphics[width=1.22in]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image2.jpg}
+\end{minipage}
+
+\vspace{0.8in}
+
+% --- Version and Members Row ---
+\noindent
+\begin{tabular}{|>{\columncolor{black}\color{white}\bfseries}p{1.2in}|p{1.5in}|}
+\hline
+VERSION & V X.0 \\
+\hline
+\end{tabular}
+\hfill
+\begin{tabular}{|>{\columncolor{black}\color{white}\bfseries\centering\arraybackslash}p{1.4in}|p{0.6in}|}
+\hline
+NUMBER OF \newline MEMBERS & 3 \\
+\hline
+\end{tabular}
+
+\vspace{0.4in}
+
+% --- Title Row ---
+\noindent
+\begin{tabular}{|>{\columncolor{black}\color{white}\bfseries}p{1.2in}|p{4.72in}|}
+\hline
+TITLE & SIVO: Two-Way Sign Language Translator \\
+\hline
+\end{tabular}
+
+\vspace{0.4in}
+
+% --- Supervisor Row ---
+\noindent
+\begin{tabular}{|>{\columncolor{black}\color{white}\bfseries}p{1.7in}|p{4.22in}|}
+\hline
+SUPERVISOR NAME & Miss Khizra Bibi \\
+\hline
+\end{tabular}
+
+\vspace{0.6in}
+
+% --- Members Table ---
+\noindent
+\begin{tabular}{|p{2in}|p{1.3in}|p{2.3in}|}
+\hline
+\rowcolor{black}\textcolor{white}{\textbf{MEMBER NAME}} & \textcolor{white}{\textbf{REG. NO.}} & \textcolor{white}{\textbf{EMAIL ADDRESS}} \\
+\hline
+Muhammad Abubakr & BSE223219 & \\ \hline
+Ahmad Abdullah Hashmi & BSE223105 & \\ \hline
+Saail Abbas & BSE223144 & \\ \hline
+\end{tabular}
+
+\vspace{0.6in}
+
+% --- Signatures Section ---
+\noindent
+\begin{minipage}[t]{0.5\textwidth}
+    % Black Header Box for Members
+    \begin{tabular}{|>{\columncolor{black}\color{white}\bfseries\centering\arraybackslash}p{2.5in}|}
+    \hline
+    MEMBERS' SIGNATURES \\
+    \hline
+    \end{tabular}
+    
+    \vspace{0.6in}
+    \rule{2.5in}{0.8pt} % Signature Line 1
+    
+    \vspace{0.4in}
+    \rule{2.5in}{0.8pt} % Signature Line 2
+    
+    \vspace{0.4in}
+    \rule{2.5in}{0.8pt} % Signature Line 3
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+    \vspace{0.2in} % Adjust vertical alignment to match the left side
+    \centering
+    % Framed Box for Supervisor
+    \framebox{\parbox[c][1.8in][c]{2.5in}{\centering \textbf{Supervisor's Signature}}}
+\end{minipage}
+
+% ---------- APPROVAL CERTIFICATE ----------
+\chapter*{Approval Certificate}
+\addcontentsline{toc}{chapter}{Approval Certificate}
+\markboth{Approval Certificate}{}
+
+This project, entitled as ``SIVO: Two-Way Sign Language Translator'' has been approved for the award of
+
+\vspace{0.3in}
+\begin{center}
+{\fontsize{14}{17}\selectfont\bfseries Bachelors of Science in Software Engineering\par}
+\end{center}
+
+\vspace{0.4in}
+\textbf{Committee Signatures:}
+
+\vspace{0.4in}
+Supervisor: \rule{3in}{0.4pt}
+
+\hspace{0.5in}(Supervisor Name Dr / Mr / Ms)
+
+\vspace{0.4in}
+Project Coordinator: \rule{3in}{0.4pt}
+
+\hspace{0.5in}(Mr. Ibrar Arshad)
+
+\vspace{0.4in}
+Head of Department: \rule{3in}{0.4pt}
+
+\hspace{0.5in}(Dr. Nadeem Anjum)
+
+\vspace{0.5in}
+\textbf{MEMBERS' SIGNATURES}
+
+% ---------- DECLARATION ----------
+\newpage
+\thispagestyle{plain} % Ensure page number is at the bottom center, or empty if preferred
+
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+\markboth{Declaration}{}
+
+\vspace{0.2in}
+
+\noindent We, hereby, declare that ``No portion of the work referred to, in this project has been submitted in support of an application for another degree or qualification of this or any other university/institute or other institution of learning''. It is further declared that this undergraduate project, neither as a whole nor as a part thereof has been copied out from any sources, wherever references have been provided.
+
+\vspace{2.5in}
+
+\begin{flushright}
+\begin{minipage}{0.45\textwidth}
+    \begin{tabular}{|>{\columncolor{black}\color{white}\bfseries\centering\arraybackslash}p{2.5in}|}
+    \hline
+    MEMBERS' SIGNATURES \\
+    \hline
+    \end{tabular}
+    
+    \vspace{0.6in}
+    \rule{2.5in}{0.8pt}
+    
+    \vspace{0.4in}
+    \rule{2.5in}{0.8pt}
+    
+    \vspace{0.4in}
+    \rule{2.5in}{0.8pt}
+\end{minipage}
+\end{flushright}
+% ---------- ACKNOWLEDGEMENTS ----------
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+\markboth{Acknowledgements}{}
+
+We would like to express our sincere gratitude to all those who contributed to the successful completion of this project.
+
+First and foremost, we thank our project supervisor for providing invaluable guidance, support, and encouragement throughout the development of SIVO.
+
+We are also grateful to our faculty members and the Department of Computer Science for providing us with the necessary resources and facilities.
+
+Special thanks to the deaf community members who participated in our testing and provided valuable feedback that helped improve the application.
+
+Finally, we thank our families and friends for their continuous support and understanding during this journey.
+
+% ---------- DEDICATION ----------
+\chapter*{Dedication}
+\addcontentsline{toc}{chapter}{Dedication}
+\markboth{Dedication}{}
+
+\textit{This project is dedicated to the deaf and mute community of Pakistan, with the hope that SIVO will help bridge the communication gap and create a more inclusive society.}
+
+% ---------- EXECUTIVE SUMMARY ----------
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+\markboth{Executive Summary}{}
+
+SIVO is a mobile application designed to facilitate real-time, two-way communication between deaf and hearing individuals in Pakistan. The application addresses a significant gap in the market by providing the first dedicated Pakistani Sign Language (PSL) translator.
+
+The system operates in two modes: Sign-to-Speech, which converts hand gestures captured through the mobile camera into spoken audio using artificial intelligence, and Speech-to-Sign, which transforms spoken words into animated sign language performed by a 3D avatar.
+
+Key features of SIVO include real-time translation, grammar correction using the Grok API, conversation history management, and a freemium monetization model. The application is built using React Native for the mobile frontend and Python Flask for the backend AI processing.
+
+The primary target users are business owners and employees in organizations who need to communicate with deaf colleagues or customers. By eliminating communication barriers, SIVO aims to promote workplace inclusion and improve professional interactions for the deaf community.
+
+This report documents the complete development lifecycle of SIVO, including requirements analysis, system design, implementation, and deployment procedures.
+
+% ---------- TABLE OF CONTENTS ----------
+\newpage
+\tableofcontents
+
+% ---------- LIST OF FIGURES ----------
+\newpage
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+
+% ---------- LIST OF TABLES ----------
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+
+% ===== MAIN MATTER (Arabic numerals) =====
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{fancy}
+
+% ==========================================================
+% CHAPTER 1: INTRODUCTION
+% ==========================================================
+\chapter{Introduction}
+
+In Pakistan, many people are deaf and silent, and they face many challenges that limit their ability to communicate effectively. First, in the environment of business and workplace, deaf persons struggle to engage in meetings, distribute presentations, or serve customers efficiently, which affects their professional development and confidence. Secondly, listeners also find it difficult to interact naturally with their deaf colleagues or customers, leading to social and professional isolation for both sides. Third, there is still no reliable and accessible digital solution that can translate specifically PSL sign language into speech in real time. There are several applications and websites for languages like ASL and BSL but not for local PSL.
+
+The project, called SIVO, is designed to solve this problem. SIVO is a mobile application that works like Google Translator, but instead of converting a spoken language into another, it turns Pakistani Sign Language (PSL) into speech, and turns speech back into PSL. For example, when a deaf person signs in front of the camera, the application will turn it into clear Urdu or English speech. And when a hearing person speaks, the application will turn it into PSL gestures on the screen. In this way, both sides can eventually understand each other without the requirement of a third person.
+
+To make it possible, a dataset of normal PSL signals will first be collected. Then, a machine learning model will be trained to correctly identify these signs. After that, a mobile application will be created that adds camera to sign input and uses speech technology for voice translation. Finally, the application will be tested with business people and employees to ensure that it works in real situations. Step by step, SIVO will transform from an idea into an actual tool that helps thousands of people to communicate better in their jobs, businesses, and everyday life.
+
+\section{Project Introduction}
+
+“The goal of this project was to develop SIVO, a mobile application capable of bidirectional translation between Pakistani Sign Language (PSL) and spoken language”.
+
+To build this system, a diverse PSL dataset was collected, incorporating pre-existing legacy recordings, user webcam captures, and 1080p mobile videos across more than 140 word classes. Rather than training on raw images using Convolutional Neural Networks (CNNs), the system utilized MediaPipe Holistic to extract dynamic facial, pose, and hand landmarks. This sequential data was preprocessed using a sliding window technique and extensive data augmentation to train a robust GRU-based Recurrent Neural Network capable of recognizing temporal, continuous signs. The final model was optimized using TensorFlow Lite (TFLite) for high-speed inference.
+
+
+Following word prediction, a custom "Smart Match" algorithm was implemented to map recognized words into grammatically appropriate sentences based on a conversational knowledge base (with third-party APIs available as a fallback). For the reverse communication flow (Speech-to-Sign), on-device speech recognition transcribes spoken language. An NLP pipeline lemmatizes the text and maps the resulting words to a bundled dictionary of pre-recorded 3D avatar videos, displaying them as a seamless visual sequence.
+All of these phases—data collection, model training, prediction, sentence formation, and speech conversion—have been successfully integrated into a real-time, cross-platform mobile application. 
+
+
+A deaf user can sign in front of the camera, and a hearing user can simply speak, enabling smooth two-way communication. The primary beneficiaries of this project are businesses and organizations in Pakistan, where communication barriers with deaf individuals have historically hindered productivity and workplace inclusion \hyperlink{ref1}{[1]}, \hyperlink{ref7}{[7]}.
+
+
+
+\textbf{Business People:} SIVO helps business owners and entrepreneurs communicate smoothly with clients, employees, and partners. It removes the communication barrier during meetings, customer interactions, and daily operations, making business activities more inclusive and efficient.
+
+\textbf{Employees in Large Organizations:} SIVO supports employees, especially those in corporate or office environments, by enabling clear two-way communication between deaf and hearing staff. It ensures better teamwork, understanding in meetings, and overall workplace accessibility.
+
+\subsection{System Design Document}
+
+\textbf{a) App Concept}
+
+The main concept is to create a two-way, real-time communication bridge.
+
+\begin{itemize}
+  \item \textbf{Sign-to-Speech:} The system uses machine learning, specifically MediaPipe and feed-forward network (MLP) model, to analyze the user's hand, currency, and facial gestures through a live video feed, converting them into Urdu or English.
+  \item \textbf{Speech-to-Sign:} To display the correct PSL signals on the screen, a custom animation/gesture engine uses speech-to-text processing, which translates the spoken word into visual communication.
+\end{itemize}
+
+The creation of the application includes PSL gestures, advanced AI model training, and a simple, user-friendly mobile interface with comprehensive data collection.
+
+\textbf{b) Target Audience}
+
+\begin{itemize}
+  \item \textbf{Primary:} Business owners and employees in big organizations who are deaf and mute individuals who use Pakistani Sign Language (PSL).
+  \item \textbf{Secondary:} Family members, teachers, businesses, healthcare professionals, and anyone who regularly interacts with the deaf community.
+\end{itemize}
+
+\textbf{c) App Flow (User Journey)}
+
+The following figure illustrates the application flow and user journey through the SIVO system. Figure~\ref{fig:appflow} demonstrates the complete user journey through the SIVO application, 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image3.jpg}
+\caption{SIVO Application Flow Diagram}
+\label{fig:appflow}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Opening the App:} User lands on a clean, dual-mode screen (Sign to Speech or Speech to Sign).
+  \item \textbf{Sign-to-Speech:}
+  \begin{itemize}
+    \item Deaf User taps the ``Sign'' button.
+    \item Camera view opens.
+    \item User performs their sign language.
+    \item User taps ``Convert''.
+    \item The application displays the translated text and immediately speaks the sentence in the selected output language (Urdu/English).
+  \end{itemize}
+  \item \textbf{Speech-to-Sign:}
+  \begin{itemize}
+    \item Hearing User taps the ``Speech'' button.
+    \item User speaks into the microphone.
+    \item The application instantly processes the speech and displays the corresponding sign language gestures as a smooth, animated sequence on the screen.
+  \end{itemize}
+\end{itemize}
+
+\textbf{d) Project Scope}
+
+The scope of this project is to design and develop SIVO, a mobile application that bridges the communication gap between the deaf/mute community and the speaking population. The application will provide real-time translation of Pakistani Sign Language (PSL) into spoken Urdu/English and convert spoken Urdu/English into PSL gestures using animations or visuals.
+
+\textbf{Inclusions:}
+\begin{itemize}
+  \item Real-time sign recognition through the mobile camera.
+  \item Conversion of PSL gestures into speech (Urdu and English) (300 to 400 words).
+  \item Conversion of spoken Urdu/English into PSL animations.
+  \item A simple, user-friendly interface accessible to all age groups.
+  \item Support for mobile platforms (Android initially, iOS later if time allows).
+\end{itemize}
+
+\textbf{Exclusions:}
+\begin{itemize}
+  \item Support for international sign languages beyond PSL (e.g., ASL, BSL).
+  \item Advanced personalization features (like saving conversations, offline training).
+  \item No more than 400 words, but the dictionary can be increased with time.
+\end{itemize}
+
+\textbf{Boundaries:} This project will focus only on basic daily-life conversations and business-related communication between deaf/mute users and normal speakers within Pakistan. The solution will be scalable in the future to add more languages, advanced features, and cross-platform support.
+
+\section{Existing Examples / Solutions}
+
+Table~\ref{tab:existing} compares the existing sign language translation solutions available in the market. It highlights the languages supported, the key functionalities offered, and the shortcomings of each product. This comparison clearly shows the gap in the market regarding Pakistani Sign Language (PSL), which SIVO aims to fill.
+
+\begin{longtable}{|p{1.0in}|p{1.1in}|p{1.7in}|p{1.7in}|}
+\caption{Comparison of Existing Sign Language Solutions}\label{tab:existing}\\
+\hline
+\textbf{Product/System} & \textbf{Sign Language} & \textbf{Functionality} & \textbf{Shortcomings / Missing Feature} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Product/System} & \textbf{Sign Language} & \textbf{Functionality} & \textbf{Shortcomings / Missing Feature} \\
+\hline
+\endhead
+Sign-Speak (Website) & American Sign Language (ASL) & Two-way translation (Sign to Text/Speech) & Crucially, it does not support PSL, making it unusable for the core Pakistani market. \\
+\hline
+Hand Talk (App) & American Sign Language (ASL) & Often a dictionary or isolated word recognition. & Focus solely on ASL. Limited to isolated words, not continuous, natural sentences. \\
+\hline
+Lingvano (App) & BSL, ASL, Australian Sign Language & Subscription-based app with video lessons, interactive exercises, self-practice tools. & Paid App, free features are too limited. Problems with media not playing video and pictures during lesson. Progress lost when restarting. \\
+\hline
+ASL Bloom (App) & American Sign Language (ASL) only & 120 video lessons covering more than 1300 signs and sentences. Searchable dictionary of signs. Interactive Quizzes. & Premium Subscription Only. Follow sequence of videos in fixed order. For advanced ASL it fails. No Real Time Gestures only video lessons. \\
+\hline
+Let's Talk Sign (App) & Indian Sign Language (ISL) only & Real Time speech to Sign, Text to Sign, Text to speech, Camera to scan text, Ready-made sentences. & Scan option only scans printed text. Offline features are more simple. Real-time recognition can cause errors due to gestures and speed of speech. \\
+\hline
+\end{longtable}
+
+The main drawback of existing solutions is the total lack of support for Pakistani Sign Language (PSL) in a real-time, continuous, two-way translation application. SIVO aims to fill this gap by creating the first dedicated, strong application for the PSL community. While proving products such as Sign-Speak is technically possible, the focus on PSL data collection and modeling is a unique selling point that works in a large-scale, neglected market.
+
+\section{Business Scope}
+
+SIVO has an important ability to be a viable, life-changing commercial product due to focusing on a large market.
+
+\textbf{Target Market and Professional Capacity:}
+
+\begin{itemize}
+  \item \textbf{Core Users:} SIVO's primary users are business owners, salespersons, and workers in mid-size and large companies. These professionals often face serious challenges in connecting with deaf/silent customers or colleagues, causing communication intervals, productivity loss, and lost opportunities.
+  \item \textbf{Professional Environment:} The application is particularly valuable in customer-supported roles such as retail counters, sales offices, service desks, and corporate workplaces, where direct communication is important for smooth operation and customer satisfaction.
+\end{itemize}
+
+Table~\ref{tab:leancanvas} presents the Lean Canvas Template for the SIVO project. It summarizes the core problem, proposed solution, unique value proposition, customer segments, revenue streams, and other essential business elements that define the project's commercial viability and market strategy.
+
+\begin{longtable}{|p{1.6in}|p{4.3in}|}
+\caption{Lean Canvas Template}\label{tab:leancanvas}\\
+\hline
+\textbf{Section} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Section} & \textbf{Description} \\
+\hline
+\endhead
+Problem & 1. Deaf and mute individuals struggle to communicate in workplaces and business environments, especially with managers and customers. 2. Hearing people find it difficult to understand or respond to sign language, creating communication gaps and inefficiency. 3. There is no real-time, reliable mobile solution in Pakistan that can translate PSL sign language into speech and vice versa. \\
+\hline
+Solution & Develop a real-time mobile application that converts sign gestures into spoken words and speech into animated signs. Use custom-built dataset for training of PSL sign Language. \\
+\hline
+Unique Value Proposition (UVP) & A two-way communication app that performs sentence-level translation between Pakistani Sign Language (PSL) and speech, enabling instant, natural communication between deaf and hearing users. \\
+\hline
+Unfair Advantage & The custom dataset is created completely by the team with real-world sign variations. No one else can copy or replicate it easily. This gives a unique, proprietary edge in PSL-based communication systems. \\
+\hline
+Customer Segments & Deaf and mute employees in professional and business environments. Business owners, managers, and salespeople who work with or serve deaf clients. \\
+\hline
+Existing Alternatives & Sign-Speak (website) - Built for ASL, not PSL. SignAll / HandTalk / other apps - Mostly trained on ASL/other languages and often only do word-level or demo translations. \\
+\hline
+Key Metrics & Translation accuracy (both sign to speech and speech to sign). Response time during real-time translation. Number of active users and retention rate. User satisfaction and feedback ratings. \\
+\hline
+High-Level Concept & ``SIVO is like a Google Translator for Sign Language - but designed specifically for real-time, two-way workplace communication.'' \\
+\hline
+Channels & App stores (Google Play, Apple App Store). Social media campaigns and professional awareness events. \\
+\hline
+Early Adopters & Business people and employees within the team's own family and close network who face communication barriers while interacting with deaf coworkers or clients. \\
+\hline
+Cost Structure & Data collection and labeling. Server hosting and maintenance. \\
+\hline
+Revenue Structure & Freemium model with a paid premium version. In-app ads or accessibility-focused subscriptions. \\
+\hline
+\end{longtable}
+
+\subsection{Monetization Model}
+
+Since this project is based on a mobile application that translates Pakistani Sign Language (PSL) into text/speech, several ways can be explored to make it sustainable and profitable:
+
+\begin{itemize}
+  \item \textbf{Freemium (Main Model):} The application will be free to use for basic translations (daily conversation gestures). Users who need advanced features, like business vocabulary packs, offline usage, or premium voices, can upgrade to the paid version.
+  \item \textbf{Advertising (Optional):} Light, non-intrusive ads can be shown in the free version (for example: small banners at the bottom). But since this application serves a sensitive audience, ads should never interrupt or annoy the user.
+\end{itemize}
+
+\section{Useful Tools and Technologies}
+
+\textbf{1. Programming Language}
+\begin{itemize}
+  \item Python will be used for building the sign recognition model because it is the best choice for AI/ML projects. It has powerful libraries like TensorFlow, Keras, and OpenCV which make gesture recognition easier.
+  \item For the mobile application itself, Kotlin will be used because it allows building Android applications.
+\end{itemize}
+
+\textbf{2. Development Environment}
+\begin{itemize}
+  \item PyCharm / Jupyter Notebook for building and testing the AI model (because they are great for debugging and experimenting with ML code).
+  \item Android Studio / VS Code for Kotlin application development (because they provide strong support for mobile UI design and debugging).
+\end{itemize}
+
+\textbf{3. Database}
+\begin{itemize}
+  \item Firebase will be used because it is cloud-based, real-time, and integrates smoothly with Flutter applications. It will store user data, application preferences, and sign vocabulary sets.
+\end{itemize}
+
+\textbf{4. Operating Systems}
+\begin{itemize}
+  \item Android is the main target since the application will be mobile-first.
+  \item Later, the project can also be extended to Web for schools and offices.
+\end{itemize}
+
+\textbf{5. Network Protocol}
+\begin{itemize}
+  \item HTTP/HTTPS will be used to connect the mobile application with cloud services (Firebase, APIs, or AI model updates).
+  \item This ensures secure communication, especially when sending/receiving sign translation data.
+\end{itemize}
+
+\section{Project Work Breakdown}
+
+Table~\ref{tab:wbs} presents the Project Work Breakdown Structure for the SIVO development. It divides the entire project into logical phases and sub-phases, assigns lead members and supporting members for each task, and provides a clear overview of responsibilities. This structured breakdown ensures efficient task distribution and accountability among team members.
+
+\begin{longtable}{|p{1.2in}|p{2.2in}|p{1in}|p{1.3in}|}
+\caption{Project Work Breakdown Structure}\label{tab:wbs}\\
+\hline
+\textbf{Phase \& Sub-Phase} & \textbf{Task Description} & \textbf{Lead Member} & \textbf{Supporting Members} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Phase \& Sub-Phase} & \textbf{Task Description} & \textbf{Lead Member} & \textbf{Supporting Members} \\
+\hline
+\endhead
+\multicolumn{4}{|l|}{\textbf{P1. Requirements \& Analysis}} \\
+\hline
+P1.1 & Finalize PSL Vocabulary & Saail & All \\
+\hline
+P1.2 & Define System Architecture (Database, Model Structure) & Ahmed & Abubakar \\
+\hline
+\multicolumn{4}{|l|}{\textbf{P2. Design \& Data Acquisition}} \\
+\hline
+P2.1 & Data Collection Tools \& Environment Setup & Ahmed & All \\
+\hline
+P2.2 & PSL Video Dataset Gathering \& Labeling & All & All \\
+\hline
+P2.3 & Raw Data Preprocessing Pipeline (MediaPipe) & Abubakar & Saail \\
+\hline
+P2.4 & Sign-To-Speech Logic Design & Abubakar & Saail \\
+\hline
+\multicolumn{4}{|l|}{\textbf{P3. Implementation}} \\
+\hline
+P3.1 & Mobile App Frontend \& UI/UX Development & Abubakar & Saail (Feedback) \\
+\hline
+P3.2 & Word-Level Model Training (MLP or best accuracy) & Abubakar & Ahmed \\
+\hline
+P3.3 & Sentence-Level Model (Grok API) & Saail & Ahmed \\
+\hline
+P3.4 & Grammar Correction Module Development & Abubakar & Saail \\
+\hline
+\multicolumn{4}{|l|}{\textbf{P4. Testing \& Integration}} \\
+\hline
+P4.1 & Model Optimization \& TFLite Conversion & Abubakar & Saail \\
+\hline
+P4.2 & Backend Integration (Sign to Speech Modules) & Abubakar & Saail \\
+\hline
+P4.3 & Alpha/Beta Testing and Quality Assurance (QA) & All & All \\
+\hline
+\multicolumn{4}{|l|}{\textbf{P5. Deployment \& Finalization}} \\
+\hline
+P5.1 & Final Bug Fixing and Performance Tuning & Abubakar & Saail \\
+\hline
+P5.2 & Documentation, Report \& Presentation & All & All \\
+\hline
+\end{longtable}
+
+Figure~\ref{fig:sysdev} illustrates the overall SIVO system development architecture, showing the key components and their interactions within the application ecosystem. It provides a high-level visual summary of how the various development phases integrate to produce the final functional system.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image4.jpg}
+\caption{SIVO System Development Overview}
+\label{fig:sysdev}
+\end{figure}
+
+\section{Project Timeline}
+
+Table~\ref{tab:timeline} presents the detailed project timeline with phase IDs, components, allocated time in weeks, percentage distribution, and justification for the time allocation. This breakdown helps visualize the distribution of effort across the different stages of the project lifecycle.
+
+\begin{longtable}{|p{0.6in}|p{1.2in}|p{0.7in}|p{0.8in}|p{2.1in}|}
+\caption{Project Timeline}\label{tab:timeline}\\
+\hline
+\textbf{Phase ID} & \textbf{Component} & \textbf{Time (Weeks)} & \textbf{Percentage} & \textbf{Justification} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Phase ID} & \textbf{Component} & \textbf{Time (Weeks)} & \textbf{Percentage} & \textbf{Justification} \\
+\hline
+\endhead
+P1 & Requirement Gathering \& Analysis & 2 & 6\% & Defining the scope, PSL vocabulary, and final system architecture. \\
+\hline
+P2 & Design \& Data Acquisition & 8 & 30\% & Highest Allocation: Includes critical PSL Data Collection, the most time-consuming task. \\
+\hline
+P3 & Implementation \& Model Training & 13 & 31.25\% & Focused on model training and mobile development. \\
+\hline
+P4 & Testing \& Integration & 3 & 18.75\% & Integration of ML model into mobile app and comprehensive testing. \\
+\hline
+P5 & Deployment \& Finalization & 2 & 6.5\% & Final bug fixing, report writing, and project handover. \\
+\hline
+\textbf{Total} & --- & \textbf{28 Weeks} & \textbf{100\%} & Approximately 8 months project duration. \\
+\hline
+\end{longtable}
+
+The following Gantt chart provides a visual representation of the project timeline. Figure~\ref{fig:gantt} illustrates the project timeline in Gantt chart format, showing the duration and overlap of various project phases from requirements gathering through deployment and finalization. This visualization helps in tracking progress and understanding dependencies between different phases.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image5.jpg}
+\caption{Project Gantt Chart}
+\label{fig:gantt}
+\end{figure}
+
+% ==========================================================
+% CHAPTER 2: REQUIREMENT SPECIFICATION AND ANALYSIS
+% ==========================================================
+\chapter{Requirement Specification and Analysis}
+
+This section provides a comprehensive explanation of the complete functionality of the SIVO application. It encompasses the major features, user stories, test cases, and the operational workflow of the entire system including sign-to-speech conversion, speech-to-sign translation, grammar correction mechanisms, user interface design, performance optimization, and security implementations. Each epic represents a group of related features, while each user story describes a specific user requirement. Every story is accompanied by a test case to verify its correct functionality.
+
+\section{SIVO Epics}
+
+\subsection{Epic 1: User Account and Security}
+
+\textbf{Description:}
+
+As a user, the requirement is to create and manage a secure personal account so that conversation history, custom settings, and personal data remain private and accessible only to the authorized user. This epic encompasses the entire authentication process. Since SIVO handles personal conversations between deaf and hearing users, security is considered a top priority. This module ensures that users can sign up easily, log in quickly using modern methods such as Google authentication, and safely log out upon completion, ensuring that no unauthorized person can access their private translations.
+
+\subsection{Epic 2: Sign-to-Speech Translation}
+
+\textbf{Description:}
+
+As a deaf user, the requirement is to utilize the mobile camera to record hand gestures and have them converted into spoken audio so that communication with hearing people becomes possible without needing a human interpreter. This epic represents the core feature for deaf users. It involves capturing video, utilizing Artificial Intelligence to recognize hand shapes, correcting the grammar of the detected words to make them sound natural, and finally playing the result out loud. The objective is to bridge the gap from visual language to audio language in real-time.
+
+\subsection{Epic 3: Speech-to-Sign Avatar}
+
+\textbf{Description:}
+
+As a hearing user, the requirement is to speak into the application and observe a 3D avatar perform the corresponding sign language movements so that messages can be conveyed to a deaf person visually. This epic represents the core feature for hearing users. It handles the reverse process: capturing voice, converting it to text, finding the correct 3D animation for each word, and rendering a smooth 3D character on the screen. This enables the deaf user to visually perceive what is being said.
+
+\subsection{Epic 4: Conversation History and Chat}
+
+\textbf{Description:}
+
+As a user, the requirement is to save translations in a chat-like history log so that past conversations can be reviewed and important information exchanged during the session can be tracked. This epic manages the data persistence of the application. It ensures that the translation is not merely a one-time event but is recorded in a ``Live Chat'' screen while it occurs, and then permanently archived in a ``History'' tab. This makes the application feel like a complete communication tool, similar to WhatsApp, rather than just a simple translator.
+
+\subsection{Epic 5: Monetization and Freemium Model}
+
+\textbf{Description:}
+
+As a product owner, the requirement is to implement a Freemium business model with advertisements and premium plans so that the application generates revenue to cover server costs while remaining accessible to free users. This epic ensures the sustainability of the project. It defines how free users interact with the application through viewing advertisements and what benefits paid users receive such as no advertisements and faster processing. This balance is crucial for maintaining the application's long-term operation.
+
+\section{User Stories}
+
+User Stories are concise, user-focused descriptions of specific features derived from epics. These represent small, actionable requirements that can be completed within a short development cycle. Each user story captures what the user needs and the rationale behind it, ensuring the system is developed from the end user's perspective.
+
+\subsection{US1.1 EP1: Google Sign-In}
+
+\textbf{Description:} As a user, the requirement is to log in using an existing Google account so that there is no need to remember a new password or fill out lengthy registration forms.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is on the Login Screen,
+  \item When the user taps the ``Continue with Google'' button,
+  \item Then a Google popup should appear asking for permission.
+  \item Then after approval, the user should be instantly logged in and redirected to the Home Screen.
+\end{itemize}
+
+\subsection{US1.2 EP1: Email Registration}
+
+\textbf{Description:} As a user, the requirement is to create an account using email and a custom password so that there is a backup method to access the account if Google is not used.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is on the Sign-Up screen,
+  \item When a valid email and a strong password are entered,
+  \item Then the system should create a new user profile in the database.
+  \item Then the application should display a ``Success'' message and log the user in.
+\end{itemize}
+
+\subsection{US1.3 EP1: Secure Logout}
+
+\textbf{Description:} As a user, the requirement is to log out of the account securely so that private conversation history stays safe if the phone is lent to another person.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is currently logged in,
+  \item When the ``Logout'' button in the settings menu is clicked,
+  \item Then the application should clear the session data immediately.
+  \item Then the user should be returned to the Login Screen.
+\end{itemize}
+
+\subsection{US1.4 EP1: User Profile Management}
+
+\textbf{Description:} As a user, the requirement is to view profile details such as name and email so that confirmation of which account is currently being used is available.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is logged in,
+  \item When navigation to the ``Profile'' tab occurs,
+  \item Then the full name and email address should be displayed clearly.
+\end{itemize}
+
+\subsection{US2.1 EP2: Camera Permission and Setup}
+
+\textbf{Description:} As a deaf user, the requirement is for the application to ask for permission to use the camera so that recording of signs can start immediately.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user opens the ``Sign-to-Speech'' feature for the first time,
+  \item When the screen loads,
+  \item Then a system popup should ask ``Allow SIVO to access camera?''.
+  \item Then if allowed, the camera preview should start immediately.
+\end{itemize}
+
+\subsection{US2.2 EP2: Recording Hand Signs}
+
+\textbf{Description:} As a deaf user, the requirement is to press a record button to capture a video of signing so that the system can process it.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the camera preview is active,
+  \item When the user taps the ``Start Recording'' button,
+  \item Then the application should record video for up to 5-10 seconds.
+  \item Then a visual indicator such as a red dot should show that recording is in progress.
+\end{itemize}
+
+\subsection{US2.3 EP2: AI Grammar Correction}
+
+\textbf{Description:} As a deaf user, the requirement is for the system to fix broken sign glosses such as ``Me Hungry'' into proper sentences such as ``I am hungry'' so that the user sounds professional to others.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the AI has detected raw words from the video,
+  \item When the processing is complete,
+  \item Then the screen should display a grammatically correct English sentence, not just a list of keywords.
+\end{itemize}
+
+\subsection{US2.4 EP2: Text-to-Speech Audio}
+
+\textbf{Description:} As a deaf user, the requirement is for the application to speak the translated text out loud so that the hearing person can understand without looking at the screen.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the translation text is ready,
+  \item When the text appears on the screen,
+  \item Then the phone's speaker should automatically play the audio version of that sentence in a clear voice.
+\end{itemize}
+
+\subsection{US3.1 EP3: Microphone Speech Capture}
+
+\textbf{Description:} As a hearing user, the requirement is to speak naturally into the microphone so that the application can capture the words for translation.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is in ``Speech-to-Sign'' mode,
+  \item When the microphone icon is tapped and speech occurs,
+  \item Then the application should convert the voice into text in real-time.
+\end{itemize}
+
+\subsection{US3.2 EP3: Text Tokenization}
+
+\textbf{Description:} As a system, the requirement is to break down long spoken sentences into key words so that matching sign animations in the database can be found.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user has spoken a full sentence,
+  \item When the server receives the text,
+  \item Then it should remove filler words and identify the main keywords such as ``Hello'', ``How'', ``You''.
+\end{itemize}
+
+\subsection{US3.3 EP3: 3D Avatar Rendering}
+
+\textbf{Description:} As a hearing user, the requirement is to see a 3D Avatar perform the signs on the screen so that the deaf user can visually understand the message.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the keywords have been identified,
+  \item When the animation data is retrieved,
+  \item Then the 3D character should play the sign animations smoothly one after another.
+\end{itemize}
+
+\subsection{US3.4 EP3: Animation Playback Speed}
+
+\textbf{Description:} As a deaf user, the requirement is to control the speed of the avatar through Normal or Slow options so that signs can be followed more easily if they are too fast.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the avatar is playing an animation,
+  \item When the user selects ``0.5x Speed'' in settings,
+  \item Then the avatar should move in slow motion, making the signs easier to read.
+\end{itemize}
+
+\subsection{US4.1 EP4: Live Conversation Log}
+
+\textbf{Description:} As a user, the requirement is to see a chat-style list of the current conversation so that track of what was just said is not lost.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given a translation through Sign or Speech is finished,
+  \item When the result is ready,
+  \item Then a new chat bubble containing the text should appear in the ``Live Conversation'' list instantly.
+\end{itemize}
+
+\subsection{US4.2 EP4: End and Save Session}
+
+\textbf{Description:} As a user, the requirement is for an ``End Conversation'' button that clears the screen and saves the chat so that a fresh session can be started.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given a conversation is active with multiple messages,
+  \item When the user clicks ``End Conversation'',
+  \item Then the current messages should be moved to the History database and the screen should be cleared.
+\end{itemize}
+
+\subsection{US4.3 EP4: Viewing Past History}
+
+\textbf{Description:} As a user, the requirement is to open a ``History'' tab to see a list of all past conversations sorted by date so that old information can be recalled.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is on the Home Screen,
+  \item When the ``History'' tab is tapped,
+  \item Then a list of cards should appear showing the date, time, and a preview of previous chats.
+\end{itemize}
+
+\subsection{US5.1 EP5: Free Basic Access}
+
+\textbf{Description:} As a new user, the requirement is to use the core translation features for free so that the application can be tested without payment.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is on the ``Free Plan'',
+  \item When the Sign-to-Speech or Speech-to-Sign features are used,
+  \item Then the features should work fully without blocking the user.
+\end{itemize}
+
+\subsection{US5.2 EP5: Ad Display for Free Users}
+
+\textbf{Description:} As a free user, the understanding is that advertisements will be displayed in the application so that the developers can support the free version.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is on the ``Free Plan'',
+  \item When the application is opened,
+  \item Then a small banner advertisement should be visible at the bottom of the screen, but it should not block any buttons.
+\end{itemize}
+
+\subsection{US5.3 EP5: Premium Subscription}
+
+\textbf{Description:} As a power user, the requirement is to upgrade to a premium plan so that advertisements can be removed and the project can be supported.
+
+\textbf{Acceptance Criteria:}
+\begin{itemize}
+  \item Given the user is on the settings page,
+  \item When ``Upgrade to Premium'' is clicked,
+  \item Then payment completion should be possible and the advertisements should disappear immediately.
+\end{itemize}
+\section{Test Cases}
+
+\subsection{Test Case 1}
+Provide all the relevant information like test-case description, inputs and expected output.
+\begin{table}[H]
+\centering
+\caption{Google Sign-In}
+\label{tab:tc1}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E1-US1-TC1 & US ID: US1.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate login using Google account. Ensure the user can log in quickly using Google credentials.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Open the app \newline 2. Tap Sign in with Google \newline 3. Select a Google account (demo\_user@gmail.com)} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: User is redirected to the Home Screen} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 2}
+\begin{table}[H]
+\centering
+\caption{Email Registration}
+\label{tab:tc2}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E1-US2-TC1 & US ID: US1.2 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate account creation via Email/Password to verify new user manual signup.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Enter Email (newuser@example.com) \newline 2. Enter Password (Pass123) \newline 3. Tap Register} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: New account created and user logged in} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 3}
+\begin{table}[H]
+\centering
+\caption{Secure Logout}
+\label{tab:tc3}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E1-US3-TC1 & US ID: US1.3 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate secure logout to ensure the session is cleared.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Open Settings \newline 2. Tap Logout \newline 3. Confirm logout} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: App returns to Login Screen} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 4}
+\begin{table}[H]
+\centering
+\caption{User Profile}
+\label{tab:tc4}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E1-US4-TC1 & US ID: US1.4 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Verify user profile details to confirm correct user data display from the database.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Open Profile tab \newline 2. Verify Name and Email (Name: Ali Khan)} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Correct Name and Email shown} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 5}
+\begin{table}[H]
+\centering
+\caption{Camera Permission}
+\label{tab:tc5}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E2-US1-TC1 & US ID: US2.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Verify camera permission prompt to ensure a permission request is shown before camera use.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Open Sign-to-Speech screen \newline 2. Wait for permission popup} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Camera permission popup appears} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 6}
+\begin{table}[H]
+\centering
+\caption{Video Recording}
+\label{tab:tc6}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E2-US2-TC1 & US ID: US2.2 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate video recording to ensure the camera records video properly.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Tap Start Recording \newline 2. Perform gestures (3 seconds) \newline 3. Tap Stop Recording} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Video file generated and saved} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 7}
+\begin{table}[H]
+\centering
+\caption{Grammar Correction}
+\label{tab:tc7}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E2-US3-TC1 & US ID: US2.3 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate AI grammar correction to convert sign gloss into proper English.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Input gloss text (``Me Go Store'') \newline 2. Send API request} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: ``I am going to the store.''} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 8}
+\begin{table}[H]
+\centering
+\caption{Audio Output}
+\label{tab:tc8}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E2-US4-TC1 & US ID: US2.4 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate text-to-speech to ensure translated text is spoken out loud.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Receive translated text (``Hello'') \newline 2. Trigger TTS} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Clear audio output is played} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 9}
+\begin{table}[H]
+\centering
+\caption{Microphone Input}
+\label{tab:tc9}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E3-US1-TC1 & US ID: US3.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate microphone input to capture and recognize speech.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Tap microphone icon \newline 2. Speak ``Hello''} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Text ``Hello'' is displayed} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 10}
+\begin{table}[H]
+\centering
+\caption{Tokenization}
+\label{tab:tc10}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E3-US2-TC1 & US ID: US3.2 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate sentence tokenization to extract keywords needed by the avatar.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Send sentence to server (``Where is the bank?'') \newline 2. Verify keywords} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Keywords returned: Where, Bank} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 11}
+\begin{table}[H]
+\centering
+\caption{Avatar Rendering}
+\label{tab:tc11}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E3-US3-TC1 & US ID: US3.3 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate avatar animation to ensure correct sign rendering.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Load animation data (anim\_hello\_01) \newline 2. Observe movement} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Avatar performs ``Hello'' sign} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 12}
+\begin{table}[H]
+\centering
+\caption{Speed Control}
+\label{tab:tc12}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E3-US4-TC1 & US ID: US3.4 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Verify animation speed control to allow users to slow down signing.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Set speed to 0.5x \newline 2. Play animation} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Animation plays at half speed} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 13}
+\begin{table}[H]
+\centering
+\caption{Live Chat Log}
+\label{tab:tc13}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E4-US1-TC1 & US ID: US4.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate real-time chat log to ensure translated text appears instantly in the conversation list.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Complete a Sign-to-Speech translation (``Thank you'') \newline 2. Observe the Chat screen} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Message bubble appears instantly in chat list} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 14}
+\begin{table}[H]
+\centering
+\caption{End and Save Session}
+\label{tab:tc14}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E4-US2-TC1 & US ID: US4.2 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate End and Save session to ensure chat is saved and current session is cleared.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Tap End Conversation \newline 2. Confirm End and Save alert} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Screen clears and chat moves to history} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 15}
+\begin{table}[H]
+\centering
+\caption{View History}
+\label{tab:tc15}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E4-US3-TC1 & US ID: US4.3 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Verify conversation history display to ensure saved conversations are retrievable.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Open History tab \newline 2. Check latest entry (Date: Today)} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: History card shows correct date and preview} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 16}
+\begin{table}[H]
+\centering
+\caption{Free Plan Access}
+\label{tab:tc16}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E5-US1-TC1 & US ID: US5.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate free plan access to ensure core features work without payment.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Login as new user \newline 2. Use Sign-to-Speech} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Feature works without restriction} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 17}
+\begin{table}[H]
+\centering
+\caption{Ad Display}
+\label{tab:tc17}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E5-US2-TC1 & US ID: US5.2 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate ad display to ensure ads are shown to free users.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Open Home Screen \newline 2. Check bottom area for AdMob Test Ad Unit} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Banner ad visible} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Test Case 18}
+\begin{table}[H]
+\centering
+\caption{Premium Upgrade}
+\label{tab:tc18}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E5-US3-TC1 & US ID: US5.3 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Validate premium upgrade UI to ensure the upgrade flow starts correctly.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: 1. Tap Upgrade to Premium \newline 2. Observe options (Monthly Subscription)} \\ \hline
+\rowcolor[gray]{0.6} \multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Plan or payment screen opens} \\ \hline
+\end{tabular}
+\end{table}
+
+\section{User Interface}
+
+\subsection{User Interface 1: Sign In Screen}
+Figure~\ref{fig:signin} displays the Sign In screen of the SIVO application. The screen presents a welcoming message ``Welcome Back, Sign In to Continue'' along with input fields for user credentials. This screen allows existing users to authenticate and access their accounts securely.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image6.png}
+\caption{Sign In Screen}
+\label{fig:signin}
+\end{figure}
+
+\subsection{User Interface 2: Create Account Screen}
+Figure~\ref{fig:createacc} illustrates the Create Account screen where new users can register for the SIVO application. The screen provides input fields for entering personal information such as name, email address, and password. This enables first-time users to create their accounts and begin using the translation features.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image7.png}
+\caption{Create Account Screen}
+\label{fig:createacc}
+\end{figure}
+
+\subsection{User Interface 3: Landing Page}
+Figure~\ref{fig:landing} presents the landing page of the SIVO application. This screen serves as the main navigation hub, providing users with two primary options: Sign-to-Speech and Speech-to-Sign translation modes. The interface is designed with large, accessible buttons to ensure ease of use for all users, including those with visual impairments.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image8.jpg}
+\caption{Landing Page with Translation Mode Options}
+\label{fig:landing}
+\end{figure}
+
+\subsection{User Interface 4: Sign-to-Speech Start Recording}
+Figure~\ref{fig:s2s-start} displays the Sign-to-Speech mode interface after the user has selected this option from the landing page. The screen shows the camera view with a prominent ``Start Recording'' button, indicating that the system is ready to capture hand signs performed by the deaf user.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image9.jpg}
+\caption{Sign-to-Speech Mode: Start Recording Interface}
+\label{fig:s2s-start}
+\end{figure}
+
+\subsection{User Interface 5: Sign-to-Speech Recording}
+Figure~\ref{fig:s2s-rec} shows the recording process in action. The screen displays a helpful message ``Frame Yourself in the Camera'' to guide the user in positioning themselves correctly for optimal sign detection. This instructional prompt ensures that hand signs are captured accurately by the camera.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image10.jpg}
+\caption{Sign-to-Speech Mode: Recording in Progress}
+\label{fig:s2s-rec}
+\end{figure}
+
+\subsection{User Interface 6: Sign-to-Speech Translating}
+Figure~\ref{fig:s2s-trans} illustrates the translation processing screen. After the recording is completed, the system processes the captured video frames using the AI model. A loading indicator is displayed to inform the user that the translation is currently in progress.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image11.jpg}
+\caption{Sign-to-Speech Mode: Translating in Progress}
+\label{fig:s2s-trans}
+\end{figure}
+
+\subsection{User Interface 7: Sign-to-Speech Output}
+Figure~\ref{fig:s2s-out} presents the translated text output screen. The grammatically corrected sentence generated from the detected sign language is displayed clearly on the screen. The text-to-speech functionality automatically reads the translated message aloud, enabling communication with hearing users.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image12.jpg}
+\caption{Sign-to-Speech Mode: Translated Text Output}
+\label{fig:s2s-out}
+\end{figure}
+
+\subsection{User Interface 8: Speech-to-Sign Start Recording}
+Figure~\ref{fig:sp2s-start} displays the Speech-to-Sign mode interface. The screen shows a microphone icon with a ``Start Recording'' message, indicating that the system is ready to capture spoken words from the hearing user. This mode enables hearing users to communicate with deaf users through sign language animations.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image13.jpg}
+\caption{Speech-to-Sign Mode: Start Recording Interface}
+\label{fig:sp2s-start}
+\end{figure}
+
+\subsection{User Interface 9: Speech-to-Sign Recording}
+Figure~\ref{fig:sp2s-rec} shows the speech recording process in action. The microphone is actively capturing the user's voice, and a visual indicator displays that recording is currently in progress. The user can speak naturally into the device microphone during this phase.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image14.jpg}
+\caption{Speech-to-Sign Mode: Recording in Progress}
+\label{fig:sp2s-rec}
+\end{figure}
+
+\subsection{User Interface 10: Speech-to-Sign Converting}
+Figure~\ref{fig:sp2s-conv} illustrates the conversion process where spoken words are being transformed into sign language animations. The screen displays a loading indicator with the message ``Converting to Sign Language,'' informing the user that the 3D avatar animation is being prepared for playback.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image15.jpg}
+\caption{Speech-to-Sign Mode: Converting to Sign Language}
+\label{fig:sp2s-conv}
+\end{figure}
+
+\subsection{User Interface 11: Live Chat}
+Figure~\ref{fig:chat} presents the live conversation chat interface. This screen displays the ongoing communication between two users in a chat-style format. Each translation, whether from Sign-to-Speech or Speech-to-Sign, appears as a message bubble, allowing both users to track the conversation flow in real-time.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image16.jpg}
+\caption{Live Conversation Chat Interface}
+\label{fig:chat}
+\end{figure}
+
+\subsection{User Interface 12: Conversion History}
+Figure~\ref{fig:history} displays the conversion history screen. This screen presents a chronological list of all past translations and conversations. Each entry shows the date, time, and a preview of the conversation, enabling users to review previous interactions and access important information from earlier sessions.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image17.jpg}
+\caption{Conversion History Screen}
+\label{fig:history}
+\end{figure}
+
+\subsection{User Interface 13: Settings Screen}
+Figure~\ref{fig:settings} illustrates the settings screen of the SIVO application. This screen provides users with various customization options including avatar animation speed, language preferences, notification settings, account management, and subscription options. Users can personalize their experience according to their preferences through this interface.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.38\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image18.jpg}
+\caption{Settings Screen}
+\label{fig:settings}
+\end{figure}
+
+\section{Traceability Matrix}
+
+The Traceability Matrix connects every requirement (User Story) to its corresponding Test Case and User Interface element, ensuring that no feature is left untested or undeveloped. Table~\ref{tab:traceability} presents the complete traceability mapping between epics, user stories, their test cases, and the associated UI components.
+
+\begin{longtable}{|p{0.7in}|p{1.8in}|p{1.4in}|p{1.4in}|}
+\caption{Traceability Matrix}\label{tab:traceability}\\
+\hline
+\textbf{Epic} & \textbf{User-Story} & \textbf{Test-Case} & \textbf{UI} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Epic} & \textbf{User-Story} & \textbf{Test-Case} & \textbf{UI} \\
+\hline
+\endhead
+Epic 1 & E1-US1.1 (Google Sign-In) & E1-US1-TC1 & E1-US1.1-UI01 \\ \hline
+Epic 1 & E1-US1.2 (Email Register) & E1-US2-TC1 & E1-US1.2-UI01 \\ \hline
+Epic 1 & E1-US1.3 (Secure Logout) & E1-US3-TC1 & E1-US1.3-UI01 \\ \hline
+Epic 1 & E1-US1.4 (User Profile) & E1-US4-TC1 & E1-US1.4-UI01 \\ \hline
+Epic 2 & E2-US2.1 (Camera Perms) & E2-US1-TC1 & E2-US2.1-UI01 \\ \hline
+Epic 2 & E2-US2.2 (Video Record) & E2-US2-TC1 & E2-US2.2-UI01 \\ \hline
+Epic 2 & E2-US2.3 (Grammar Fix) & E2-US3-TC1 & E2-US2.3-UI01 \\ \hline
+Epic 2 & E2-US2.4 (Audio Output) & E2-US4-TC1 & E2-US2.4-UI01 \\ \hline
+Epic 3 & E3-US3.1 (Mic Input) & E3-US1-TC1 & E3-US3.1-UI01 \\ \hline
+Epic 3 & E3-US3.2 (Tokenization) & E3-US2-TC1 & E3-US3.2-UI01 \\ \hline
+Epic 3 & E3-US3.3 (Avatar Render) & E3-US3-TC1 & E3-US3.3-UI01 \\ \hline
+Epic 3 & E3-US3.4 (Speed Control) & E3-US4-TC1 & E3-US3.4-UI01 \\ \hline
+Epic 4 & E4-US4.1 (Live Chat) & E4-US1-TC1 & E4-US4.1-UI01 \\ \hline
+Epic 4 & E4-US4.2 (End \& Save) & E4-US2-TC1 & E4-US4.2-UI01 \\ \hline
+Epic 4 & E4-US4.3 (View History) & E4-US3-TC1 & E4-US4.3-UI01 \\ \hline
+Epic 5 & E5-US5.1 (Free Plan) & E5-US1-TC1 & E5-US5.1-UI01 \\ \hline
+Epic 5 & E5-US5.2 (Ad Display) & E5-US2-TC1 & E5-US5.2-UI01 \\ \hline
+Epic 5 & E5-US5.3 (Premium Plan) & E5-US3-TC1 & E5-US5.3-UI01 \\ \hline
+\end{longtable}
+\section{Minimum Requirement}
+
+This section lists the hardware and software minimum requirements for the mobile device to run the SIVO application smoothly and ensure optimal performance for real-time video and audio processing.
+
+\begin{itemize}
+  \item \textbf{Operating System:} Android 8.0 (Oreo) or higher (API Level 26+).
+  \item \textbf{Processor:} Quad-Core 1.4 GHz processor (Snapdragon 425 or equivalent).
+  \item \textbf{Memory (RAM):} 3 GB of RAM (Required for smooth video buffering and UI rendering).
+  \item \textbf{Camera:} 5 MP Front-Facing Camera (Minimum 720p video recording capability for sign detection).
+  \item \textbf{Microphone:} Built-in microphone with noise cancellation support.
+  \item \textbf{Storage:} 200 MB of free internal storage for app installation and temporary video cache.
+  \item \textbf{Internet Connectivity:} Stable Wi-Fi or 4G LTE connection (Minimum 1 Mbps upload speed for sending video data to the server).
+\end{itemize}
+
+\section{Limitation and Constraint}
+
+This section lists the technical and environmental limitations of the SIVO application.
+
+\begin{itemize}
+  \item \textbf{Active Internet Required:} The application requires a continuous and stable internet connection to communicate with the AI server; offline translation is not supported.
+  \item \textbf{Lighting Conditions:} The Sign-to-Speech module requires a well-lit environment for the camera to accurately detect hand gestures and facial expressions.
+  \item \textbf{Single User Focus:} The current version is optimized to detect signs from a single person within the camera frame; multiple users signing simultaneously may cause detection errors.
+  \item \textbf{Camera Positioning:} The user must position their mobile device at a distance of approximately 1 to 2 meters to ensure their upper body (hands and face) is fully visible.
+  \item \textbf{Language Support:} The Speech-to-Sign module currently supports English language input only.
+\end{itemize}
+% ==========================================================
+% CHAPTER 3: SYSTEM DESIGN
+% ==========================================================
+\chapter{System Design}
+
+This chapter provides the blueprint of the proposed SIVO system, bridging the gap between requirements and implementation. It outlines how different components of the system are structured, interact with each other, and support the required functionality. 
+
+This chapter covers:
+\begin{itemize}
+  \item \textbf{Software Architecture:} The high-level architecture of the system (Cloud-Backed Client-Server), highlighting the main components and their interactions to ensure low-latency performance.
+  \item \textbf{Data Modeling:} How data is structured, stored, and managed, including detailed JSON/BSON structures for MongoDB and localized key-value mappings for video assets.
+  \item \textbf{Workflow Diagrams:} Step-by-step logic and diagrams for each of the five system epics, followed by the overall system flow.
+  \item \textbf{Third-Party Dependencies:} The external APIs, libraries, and machine learning models integrated into the system.
+\end{itemize}
+
+\section{Software Architecture}
+
+For SIVO, a Cloud-Backed Client-Server Architecture was utilized. This hybrid approach ensures that heavy computational tasks (such as artificial intelligence inference and NLP processing) occur on a powerful cloud server, while static media assets remain local to the device to guarantee zero-latency playback.
+
+The major architectural decisions guiding the SIVO system are:
+\begin{itemize}
+  \item \textbf{Application Type:} A mobile application frontend supported by an intelligent cloud backend.
+  \item \textbf{Deployment Strategy:} The mobile client runs natively on user devices (Android/iOS), while the AI backend runs on cloud infrastructure.
+  \item \textbf{Appropriate Technologies:} React Native (Expo) for the mobile interface, Python (Flask) for the AI/NLP server logic, Firebase for user authentication, and a NoSQL hybrid approach (MongoDB + Local Context) for data storage.
+  \item \textbf{Quality Attributes:} Low latency, offline robustness for video rendering, and high linguistic accuracy.
+\end{itemize}
+
+The system is logically divided into three main layers:
+
+\begin{enumerate}
+  \item \textbf{Mobile Client (Frontend):} Built with React Native. This layer handles all user interactions. It utilizes the device camera for sign capture, native speech-to-text engines for voice capture, and a custom-built video sequencer to seamlessly play pre-rendered sign language assets back-to-back without buffering.
+  \item \textbf{Intelligent Backend (Server):} A Python Flask server that acts as the ``Brain'' of SIVO. It comprises three sub-engines:
+  \begin{itemize}
+    \item \textbf{Sign Recognition Engine:} Uses MediaPipe and a GRU/LSTM model to track hand landmarks and predict raw sign language words.
+    \item \textbf{Grammar Engine:} Utilizes an LLM API to format broken, raw sign predictions into grammatically correct English sentences.
+    \item \textbf{NLP Pipeline (Speech-to-Sign):} Uses the spaCy library to process English speech, strip out stop words (e.g., ``is,'' ``the,'' ``am''), and lemmatize verbs (e.g., converting ``running'' to ``run'') to map spoken language accurately to available Pakistan Sign Language (PSL) root words.
+  \end{itemize}
+  \item \textbf{Data Layer:} Firebase Authentication securely handles user identity and login sessions. MongoDB (Atlas) serves as the primary NoSQL database for dynamic application data (user profiles and chat histories). Simultaneously, a local JSON-based VideoDictionary is bundled with the application to map processed text directly to local video assets.
+\end{enumerate}
+
+Figure~\ref{fig:arch} shows the complete software architecture of the SIVO system. The diagram illustrates how the Mobile Client, Intelligent Backend, and Data Layer interact with each other to provide seamless two-way translation between sign language and speech.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image19.jpg}
+\caption{Software Architecture Diagram}
+\label{fig:arch}
+\end{figure}
+
+\section{Data Modeling}
+
+SIVO utilizes a document-based NoSQL architecture (MongoDB) for persistent cloud storage and lightweight local data structures for high-performance mobile execution. Because SIVO functions as a communication tool, the database is structured similarly to modern messaging applications (e.g., WhatsApp), separating users, conversation threads, and individual messages.
+
+\subsection{NoSQL Databases (MongoDB and Local Structures)}
+
+The data model relies on the following distinct collections and local structures to manage the application's core logic:
+
+\textbf{1. Users Collection:}
+While Firebase Authentication securely handles user credentials and login tokens, this MongoDB collection stores supplementary personal account details and application preferences. It utilizes the Firebase User ID (UID) as the primary document key to link the database to the authenticated user.
+
+\begin{lstlisting}[caption={Users Collection JSON Structure},captionpos=b]
+{
+  "_id": "firebase_uid_10001",
+  "full_name": "Muhammad Abubakar",
+  "email": "abubakar@example.com",
+  "auth_provider": "google",
+  "subscription_tier": "freemium",
+  "preferences": {
+    "dark_mode": true,
+    "voice_speed": 1.0
+  },
+  "created_at": "2026-04-20T10:00:00Z",
+  "last_login": "2026-04-25T14:30:00Z"
+}
+\end{lstlisting}
+
+\textbf{2. Conversations Collection:}
+Acts as the parent container for different chat sessions. This allows users to have distinct, separated conversation threads depending on who they are speaking with, mimicking a standard chat interface.
+
+\begin{lstlisting}[caption={Conversations Collection JSON Structure},captionpos=b]
+{
+  "_id": "C50012",
+  "owner_id": "firebase_uid_10001",
+  "conversation_title": "Chat with Doctor",
+  "participant_type": "Hearing Guest",
+  "last_message_preview": "I am going to the office.",
+  "updated_at": "2026-04-25T15:05:00Z",
+  "created_at": "2026-04-25T14:45:00Z"
+}
+\end{lstlisting}
+
+\textbf{3. Messages Collection:}
+Stores the individual translation events linked to a specific conversation thread. It records whether the message was generated via sign language or voice, alongside the raw and corrected outputs.
+
+\begin{lstlisting}[caption={Messages Collection JSON Structure},captionpos=b]
+{
+  "_id": "M90045",
+  "conversation_id": "C50012",
+  "sender_id": "firebase_uid_10001",
+  "translation_direction": "sign_to_speech",
+  "content": {
+    "raw_input": ["me", "go", "office"],
+    "processed_text": "I am going to the office."
+  },
+  "timestamp": "2026-04-25T14:50:12Z"
+}
+\end{lstlisting}
+
+\textbf{4. VideoDictionary Mapping (Local Data):}
+Instead of storing heavy 3D coordinates in the database, the Speech-to-Sign module uses a localized key-value JSON structure bundled directly inside the React Native application. It acts as an instant lookup table connecting lemmatized words to local video assets.
+
+\begin{lstlisting}[caption={Local VideoDictionary JSON Structure},captionpos=b]
+export const VideoDictionary = {
+  "i": require('./assets/videos/i.mp4'),
+  "go": require('./assets/videos/go.mp4'),
+  "office": require('./assets/videos/office.mp4'),
+  "project": require('./assets/videos/project.mp4')
+};
+\end{lstlisting}
+\section{Workflow Diagrams}
+
+The SIVO system's operations are divided into five primary workflows corresponding to the project's Epics, followed by an overall system architecture flow.
+
+\subsection{Epic 1: User Account and Security}
+This workflow manages user access and data privacy.
+\begin{enumerate}
+  \item The user opens the application and selects a login method 
+  \item Credentials are sent securely to the backend for verification.
+  \item Upon success, a secure session token is generated and stored locally on the device.
+  \item User data is retrieved from the MongoDB \texttt{Users} collection, granting access to the main dashboard.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image22.png}
+\caption{Workflow Diagram - Epic 1 (User Authentication)}
+\label{fig:wf-epic1}
+\end{figure}
+
+\subsection{Epic 2: Sign-to-Speech Translation}
+This workflow demonstrates how a Deaf user's hand gestures become spoken words for a hearing person.
+\begin{enumerate}
+  \item \textbf{Capture:} The user records a video of their sign language performance.
+  \item \textbf{Upload:} The video payload is transmitted to the Flask Server.
+  \item \textbf{Extraction:} MediaPipe extracts spatial hand and body coordinates from the frames.
+  \item \textbf{Prediction:} The AI model (LSTM/GRU) analyzes the data to output raw keywords (e.g., ``Me Go Store'').
+  \item \textbf{Correction:} The Grok API reformats the raw words into a grammatically correct sentence (e.g., ``I am going to the store'').
+  \item \textbf{Output:} The text is returned to the phone and vocalized via a Text-to-Speech engine.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image23.png}
+\caption{Workflow Diagram - Epic 2 (Sign-to-Speech)}
+\label{fig:wf-epic2}
+\end{figure}
+
+\subsection{Epic 3: Speech-to-Sign Avatar}
+This workflow details how spoken language is seamlessly translated into a visual sign performance for a Deaf user.
+\begin{enumerate}
+  \item \textbf{Input:} The hearing user speaks into the application's microphone.
+  \item \textbf{Transcription:} The native react-native-voice engine converts the spoken audio into text locally.
+  \item \textbf{NLP Pipeline:} The Flask server uses the spaCy library to tokenize the sentence, strip English stop words, and lemmatize verbs.
+  \item \textbf{Array Generation:} The server returns a JSON array of validated root words (e.g., \texttt{["i", "go", "office"]}).
+  \item \textbf{Sequencing \& Rendering:} The expo-av module looks up the array in the local VideoDictionary and plays the video clips sequentially, triggering the next video the exact millisecond the previous one finishes.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image24.png}
+\caption{Workflow Diagram - Epic 3 (Speech-to-Sign)}
+\label{fig:wf-epic3}
+\end{figure}
+
+\subsection{Epic 4: Conversation History and Chat}
+This workflow explains how translations are persisted to mimic a continuous messaging application.
+\begin{enumerate}
+  \item A translation (either Voice or Sign) completes successfully.
+  \item The application immediately appends the text to the active chat UI using React Context state.
+  \item Asynchronously, an API call is made to save the message object to the \texttt{Messages} collection in MongoDB, linking it to the active \texttt{Conversation ID}.
+  \item When a user opens the ``History'' tab, the system queries MongoDB to display past threads.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image25.png}
+\caption{Workflow Diagram - Epic 4 (Conversation History)}
+\label{fig:wf-epic4}
+\end{figure}
+
+\subsection{Epic 5: Monetization and Freemium Model}
+This workflow illustrates the logic for server cost sustainability.
+\begin{enumerate}
+  \item Before processing a heavy server request (like a video upload), the system checks the user's \texttt{subscription\_tier} in the database.
+  \item If the user is on the ``Freemium'' tier, an interstitial ad may be triggered, or daily usage limits are checked.
+  \item If the user upgrades, a payment gateway processes the transaction and updates their database flag to ``Premium,'' granting unlimited, ad-free access.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image26.png}
+\caption{Workflow Diagram - Epic 5 (Monetization)}
+\label{fig:wf-epic5}
+\end{figure}
+
+\subsection{Overall System Workflow}
+Figure~\ref{fig:wf-complete} and Figure~\ref{fig:wf-complete2} illustrate the complete system architecture linking all five epics. The diagrams demonstrate the comprehensive data flow from user input (Voice or Video), through the Python backend processing stages (AI Extraction, NLP, and Grammar Correction), to the final output generation (Audio Playback or Video Sequencing), ensuring a continuous communication loop.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image27.jpg}
+\caption{Complete Application Workflow Diagram (Part 1)}
+\label{fig:wf-complete}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/image28.jpg}
+\caption{Complete Application Workflow Diagram (Part 2)}
+\label{fig:wf-complete2}
+\end{figure}
+
+\section{Third-Party Dependencies}
+
+SIVO integrates several trusted external libraries and APIs to streamline development and ensure high performance for NLP, machine learning, and media rendering.
+
+The specific tools used in SIVO are:
+\begin{itemize}
+  \item \textbf{spaCy (Python):} An industry-standard Natural Language Processing library utilized on the server to tokenize, lemmatize, and filter spoken English sentences into root words suitable for sign language mapping.
+  \item \textbf{@react-native-voice/voice:} A React Native library that directly accesses the native iOS and Android speech-to-text engines, providing highly accurate voice transcription for the Speech-to-Sign module.
+  \item \textbf{expo-av:} The core audiovisual library used in the mobile client. It drives the ``Video Sequencer,'' handling the rapid, consecutive playback of pre-rendered sign language video assets.
+  \item \textbf{MediaPipe (Google):} A computer vision framework used to extract high-fidelity hand and pose landmarks from user-submitted videos \hyperlink{ref2}{[2]}.
+  \item \textbf{TensorFlow and Keras:} The machine learning tools used to train and execute the neural network (GRU/LSTM) that recognizes signs from landmark data \hyperlink{ref3}{[3]}.
+  \item \textbf{Grok API (xAI):} Used for Natural Language Processing. It takes the rough words from the sign model and turns them into smooth, correct English sentences.
+  \item \textbf{MongoDB Atlas:} A cloud service that hosts the database for user credentials, conversation structures, and chat history \hyperlink{ref5}{[5]}.
+  \item \textbf{Flask-CORS:} A security tool that manages Cross-Origin Resource Sharing, allowing the React Native \hyperlink{ref4}{[4]} application to communicate with the Python server safely \hyperlink{ref6}{[6]}.
+\end{itemize}
+% ==========================================================
+% CHAPTER 4: SOFTWARE DEVELOPMENT
+% ==========================================================
+\chapter{Software Development}
+
+The Software Development chapter describes how the SIVO system was realized at a finer level of detail, down to the code level. While the previous chapters focused on planning and architecture, this section details the coding process, the logic behind the features, and the deployment of the development environment. It ensures that the system design presented in Chapter 3 directly corresponds to the final implementation.
+
+During the implementation phase, several unforeseen problems were encountered, and a significant amount of project time was spent overcoming them through architectural pivots:
+
+\begin{itemize}
+  \item \textbf{Challenge 1: Real-Time 3D Avatar Rendering on Mobile:} Initially, the project aimed to calculate inverse kinematics and render 60+ skeletal bones at 60 FPS in real-time on the user's mobile device. \textbf{Resolution:} This proved overambitious and caused severe battery drain, frame drops, and application crashes on mid-tier devices. To overcome this, the implementation was pivoted to a \textit{Pre-Rendered Video Sequencer}. 3D avatar animations were rendered into highly compressed local video assets, and the React Native frontend was coded to sequence these videos instantly back-to-back, guaranteeing zero latency without overloading the mobile GPU.
+  \item \textbf{Challenge 2: Continuous Sign Prediction and Temporal Modeling:} Training an AI model to predict continuous signs from a single camera feed resulted in poor accuracy when trying to process the entire video at once, as the model struggled to separate individual signs in a long sequence. \textbf{Resolution:} The approach was modified to use a Sliding Window technique combined with a Gated Recurrent Unit (GRU) network. Instead of processing a 190-frame video as a single block, a fixed-size window of 30 frames slides across the sequence frame-by-frame (e.g., frames 1-30, 2-31, 3-32). The GRU model, trained specifically on these 30-frame temporal windows, processes each segment to predict the sequence of signs accurately before passing them to the external LLM (Grok API) for grammar correction.
+\end{itemize}
+
+\section{Coding Standards}
+
+To maintain a clean, professional, and easily maintainable codebase across a distributed architecture, strict coding standards were enforced throughout the development process.
+
+\begin{itemize}
+  \item \textbf{Indentation:} A strict 4-space indentation rule was applied to the Python (Flask/AI) backend to prevent \texttt{IndentationError} exceptions. For the React Native (JavaScript) frontend, a 2-space indentation standard was used to prevent excessive horizontal scrolling in deeply nested UI component trees.
+  \item \textbf{Naming Conventions:} 
+    \begin{itemize}
+      \item \textit{Variables and Functions:} \texttt{camelCase} was used for JavaScript frontend components (e.g., \texttt{fetchSequence}, \texttt{startRecording}), while \texttt{snake\_case} was used for Python backend logic (e.g., \texttt{extract\_landmarks}, \texttt{process\_video}).
+      \item \textit{Classes and Components:} \texttt{PascalCase} was strictly used for React components and Python classes (e.g., \texttt{SpeechToSignScreen}, \texttt{SignDetector}).
+      \item \textit{Constants:} \texttt{UPPER\_SNAKE\_CASE} was used for global constants and environment variables across all environments (e.g., \texttt{API\_BASE\_URL}, \texttt{WINDOW\_SIZE}).
+    \end{itemize}
+  \item \textbf{Statement Standard:} Code was modularized into single-responsibility functions. Complex AI matrix calculations and asynchronous API calls were wrapped in \texttt{try/catch} (JS) or \texttt{try/except} (Python) blocks to prevent fatal application crashes during network instability.
+\end{itemize}
+
+\section{Development Environment}
+
+This section explains the rationale behind the tools and technologies deployed during the development of SIVO.
+
+\begin{itemize}
+  \item \textbf{Frontend IDE \& Environment (React Native/Expo):} Visual Studio Code was selected as the primary IDE for the frontend due to its ESLint extensions and integrated terminal. The Expo SDK framework was used instead of bare React Native to rapidly deploy and test native device features (Camera, Microphone) across both Android and iOS without managing separate Java and Swift codebases.
+  \item \textbf{Backend IDE \& Environment (Python/Flask):} PyCharm was utilized for backend development. Its robust virtual environment (\texttt{venv}) management was critical for isolating heavy AI libraries. The backend was containerized and deployed to a cloud server to handle processing.
+  \item \textbf{Packages and Third-Party Libraries:} 
+    \begin{itemize}
+      \item \texttt{Firebase}: Utilized for secure, out-of-the-box user authentication and session management.
+      \item \texttt{spaCy}: Used on the Python server for advanced NLP tokenization and lemmatization.
+      \item \texttt{expo-av}: Integrated into the frontend to handle the complex, low-latency playback of the pre-rendered avatar video arrays.
+      \item \texttt{MediaPipe \& TensorFlow}: Google's open-source libraries used in Python to extract highly accurate 3D hand/pose landmarks and run the GRU model.
+    \end{itemize}
+\end{itemize}
+
+\section{Software Description}
+
+In this section, the major modules of the SIVO software are identified based on the project Epics. Each section includes a class diagram detailing the structure of the module, followed by critical code snippets illustrating the innovative logic implemented.
+
+\subsection{Epic 1: User Account and Security Module}
+
+This module handles secure user authentication, session persistence, and profile management using Firebase, ensuring that chat histories remain private.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/epic1.jpeg}\par
+ % Placeholder space
+\caption{Class Diagram - User Account and Security Module}
+\label{fig:cd-epic1}
+\end{figure}
+
+\subsubsection{Snippet 1 (User Login State Management)}
+\begin{lstlisting}[language=JavaScript, caption={Firebase Authentication Logic}, captionpos=b]
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+const handleLogin = async (email, password) => {
+  try {
+    const auth = getAuth();
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Dispatch user state with Firebase access token
+    dispatch({ type: 'SIGN_IN', token: user.accessToken, uid: user.uid });
+  } catch (error) {
+    Alert.alert("Login Failed", error.message);
+  }
+};
+\end{lstlisting}
+\textbf{Description:} This function utilizes the Firebase Authentication SDK to securely verify user credentials. Upon a successful login, Firebase automatically manages the secure session generation. The application then retrieves the access token and updates the global application state, ensuring the user remains logged in without manually handling sensitive password databases.
+
+The corresponding manual test case executed for validating this functionality is presented in Table~\ref{tab:tc-epic1}.
+
+\textbf{Test Case Execution}
+
+\begin{table}[H]
+\centering
+\caption{Verify Login Authentication}
+\label{tab:tc-epic1}
+
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E1-US1.2-TC1 & US ID: US1.2 \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Test Case Description: Execute the manual login test to ensure a user is authenticated and token is generated.} \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Inputs: User Email and Password provided to the login form.} \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Expected Result: Firebase authenticates, token is saved, user routed to Dashboard.} \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Actual Result: Passed. Firebase verified credentials and routing succeeded.} \\ \hline
+
+\end{tabular}
+\end{table}
+\subsection{Epic 2: Sign-to-Speech Translation Module}
+
+This is a critical module. It manages video capture, executes the sliding window inference to find gestures over time, predicts the raw glosses via the GRU AI model, and corrects the grammar via LLM.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/epic2.png}\par
+ % Placeholder space
+\caption{Class Diagram - Sign-to-Speech Translation Module}
+\label{fig:cd-epic2}
+\end{figure}
+
+\subsubsection{Snippet 2 (GRU Sliding Window Inference)}
+\begin{lstlisting}[language=Python, caption={Sliding Window Logic for Temporal Sign Prediction}, captionpos=b]
+def predict_with_sliding_window(video_frames, model, window_size=30):
+    predictions = []
+    total_frames = len(video_frames)
+    
+    # Slide a window of 30 frames across the entire video (e.g. 1-30, 2-31...)
+    for i in range(total_frames - window_size + 1):
+        window = video_frames[i : i + window_size]
+        
+        # Expand dimensions to match GRU expected input: (batch, timesteps, features)
+        input_data = np.expand_dims(window, axis=0)
+        
+        # Pass the 30-frame temporal window to the trained GRU model
+        pred = model.predict(input_data)[0]
+        predictions.append(pred)
+        
+    return aggregate_predictions(predictions)
+\end{lstlisting}
+\textbf{Description:} This function is responsible for the temporal processing of the sign language video. Instead of processing a full variable-length video (e.g., 190 frames) at once, it applies a sliding window approach to maintain consistent input shape for the model. The video frames are divided into overlapping sequences of 30 frames, which matches the input requirement of the trained GRU model. Each sequence is independently analyzed to predict the probability of a sign, and the outputs from all windows are aggregated to generate the final continuous word-level transcription.
+
+The corresponding test case for validating this functionality is presented in Table~\ref{tab:tc-epic2}.
+
+\textbf{Test Case Execution}
+
+\begin{table}[H]
+\centering
+\caption{Sign Video Processing}
+\label{tab:tc-epic2}
+
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E2-US2.2-TC1 & US ID: US2.2 \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Test Case Description: Execute video recording and check if AI correctly extracts the sign.} \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Inputs: User performs the sign for ``Office''.} \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Expected Result: Video is processed using a sliding window, GRU model predicts ``Office'', and output is converted into a grammatically corrected sentence.} \\ \hline
+
+\multicolumn{2}{|p{0.9\textwidth}|}{Actual Result: Passed. Sliding window correctly parsed the 30-frame sequences, and the predicted output was successfully generated and vocalized.} \\ \hline
+
+\end{tabular}
+\end{table}
+\subsection{Epic 3: Speech-to-Sign Avatar (Pre-Rendered Sequencer)}
+
+This module is responsible for converting spoken language into corresponding sign language animations using a pre-rendered avatar system. It integrates native voice recognition, natural language processing (NLP) for text normalization and lemmatization, and a fast sequential playback mechanism. The processed words are mapped through a dictionary to locally stored 3D avatar animation clips, which are then played in a structured sequence to generate the final sign output.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/epic3.jpeg}
+\caption{Class Diagram - Speech-to-Sign Avatar Module}
+\label{fig:cd-epic3}
+\end{figure}
+\subsubsection{Snippet 3 (Continuous Video Sequencer Logic)}
+\begin{lstlisting}[language=JavaScript, caption={Asynchronous Video Sequence Player}, captionpos=b]
+const handlePlaybackStatusUpdate = (status) => {
+  // Trigger instantly when the current word's video ends
+  if (status.didJustFinish) {
+    if (currentIndex < sequence.length - 1) {
+      setCurrentIndex(prevIndex => prevIndex + 1);
+    } else {
+      // Sentence is finished, reset player
+      setTimeout(() => resetSequence(), 500); 
+    }
+  }
+};
+\end{lstlisting}
+\textbf{Description:} This React Native function is attached to the \texttt{expo-av} video component. It listens to the exact millisecond a pre-rendered avatar clip finishes. By instantly incrementing the \texttt{currentIndex}, it forces the player to load the next word in the array, creating a fluid, life-like sign language sentence without WebGL calculations.
+
+\textbf{Test Case Execution}
+\begin{table}[H]
+\centering
+\caption{Avatar Sequence Rendering}
+\label{tab:tc-epic3}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E3-US3.3-TC1 & US ID: US3.3 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Execute translation of a spoken sentence into an avatar animation sequence.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: Spoken audio: ``I am going to the office.''} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: NLP strips stop words; array ["i", "go", "office"] is generated and videos play consecutively.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Actual Result: Passed. Videos sequenced perfectly with zero buffering between clips.} \\ \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Epic 4: Conversation History and Chat Module}
+
+This module handles the state management of the live chat interface, appending new translations in real-time, and asynchronously syncing them to the NoSQL database.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.2\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/epic4.jpeg}\par
+\caption{Class Diagram - Conversation History Module}
+\label{fig:cd-epic4}
+\end{figure}
+
+\subsubsection{Snippet 4 (Appending Chat State)}
+\begin{lstlisting}[language=JavaScript, caption={Updating Live Chat History Context}, captionpos=b]
+const addMessageToChat = (type, rawText, processedText) => {
+  const newMessage = {
+    id: Date.now().toString(),
+    type: type, // 'sign_to_speech' or 'speech_to_sign'
+    text: processedText,
+    timestamp: new Date().toISOString()
+  };
+  setChatHistory(prevChat => [...prevChat, newMessage]);
+  saveToDatabase(newMessage); // Async API call
+};
+\end{lstlisting}
+\textbf{Description:} This function utilizes React State arrays to instantly update the chat UI the moment a translation completes. It ensures the interface feels as responsive as a standard messaging app, while pushing the heavy database save operation to the background.
+
+\textbf{Test Case Execution}
+\begin{table}[H]
+\centering
+\caption{Live Chat Logging}
+\label{tab:tc-epic4}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E4-US4.1-TC1 & US ID: US4.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Execute translation and verify it appears in the active chat log.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: A successful translation event.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: The UI updates instantly with a new chat bubble containing the text.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Actual Result: Passed. Chat updated immediately without waiting for DB response.} \\ \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Epic 5: Monetization and Freemium Module}
+
+This module manages the business logic, checking user subscription limits before allowing heavy server access, and displaying advertisements to free-tier users.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.1\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/epic5.jpeg}\par
+\caption{Class Diagram - Monetization Module}
+\label{fig:cd-epic5}
+\end{figure}
+
+\subsubsection{Snippet 5 (Feature Access Gate)}
+\begin{lstlisting}[language=JavaScript, caption={Tier-Based Feature Access Validation}, captionpos=b]
+const checkServerAccess = (userTier, dailyUsage) => {
+  if (userTier === 'premium') {
+    return true; 
+  } else if (userTier === 'freemium' && dailyUsage < 10) {
+    showInterstitialAd();
+    return true;
+  } else {
+    promptUpgradeScreen();
+    return false;
+  }
+};
+\end{lstlisting}
+\textbf{Description:} This function acts as a gatekeeper before initiating expensive server requests. It checks the user's tier. If they are a free user, it triggers an advertisement or checks usage quotas. If limits are exceeded, it routes the user to the premium upgrade screen.
+
+\textbf{Test Case Execution}
+\begin{table}[H]
+\centering
+\caption{Free Tier Access limits}
+\label{tab:tc-epic5}
+\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+\hline
+Test ID: E5-US5.1-TC1 & US ID: US5.1 \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Test Case Description: Execute a feature request as a free-tier user to verify ad display.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Inputs: Free user initiates a Sign-to-Speech translation.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Expected Result: Translation proceeds but an AdMob banner/interstitial is displayed.} \\ \hline
+\multicolumn{2}{|p{0.9\textwidth + 2\tabcolsep}|}{Actual Result: Passed. Ad triggered properly without breaking the translation flow.} \\ \hline
+\end{tabular}
+\end{table}
+\section{Software Minimum Requirement}
+
+To ensure SIVO runs smoothly and provides optimal performance, the user's device and the hosting environment must meet the following minimum requirements:
+
+\subsection{For Android Mobile Users}
+
+\begin{itemize}
+  \item \textbf{OS:} Android 8.0 (Oreo) or higher (API Level 26+).
+  \item \textbf{Processor:} Quad-core 1.4 GHz or higher (Snapdragon 425 or equivalent).
+  \item \textbf{Memory:} 3 GB of RAM (4 GB recommended for smooth Avatar rendering).
+  \item \textbf{Camera:} 5 MP front-facing camera (for sign detection).
+  \item \textbf{Microphone:} Standard built-in microphone with noise cancellation support.
+  \item \textbf{Storage:} 200 MB of free space for application installation and caching animations.
+  \item \textbf{Internet:} 4G or Wi-Fi connection (Required for AI processing).
+\end{itemize}
+
+\subsection{For Server Hosting (Backend)}
+
+\begin{itemize}
+  \item \textbf{OS:} Linux (Ubuntu 20.04) or Windows Server 2019.
+  \item \textbf{Python Version:} Python 3.9 or higher.
+  \item \textbf{RAM:} 8 GB minimum (to handle AI models and concurrent requests).
+  \item \textbf{GPU:} NVIDIA GPU with CUDA support (Recommended for faster inference).
+\end{itemize}
+
+\section{Software Limitations and Constraints}
+
+While SIVO is designed to be robust, there are certain limitations and constraints in the current version:
+
+\begin{itemize}
+  \item \textbf{Active Internet Connection:} The mobile application requires a stable internet connection to communicate with the Flask server and Grok API. It cannot perform translations offline in this version.
+  \item \textbf{Lighting Conditions:} The Sign-to-Speech feature requires moderate to good lighting. In extremely dark environments, the camera may fail to detect hand landmarks accurately.
+  \item \textbf{Fixed Vocabulary:} The Speech-to-Sign avatar is limited to the words currently stored in the database. While it can finger-spell unknown words, it cannot yet generate new gestures for complex concepts not in the dictionary.
+  \item \textbf{Language Support:} Currently, the application is optimized for Urdu and English within the Pakistani context. Regional dialects might affect speech recognition accuracy.
+\end{itemize}
+
+\section{General Assets (Mobile)}
+
+This section lists the general assets used in the mobile application to ensure a professional look and feel.
+
+\textbf{App Icons:}
+\begin{itemize}
+  \item \textbf{Android:} Adaptive icons generated for mdpi (48x48), hdpi (72x72), xhdpi (96x96), xxhdpi (144x144), and xxxhdpi (192x192) to support all screen densities.
+\end{itemize}
+
+\textbf{Splash Screen:}
+\begin{itemize}
+  \item High-resolution branding image displayed while the application loads resources. Resolutions support standard aspect ratios (16:9 and 19.5:9).
+\end{itemize}
+
+\textbf{3D Avatar Assets:}
+\begin{itemize}
+  \item \textbf{Format:} .glb / .gltf (GL Transmission Format) optimized for mobile rendering.
+  \item \textbf{Rigging:} Standard skeletal rig for humanoid animation mapping.
+\end{itemize}
+
+\textbf{Screenshots:}
+\begin{itemize}
+  \item Captured for 6.5-inch and 5.5-inch displays for App Store listings.
+  \item \textbf{Languages:} English and Urdu variants.
+\end{itemize}
+
+\section{Online Market Store}
+
+This section details the requirements for submitting SIVO to the Google Play Store.
+
+\subsection{Google Play}
+
+To successfully upload and publish SIVO, the following information has been prepared:
+
+\begin{itemize}
+  \item \textbf{Google Play Developer Access:} Account verified and fee paid.
+  \item \textbf{Store Listing Name:} SIVO - Two Way Sign Translator.
+  \item \textbf{Paid/Free:} Free (Freemium Model).
+  \item \textbf{Short Description:} ``Real-time Pakistani Sign Language translator for inclusive communication.''
+  \item \textbf{Full Description:} A detailed explanation of how SIVO helps deaf and hearing users communicate, listing features such as Sign-to-Speech, Speech-to-Sign Avatar, and Grammar Correction.
+  \item \textbf{App Icon:} 512x512 px (32-bit PNG).
+  \item \textbf{Feature Graphic:} 1024x500 px (JPG or 24-bit PNG).
+  \item \textbf{App Category:} Productivity / Communication.
+  \item \textbf{Content Rating:} Rated ``Everyone'' (PEGI 3) after completing the questionnaire.
+  \item \textbf{Contact Email:} support@sivoapp.com
+  \item \textbf{Privacy Policy:} URL linking to the privacy policy document hosted on the official website.
+  \item \textbf{Screenshots:} Minimum of 2 screenshots showing the Camera View and Avatar View.
+\end{itemize}
+% ==========================================================
+% CHAPTER 5: SOFTWARE DEPLOYMENT
+% ==========================================================
+\chapter{Software Deployment}
+
+The deployment chapter explains how the developed SIVO system is prepared, configured, and made available for use in its intended environment. It covers the specific steps, tools, and platforms required to deploy the system, ensuring that it runs exactly as expected outside the local development setting. 
+
+For the SIVO application, a distributed deployment strategy was utilized. User identity and authentication are managed securely through \textbf{Firebase}, the database is hosted on \textbf{MongoDB Atlas} (a cloud database service), and the backend intelligent server (Python/Flask) was deployed to cloud infrastructure using \textbf{Microsoft Azure}, ensuring high availability for processing the AI models. Finally, the frontend mobile client was compiled into an Android Application Package (APK) for end-user installation. 
+
+This chapter outlines the environment requirements, configuration settings, and a step-by-step installation procedure required for the successful execution of the entire system.
+
+\section{Installation / Deployment Process Description}
+
+The deployment of the SIVO system is divided into four major phases: Firebase Setup, Database Deployment, Backend Server Deployment, and Mobile Client Deployment. Below is the step-by-step guide for configuring and installing the software.
+
+\subsection{Phase 1: Firebase Authentication Setup}
+
+Before data can be stored, the identity management system must be configured to secure the application.
+
+\begin{enumerate}
+  \item \textbf{Project Creation:} Navigate to the Firebase Console and create a new project named SIVO.
+  \item \textbf{Enable Authentication Providers:} Under the Build menu, select Authentication and enable the Email/Password and Google Sign-In methods.
+  \item \textbf{Client Configuration:} Register the Android application within the Firebase dashboard to generate the necessary API keys and download the \texttt{google-services.json} configuration file for the mobile client.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/firebase.png}
+\caption{Firebase Authentication Project Setup}
+\label{fig:deploy-firebase}
+\end{figure}
+
+\subsection{Phase 2: Database Deployment (MongoDB Atlas)}
+
+Once authentication is set up, the cloud database must be initialized to store supplementary user profiles and conversation histories.
+
+\begin{enumerate}
+  \item \textbf{Cluster Creation:} Log in to the MongoDB Atlas dashboard and create a new dedicated cluster.
+  \item \textbf{Network Access:} Configure the IP Access List to allow connections from the Azure server's IP address (or set to \texttt{0.0.0.0/0} for dynamic cloud access).
+  \item \textbf{Database User Configuration:} Create a secure Database User with read/write privileges and generate a secure connection string URI.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/mongo.png}
+\caption{MongoDB Atlas Cluster Configuration}
+\label{fig:deploy-mongo}
+\end{figure}
+
+\subsection{Phase 3: Backend Server Deployment (Microsoft Azure)}
+
+The Python Flask server, which houses the GRU sliding-window sign recognition and Grok NLP logic, is deployed to Microsoft Azure using the Azure App Service.
+
+\begin{enumerate}
+  \item \textbf{Create Azure App Service:} Navigate to the Microsoft Azure Portal. Search for "App Services" and click "Create." Select a Linux environment and choose Python 3.9 (or higher) as the runtime stack.
+  \item \textbf{Configure Environment Variables:} Navigate to the "Configuration" pane within the App Service. Here, add the critical application secrets that should not be hardcoded in the repository:
+  \begin{itemize}
+    \item \texttt{MONGO\_URI}: The connection string generated in Phase 2.
+    \item \texttt{GROK\_API\_KEY}: The secret key for accessing the LLM.
+  \end{itemize}
+  \item \textbf{Deploying the Code:} Connect the Azure App Service directly to the project's GitHub repository. Configure GitHub Actions to automatically trigger a build and deployment whenever new code is pushed to the \texttt{main} branch. Azure automatically reads the \texttt{requirements.txt} file and installs necessary dependencies like \texttt{flask}, \texttt{spacy}, \texttt{tensorflow}, and \texttt{mediapipe}.
+  \item \textbf{Start and Verify:} Once deployed, Azure provides a live URL (e.g., \texttt{https://sivo-backend.azurewebsites.net}). Navigate to the root endpoint to verify the server is running.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/envConfig.png}
+\caption{Azure App Service Environment Configuration}
+\label{fig:deploy-azure}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{vertopal_0a0373cd9b034ade9a141c927438222a/media/signtospeechServer.png}
+\caption{Successful Backend Deployment via Azure Portal}
+\label{fig:deploy-azure-success}
+\end{figure}
+
+\subsection{Phase 4: Mobile Client Deployment (React Native / Android)}
+
+With the backend and database live, the mobile application must be configured with all live API keys and compiled into an installable format.
+
+\begin{enumerate}
+  \item \textbf{Environment Configuration:} Open the React Native project code. Update the \texttt{.env} file with the Firebase API keys from Phase 1, and change the \texttt{API\_BASE\_URL} from the local development IP to the live Azure server URL.
+  \item \textbf{Asset Bundling:} Ensure all pre-rendered 3D avatar video assets (.mp4 files) are correctly linked in the \texttt{VideoDictionary.js} file so they are bundled directly into the application payload.
+  \item \textbf{Building the APK:} Open the terminal in the project root directory. Use Expo Application Services (EAS) to compile the code into a standalone Android package by running the command: \texttt{eas build -p android --profile preview}.
+  \item \textbf{Download and Install:} Once the build is complete on the Expo servers, download the generated \texttt{.apk} file. Transfer the file to an Android device, enable "Install from Unknown Sources" in the device security settings, and tap the APK to install the SIVO application.
+\end{enumerate}
+
+
+
+\section{Post-Deployment Scalability and Maintenance}
+
+To ensure SIVO remains highly available as the user base grows, the Azure App Service was configured with auto-scaling rules. If CPU utilization exceeds 75\% due to heavy AI video processing requests and GRU model inference, Azure will automatically spin up additional instances to handle the load. Furthermore, because the 3D avatar video assets are bundled locally on the device rather than streamed over the network, the server bandwidth costs remain minimal, adhering to the project's resource-efficient design philosophy.
+% ==========================================================
+% REFERENCES
+% ==========================================================
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+\markboth{References}{}
+
+All documents, papers, articles and web pages used in this work must be properly cited in this section.
+
+\textbf{Book}
+
+\hypertarget{ref1}{[1]} W.K. Chen, \textit{Linear Networks and Systems}. Wadsworth, 1993, pp. 123-35.
+
+\vspace{0.2cm}
+
+\textbf{Webpage}
+
+\hypertarget{ref2}{[2]} Google, ``MediaPipe Documentation,'' MediaPipe, \url{https://mediapipe.dev/}, accessed May 2025.
+
+\hypertarget{ref3}{[3]} Google, ``TensorFlow Documentation,'' TensorFlow, \url{https://www.tensorflow.org/}, accessed May 2025.
+
+\hypertarget{ref4}{[4]} Meta, ``React Native Documentation,'' React Native, \url{https://reactnative.dev/}, accessed May 2025.
+
+\hypertarget{ref5}{[5]} MongoDB Inc., ``MongoDB Documentation,'' MongoDB, \url{https://www.mongodb.com/docs/}, accessed May 2025.
+
+\hypertarget{ref6}{[6]} Pallets Projects, ``Flask Documentation,'' Flask, \url{https://flask.palletsprojects.com/}, accessed May 2025.
+
+\vspace{0.2cm}
+
+\textbf{Research Paper}
+
+\hypertarget{ref7}{[7]} G. Pevere, ``Infrared Nation,'' \textit{International Journal of Infrared Design}, vol. 33, pp. 56--99, Jan. 1979.
+
+% ==========================================================
+% PLAGIARISM REPORT
+% ==========================================================
+\chapter*{Plagiarism Report}
+\addcontentsline{toc}{chapter}{Plagiarism Report}
+\markboth{Plagiarism Report}{}
+
+Attached plagiarism report here that can be obtained from the library.
+
+\vspace{0.3in}
+\textit{[Insert Plagiarism Report Here]}
+
+% ==========================================================
+% REPORT APPROVAL CERTIFICATE
+% ==========================================================
+\chapter*{Report Approval Certificate}
+\addcontentsline{toc}{chapter}{Report Approval Certificate}
+\markboth{Report Approval Certificate}{}
+
+The report of the project, ``SIVO: Two-Way Sign Language Translator'' has been approved based on the following evaluation guideline.
+
+\vspace{0.2in}
+\textbf{Project Evaluation Guidelines}
+
+\vspace{0.15in}
+\begin{longtable}{|p{4.8in}|p{1.1in}|}
+\hline
+\textbf{Artifacts Guidelines} & \textbf{Status} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Artifacts Guidelines} & \textbf{Status} \\
+\hline
+\endhead
+Analysis and Design artifacts are syntactically correct (use-case model, SSDs, domain model, class diagram, SDs, ERDs, Flow charts, Activity Diagram, DFDs) & \\ \hline
+Consistency and traceability have been maintained among different artifacts & \\ \hline
+\end{longtable}
+
+\vspace{0.2in}
+\begin{longtable}{|p{4.8in}|p{1.1in}|}
+\hline
+\textbf{General Guidelines} & \textbf{Status} \\
+\hline
+\endfirsthead
+\hline
+\textbf{General Guidelines} & \textbf{Status} \\
+\hline
+\endhead
+Formatting (font style, indentation) is according to the FYP template and consistent throughout the document & \\ \hline
+Captions are added to all the figures and tables. Figure captions must be placed below each figure, and table captions must be provided above the table & \\ \hline
+Each figure or table is followed by some text describing what it represents & \\ \hline
+\end{longtable}
+
+\vspace{0.8in}
+\noindent\rule{3in}{0.4pt}\\
+Name \& Signature (Supervisor)
+
+% ==========================================================
+% APPENDIX
+% ==========================================================
+\chapter*{Appendix}
+\addcontentsline{toc}{chapter}{Appendix}
+\markboth{Appendix}{}
+
+\section*{User Manual of the Software}
+\addcontentsline{toc}{section}{User Manual of the Software}
+
+\subsection*{1. Installation}
+\begin{enumerate}
+  \item Download the SIVO.apk file from the provided link.
+  \item Enable ``Install from Unknown Sources'' in your phone settings.
+  \item Tap on the APK file to install.
+  \item Grant Camera and Microphone permissions when prompted.
+\end{enumerate}
+
+\subsection*{2. Getting Started}
+\begin{enumerate}
+  \item Open the SIVO application.
+  \item Sign in using your Google account or create a new account.
+  \item Select your preferred translation mode from the landing page.
+\end{enumerate}
+
+\subsection*{3. Using Sign-to-Speech}
+\begin{enumerate}
+  \item Tap on ``Sign-to-Speech'' mode.
+  \item Position yourself so your hands and face are visible.
+  \item Tap ``Start Recording'' and perform your signs.
+  \item Wait for the translation to appear and be spoken.
+\end{enumerate}
+
+\subsection*{4. Using Speech-to-Sign}
+\begin{enumerate}
+  \item Tap on ``Speech-to-Sign'' mode.
+  \item Tap the microphone icon.
+  \item Speak clearly into the microphone.
+  \item Watch the 3D avatar perform the corresponding signs.
+\end{enumerate}
+
+\subsection*{5. Viewing History}
+\begin{enumerate}
+  \item Navigate to the ``History'' tab.
+  \item Browse through your past conversations.
+  \item Tap on any entry to view full details.
+\end{enumerate}
+
+\subsection*{6. Settings and Preferences}
+\begin{enumerate}
+  \item Open the Settings screen from the menu.
+  \item Adjust avatar animation speed as needed.
+  \item Configure language preferences.
+  \item Manage your account and subscription options.
+\end{enumerate}
+
+\subsection*{7. Troubleshooting}
+\begin{enumerate}
+  \item \textbf{Camera not working:} Ensure camera permission is granted in phone settings.
+  \item \textbf{Microphone not working:} Check microphone permission and ensure no other app is using it.
+  \item \textbf{Translation slow:} Check internet connection and try switching between Wi-Fi and mobile data.
+  \item \textbf{Avatar not loading:} Restart the application and ensure sufficient storage space is available.
+\end{enumerate}
+
+\end{document}
+\end{document}

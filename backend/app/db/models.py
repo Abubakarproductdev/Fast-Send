@@ -1,7 +1,8 @@
 import uuid
 from sqlalchemy import Column, String, Boolean, Float, ForeignKey, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
-from app.db.database import Base
+from app.db.database import Base  # FIXED IMPORT PATH
+
 class Trip(Base):
     __tablename__ = "trips"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -12,14 +13,14 @@ class Attendee(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id", ondelete="CASCADE"), nullable=False)
     phone_number = Column(String, nullable=False)
-    selfie_embedding = Column(String, nullable=False) # Storing 512-D vector as stringified JSON
+    selfie_embedding = Column(String, nullable=False) 
 
 class MediaAsset(Base):
     __tablename__ = "media_assets"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id", ondelete="CASCADE"), nullable=False)
     storage_url = Column(String, nullable=False)
-    media_type = Column(String, nullable=False) # "image" or "video"
+    media_type = Column(String, nullable=False) 
     processed = Column(Boolean, default=False)
 
 class Match(Base):

@@ -1,8 +1,7 @@
 import uuid
 from sqlalchemy import Column, String, Boolean, Float, ForeignKey, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
-from backend.app.db.database import Base
-
+from app.db.database import Base
 class Trip(Base):
     __tablename__ = "trips"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

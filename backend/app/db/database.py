@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Connects to localhost on port 5433 with your password
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:Abubakar123@@localhost:5433/postgres"
+# The @ is replaced with %40
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:Abubakar123%40@localhost:5433/postgres"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

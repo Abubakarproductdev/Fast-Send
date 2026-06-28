@@ -1,8 +1,0 @@
-fastapi==0.111.0
-uvicorn==0.30.1
-sqlalchemy==2.0.31
-psycopg2-binary==2.9.9
-insightface==0.7.3
-onnxruntime-gpu==1.18.0
-opencv-python-headless==4.10.0.84
-numpy==1.26.4

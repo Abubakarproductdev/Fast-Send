@@ -1,12 +1,5 @@
 """FastAPI application factory.
 
-This module wires together the FastAPI app, Beanie ODM initialization,
-CORS middleware, and all routers.
-
-Start the server with::
-
-    uvicorn app.main:app --reload
-
 or use the convenience ``run.py`` script at the project root.
 """
 

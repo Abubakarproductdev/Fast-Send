@@ -84,3 +84,14 @@ class AttendeeResponse(BaseModel):
     gallery_preference: GalleryPreference
     gallery_url: str
     created_at: datetime
+
+
+class MediaAssetResponse(BaseModel):
+    """Public representation of an uploaded media asset."""
+
+    id: str
+    trip_id: str
+    proxy_s3_url: str | None
+    status: str
+    media_type: str
+    created_at: datetime

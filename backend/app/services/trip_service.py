@@ -156,3 +156,125 @@ async def get_trip_attendees(trip_id: PydanticObjectId) -> list[Attendee]:
     """
     await get_trip(trip_id)
     return await Attendee.find(Attendee.trip_id == trip_id).to_list()
+
+
+# ── MediaAsset operations ─────────────────────────────────────────────
+
+import os
+import uuid
+import logging
+from app.models.media_asset import AssetStatus, EmbeddedMatch
+from app.ml import FaceEngine, FaceProcessingError
+
+logger = logging.getLogger(__name__)
+
+async def upload_media_proxy(
+    trip_id: PydanticObjectId,
+    image_data: bytes,
+    media_type: str,
+    device_local_id: str | None = None,
+) -> MediaAsset:
+    """Save the proxy image locally and create a MediaAsset document."""
+    trip = await get_trip(trip_id)
+    
+    if not trip.is_active:
+        raise TripInactiveError(f"Trip {trip_id} has ended — cannot upload media")
+
+    # Save to local disk for V1 (simulating S3)
+    upload_dir = f"uploads/trips/{trip_id}/proxies"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    filename = f"{uuid.uuid4().hex}.jpg"
+    filepath = os.path.join(upload_dir, filename)
+    
+    with open(filepath, "wb") as f:
+        f.write(image_data)
+        
+    asset = MediaAsset(
+        trip_id=trip.id,
+        proxy_s3_url=filepath,
+        media_type=media_type,
+        device_local_id=device_local_id,
+        status=AssetStatus.PROCESSING,
+    )
+    
+    try:
+        await asset.insert()
+    except DuplicateKeyError:
+        # Idempotency constraint triggered
+        # Return the existing asset instead of raising
+        existing = await MediaAsset.find_one(
+            MediaAsset.trip_id == trip_id,
+            MediaAsset.device_local_id == device_local_id
+        )
+        if existing:
+            return existing
+        raise
+        
+    return asset
+
+
+async def process_media_asset(
+    asset_id: PydanticObjectId, 
+    trip_id: PydanticObjectId,
+    face_engine: FaceEngine,
+) -> None:
+    """Background task to extract faces and compute matches against attendees."""
+    try:
+        asset = await MediaAsset.get(asset_id)
+        if not asset or not asset.proxy_s3_url:
+            logger.error(f"Asset {asset_id} not found or missing proxy URL")
+            return
+            
+        # Read the file
+        with open(asset.proxy_s3_url, "rb") as f:
+            image_data = f.read()
+            
+        # Extract all faces
+        try:
+            face_embeddings = face_engine.extract_multiple_embeddings(image_data)
+        except FaceProcessingError as e:
+            logger.error(f"Failed to process faces for asset {asset_id}: {e}")
+            asset.status = AssetStatus.FAILED
+            await asset.save()
+            return
+
+        if not face_embeddings:
+            # Valid image, just no faces (e.g. landscape)
+            asset.is_nature = True
+            asset.status = AssetStatus.PROCESSED
+            await asset.save()
+            return
+            
+        # Match against attendees
+        attendees = await get_trip_attendees(trip_id)
+        matches = []
+        
+        # Generous lower bound for V1
+        MATCH_THRESHOLD = 0.4
+        
+        for face_emb in face_embeddings:
+            for attendee in attendees:
+                if not attendee.selfie_embedding:
+                    continue
+                    
+                score = FaceEngine.compute_similarity(face_emb, attendee.selfie_embedding)
+                if score >= MATCH_THRESHOLD:
+                    matches.append(EmbeddedMatch(
+                        attendee_id=attendee.id,
+                        confidence=score,
+                    ))
+                    
+        # Update asset with matches
+        asset.matches = matches
+        asset.status = AssetStatus.PROCESSED
+        asset.updated_at = datetime.now(timezone.utc)
+        await asset.save()
+        
+    except Exception as e:
+        logger.exception(f"Unexpected error processing asset {asset_id}: {e}")
+        # Try to mark as failed if possible
+        asset = await MediaAsset.get(asset_id)
+        if asset:
+            asset.status = AssetStatus.FAILED
+            await asset.save()

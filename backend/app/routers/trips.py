@@ -14,7 +14,7 @@ matched first; otherwise FastAPI would try to parse ``"join"`` as a
 """
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, BackgroundTasks
 
 from app.models.attendee import Attendee
 from app.models.media_asset import MediaAsset
@@ -24,6 +24,7 @@ from app.schemas.trips import (
     TripCreate,
     TripDetail,
     TripResponse,
+    MediaAssetResponse,
 )
 from app.ml import FaceEngine, FaceProcessingError, get_face_engine
 from app.services import trip_service
@@ -223,3 +224,72 @@ async def list_attendees(trip_id: PydanticObjectId):
             detail=f"Trip {trip_id} not found",
         )
     return [_attendee_to_response(a) for a in attendees]
+
+
+# ── Media endpoints ───────────────────────────────────────────────────
+
+
+def _asset_to_response(asset: MediaAsset) -> MediaAssetResponse:
+    """Map a MediaAsset document to the public API representation."""
+    return MediaAssetResponse(
+        id=str(asset.id),
+        trip_id=str(asset.trip_id),
+        proxy_s3_url=asset.proxy_s3_url,
+        status=asset.status.value,
+        media_type=asset.media_type,
+        created_at=asset.created_at,
+    )
+
+
+@router.post(
+    "/{trip_id}/media",
+    response_model=MediaAssetResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Upload a media proxy for matching",
+)
+async def upload_media(
+    trip_id: PydanticObjectId,
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    device_local_id: str | None = Form(None),
+    face_engine: FaceEngine = Depends(get_face_engine),
+):
+    """Upload a proxy photo and queue it for background processing.
+    
+    The photo will be saved and passed to the ML engine to extract all faces,
+    match them against the trip's attendees, and embed the results into the
+    MediaAsset document.
+    """
+    image_data = await file.read()
+    
+    # We only handle image proxies for now, even if the original is video
+    media_type = "image"
+    
+    try:
+        asset = await trip_service.upload_media_proxy(
+            trip_id=trip_id,
+            image_data=image_data,
+            media_type=media_type,
+            device_local_id=device_local_id,
+        )
+    except trip_service.TripNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Trip {trip_id} not found",
+        )
+    except trip_service.TripInactiveError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This trip has ended — media upload is closed",
+        )
+
+    # Queue the background processing if it isn't already processed/processing
+    if asset.status == AssetStatus.PROCESSING:
+        background_tasks.add_task(
+            trip_service.process_media_asset,
+            asset.id,
+            trip_id,
+            face_engine,
+        )
+
+    return _asset_to_response(asset)

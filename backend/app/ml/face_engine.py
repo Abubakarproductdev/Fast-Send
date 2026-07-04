@@ -91,3 +91,51 @@ class FaceEngine:
         face = confident_faces[0]
         # face.embedding is a numpy array of shape (512,)
         return face.embedding.tolist()
+
+    def extract_multiple_embeddings(self, image_data: bytes) -> list[list[float]]:
+        """Extract embeddings for all detected faces in an image.
+
+        Used for processing trip photos which may contain many people.
+
+        Args:
+            image_data: Raw bytes of the uploaded image file.
+
+        Returns:
+            A list of 512-D embeddings (one for each confident face).
+            Returns an empty list if no faces are found.
+
+        Raises:
+            ImageDecodeError: If bytes aren't a valid image.
+        """
+        nparr = np.frombuffer(image_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if img is None:
+            raise ImageDecodeError("Failed to decode image data")
+
+        faces = self._app.get(img)
+        confident_faces = [f for f in faces if f.det_score >= self.min_det_score]
+        
+        return [f.embedding.tolist() for f in confident_faces]
+
+    @staticmethod
+    def compute_similarity(emb1: list[float], emb2: list[float]) -> float:
+        """Compute the cosine similarity between two embeddings.
+
+        Args:
+            emb1: 512-D embedding list.
+            emb2: 512-D embedding list.
+
+        Returns:
+            A float between -1.0 and 1.0 (higher means more similar).
+        """
+        v1 = np.array(emb1)
+        v2 = np.array(emb2)
+        
+        norm1 = np.linalg.norm(v1)
+        norm2 = np.linalg.norm(v2)
+        
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+            
+        return float(np.dot(v1, v2) / (norm1 * norm2))

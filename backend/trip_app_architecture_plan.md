@@ -18,8 +18,69 @@ This plan incorporates every constraint discussed earlier (iOS background limits
 ---
 
 ## 2. High-Level Architecture
-![alt text](/images/image.png)
 
+```mermaid
+graph TB
+    subgraph MOBILE["iPhone App - Organizer and Guests"]
+        APP["React Native App"]
+        LOCALDB["Local SQLite Upload Queue"]
+        NOTIF["Notification Scheduler"]
+    end
+
+    subgraph WEBC["Guest Browser - any OS"]
+        REGPAGE["Registration Page"]
+        GALPAGE["Personal Gallery Page"]
+    end
+
+    subgraph API["FastAPI Backend"]
+        TRIPRT["Trip and Registration Routes"]
+        UPRT["Upload Routes"]
+        DISTSVC["Distribution Service"]
+    end
+
+    subgraph ASYNC["Async Processing"]
+        QUEUE["Task Queue: Celery + Redis or SQS"]
+        MLENG["ML Engine: insightface + Scene Classifier"]
+    end
+
+    subgraph STORE["S3 Storage"]
+        S3PROXY["bucket prefix: proxies"]
+        S3ORIG["bucket prefix: originals"]
+        S3WEB["bucket prefix: web derivatives"]
+    end
+
+    DB["Postgres: Trip, Attendee, MediaAsset, Match"]
+
+    subgraph DELIVERY["Delivery"]
+        TWILIO["Twilio WhatsApp API"]
+        APNS["Apple Push Notification Service"]
+    end
+
+    GUEST["Guest's WhatsApp"]
+
+    APP --> UPRT
+    NOTIF -. scheduled reminders .-> APNS
+    APNS -. push .-> APP
+
+    REGPAGE --> TRIPRT
+    GALPAGE --> DISTSVC
+
+    TRIPRT --> DB
+    UPRT --> S3PROXY
+    UPRT --> S3ORIG
+    UPRT --> DB
+    UPRT --> QUEUE
+    QUEUE --> MLENG
+    QUEUE --> DB
+    QUEUE --> S3WEB
+
+    DISTSVC --> DB
+    DISTSVC --> S3WEB
+    DISTSVC --> TWILIO
+    TWILIO -. gallery link .-> GUEST
+```
+
+---
 
 ## 3. Component Breakdown
 
@@ -44,21 +105,205 @@ This plan incorporates every constraint discussed earlier (iOS background limits
 ## 4. End-to-End Flows
 
 ### 4.1 Attendee Registration (QR → Selfie → Preferences)
-![alt text](/images/image-1.png)
+
+```mermaid
+sequenceDiagram
+    actor Guest
+    participant Web as Registration Page
+    participant API as FastAPI Backend
+    participant ML as ML Engine
+    participant DB as Postgres
+
+    Guest->>Web: Scans trip QR code
+    Web-->>Guest: Shows registration form
+    Guest->>Web: Enters phone number, selfie, gallery scope, media filter
+    Web->>API: POST /trips/{id}/register
+    API->>ML: extract_face_embeddings(selfie)
+    ML-->>API: embedding list
+
+    alt no face detected
+        API-->>Web: 422 - please retake selfie
+        Web-->>Guest: Retake prompt
+    else multiple faces detected
+        API-->>Web: 422 - please use a solo selfie
+        Web-->>Guest: Retake prompt
+    else exactly one face
+        API->>DB: INSERT Attendee row + opt-in record
+        API-->>Web: 200 + personal gallery link (shown immediately)
+        Web-->>Guest: "You're in - your link is ready now, photos will also arrive on WhatsApp"
+    end
+```
+
 **Built-in fallback:** the personal gallery link is shown on-screen the moment registration succeeds — *before* any WhatsApp message is even attempted. WhatsApp becomes a convenience notification layered on top, not a single point of failure.
 
 ### 4.2 Capture → Reminder → Two-Tier Upload
-![alt text](image.png)
+
+```mermaid
+sequenceDiagram
+    actor Organizer
+    participant App as Mobile App
+    participant Photos as iOS Photo Library
+    participant Local as Local SQLite Queue
+    participant API as Backend API
+    participant Queue as Task Queue
+
+    Organizer->>App: Tap "Start Trip"
+    App->>App: Store trip_start_time
+    App->>API: Register reminder schedule (interval)
+    Note over App: Time passes - organizer uses phone normally
+    API-->>Organizer: Push notification "Tap to push new photos"
+    Organizer->>App: Taps notification - app foregrounds
+    App->>Photos: Fetch assets where creationDate greater than last_synced_at
+    App->>Local: Diff against already-queued local IDs
+    App-->>Organizer: "12 new items found - Push Photos?"
+    Organizer->>App: Confirms
+
+    loop for each new asset
+        App->>App: Generate proxy - 1080px wide JPEG, about 75 percent quality
+        App->>API: POST /upload/proxy
+        API-->>App: asset_id
+        API->>Queue: enqueue process_media_asset
+        App->>Local: mark original as pending_wifi, store asset_id
+    end
+
+    Note over App: Later - Wi-Fi connects OR organizer ends trip
+    loop for each pending_wifi asset
+        App->>API: Background URLSession upload of original HEIC/MOV
+        API->>Queue: enqueue generate_web_derivative
+    end
+```
+
 **Why this is the realistic fix to "silent background upload":** every upload step is initiated either by an explicit tap (proxy batch) or by a background `URLSession` transfer that the OS itself manages and can complete even if the app is suspended afterward — both are within iOS's actual rules, unlike a fully autonomous background watcher.
 
 ### 4.3 Background ML Processing & Matching
-![alt text](image-1.png)
+
+```mermaid
+sequenceDiagram
+    participant Queue as Task Queue
+    participant ML as ML Engine
+    participant DB as Postgres
+    participant S3 as S3
+
+    Queue->>S3: download proxy file
+    Queue->>ML: classify_scene(proxy)
+    Queue->>ML: extract_face_embeddings(proxy)
+    ML-->>Queue: is_nature flag, face vectors
+
+    alt video asset
+        Queue->>ML: process_video - sample 1 frame per 2 seconds
+        ML-->>Queue: aggregated face vectors and nature flags across frames
+    end
+
+    loop for each face vector
+        Queue->>DB: fetch attendee embeddings for this trip
+        Queue->>Queue: cosine similarity per attendee
+        alt similarity above storage floor (e.g. 0.5)
+            Queue->>DB: INSERT Match row with raw confidence_score
+        end
+    end
+    Queue->>DB: UPDATE MediaAsset status = processed
+```
+
+Note the **storage floor vs. business threshold** split: matches are stored down to a generous floor (e.g. 0.5) so the strict cutoff (e.g. 0.65) can be tuned later at query time without re-running ML on every asset.
+
 ### 4.4 High-Res Arrival → Web Derivative Generation
-![alt text](image-2.png)
+
+```mermaid
+sequenceDiagram
+    participant API as Upload Route
+    participant Queue as Task Queue
+    participant S3 as S3
+
+    API->>S3: store original HEIC/MOV under /originals
+    API->>Queue: enqueue generate_web_derivative(asset_id)
+    Queue->>S3: download original
+    alt HEIC image
+        Queue->>Queue: decode via pillow-heif, re-encode JPEG ~90pct quality
+    else MOV/HEVC video
+        Queue->>Queue: transcode via ffmpeg to H.264 MP4
+    end
+    alt decode/transcode succeeds
+        Queue->>S3: store derivative under /web
+        Queue->>Queue: UPDATE high_res_web_url
+    else decode/transcode fails
+        Queue->>Queue: log + flag asset, leave high_res_web_url null
+        Note over Queue: Gallery falls back to proxy image + "download original" link
+    end
+```
+
 ### 4.5 End of Trip → Gallery & WhatsApp Delivery
-![alt text](image-3.png)
+
+```mermaid
+sequenceDiagram
+    actor Organizer
+    participant App as Mobile App
+    participant API as Backend
+    participant DistSvc as Distribution Service
+    participant Twilio as Twilio WhatsApp API
+    participant Guest as Attendee
+
+    Organizer->>App: Tap "End Trip"
+    App->>App: Force final foreground sync of any pending assets
+    App->>API: POST /trips/{id}/end
+    API->>API: is_active = false, cancel reminder schedule
+
+    loop for each registered attendee
+        API->>DistSvc: generate_user_gallery(attendee_id)
+        DistSvc->>DistSvc: apply gallery_scope + media_filter + threshold
+        DistSvc->>Twilio: send approved template with gallery link
+        alt WhatsApp send fails (invalid number, opted out, throttled)
+            DistSvc->>DistSvc: log failure, mark for SMS fallback or in-app banner
+        end
+    end
+    Twilio-->>Guest: WhatsApp message with link (in addition to the link they already got at registration)
+```
+
+---
+
 ## 5. Data Model
-![alt text](image-4.png)
+
+```mermaid
+erDiagram
+    TRIP ||--o{ ATTENDEE : has
+    TRIP ||--o{ MEDIA_ASSET : has
+    ATTENDEE ||--o{ MATCH : appears_in
+    MEDIA_ASSET ||--o{ MATCH : contains
+
+    TRIP {
+        uuid id PK
+        string organizer_name
+        string invite_code
+        datetime created_at
+        boolean is_active
+    }
+    ATTENDEE {
+        uuid id PK
+        uuid trip_id FK
+        string phone_number
+        text selfie_embedding
+        string gallery_scope
+        string media_filter
+        boolean whatsapp_opted_in
+    }
+    MEDIA_ASSET {
+        uuid id PK
+        uuid trip_id FK
+        string device_local_id
+        string proxy_s3_url
+        string high_res_s3_url
+        string high_res_web_url
+        string media_type
+        string status
+        boolean is_nature
+        datetime created_at
+    }
+    MATCH {
+        bigint id PK
+        uuid media_asset_id FK
+        uuid attendee_id FK
+        float confidence_score
+    }
+```
 
 ### Refinements vs. the original spec
 
@@ -73,7 +318,25 @@ This plan incorporates every constraint discussed earlier (iOS background limits
 ---
 
 ## 6. MediaAsset State Machine
-![alt text](image-5.png)
+
+```mermaid
+stateDiagram-v2
+    [*] --> proxy_uploaded
+    proxy_uploaded --> processing : enqueued
+    processing --> processed : ML done, matches written
+    processing --> processing_failed : ML crash or timeout
+    processing_failed --> processing : retry, up to 3x
+    processing_failed --> manual_review : retries exhausted
+    processed --> awaiting_high_res : waiting for Wi-Fi or End Trip
+    awaiting_high_res --> high_res_uploaded : original received
+    high_res_uploaded --> web_ready : derivative generated
+    high_res_uploaded --> derivative_failed : decode/transcode error
+    derivative_failed --> web_ready : retried or manually fixed
+    web_ready --> [*]
+```
+
+---
+
 ## 7. Fallback & Resilience Matrix
 
 | Risk / Failure | Why it happens | Recommended fallback |

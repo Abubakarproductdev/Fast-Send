@@ -13,7 +13,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from app.config import get_settings
 from app.models import ALL_MODELS
 from app.routers import trips as trip_router
-
+    
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

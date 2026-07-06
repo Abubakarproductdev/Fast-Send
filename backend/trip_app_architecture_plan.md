@@ -11,7 +11,7 @@ This plan incorporates every constraint discussed earlier (iOS background limits
 
 1. **Nothing silent.** Every upload action is either user-confirmed (tap-to-push) or happens transparently in a system-visible way (background `URLSession` transfer). This keeps you compliant with App Store review and avoids surprising users.
 2. **Three-tier media pipeline.** Proxy (instant, cheap, for matching) → Original (Wi-Fi, archival quality) → Web derivative (cross-browser display). Never serve raw HEIC to a generic browser.
-3. **Everything is retry-able.** Every step writes a status to durable storage (local SQLite or Postgres) before moving on, so a crash/kill/connectivity loss never loses data — it just resumes from the last known state.
+3. **Everything is retry-able.** Every step writes a status to durable storage  before moving on, so a crash/kill/connectivity loss never loses data — it just resumes from the last known state.
 4. **Decouple matching threshold from match storage.** Store match scores generously; apply the strict cutoff at gallery-generation time so you can retune without reprocessing.
 5. **Graceful degradation everywhere.** If a "smart" feature fails (face match, scene classification, derivative generation), the user still gets *something* (e.g., the full unsorted gallery, or the original file with no preview) rather than a dead end.
 

@@ -104,7 +104,7 @@ graph TB
 
 ## 4. End-to-End Flows
 
-### 4.1 Attendee Registration (QR → Selfie → Preferences)
+### 4.1 Attendee Registration 
 
 ```mermaid
 sequenceDiagram

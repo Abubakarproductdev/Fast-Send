@@ -134,7 +134,7 @@ sequenceDiagram
     end
 ```
 
-**Built-in fallback:** the personal gallery link is shown on-screen the moment registration succeeds — *before* any WhatsApp message is even attempted. WhatsApp becomes a convenience notification layered on top, not a single point of failure.
+**Built-in fallback:** the personal galleryies link is shown on-screen the moment registration succeeds — *before* any WhatsApp message is even attempted. WhatsApp becomes a convenience notification layered on top, not a single point of failure.
 
 ### 4.2 Capture → Reminder → Two-Tier Upload
 

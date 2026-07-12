@@ -234,7 +234,7 @@ def _asset_to_response(asset: MediaAsset) -> MediaAssetResponse:
     return MediaAssetResponse(
         id=str(asset.id),
         trip_id=str(asset.trip_id),
-        proxy_s3_url=asset.proxy_s3_url,
+        proxy_blob_url=asset.proxy_blob_url,
         status=asset.status.value,
         media_type=asset.media_type,
         created_at=asset.created_at,

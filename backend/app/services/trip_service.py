@@ -165,6 +165,7 @@ import uuid
 import logging
 from app.models.media_asset import AssetStatus, EmbeddedMatch
 from app.ml import FaceEngine, FaceProcessingError
+from app.services.storage_service import azure_blob_service, StorageError
 
 logger = logging.getLogger(__name__)
 
@@ -174,25 +175,24 @@ async def upload_media_proxy(
     media_type: str,
     device_local_id: str | None = None,
 ) -> MediaAsset:
-    """Save the proxy image locally and create a MediaAsset document."""
+    """Upload the proxy image to Azure Blob Storage and create a MediaAsset document."""
     trip = await get_trip(trip_id)
     
     if not trip.is_active:
         raise TripInactiveError(f"Trip {trip_id} has ended — cannot upload media")
 
-    # Save to local disk for V1 (simulating S3)
-    upload_dir = f"uploads/trips/{trip_id}/proxies"
-    os.makedirs(upload_dir, exist_ok=True)
+    # Upload to Azure
+    filename = f"trips/{trip_id}/proxies/{uuid.uuid4().hex}.jpg"
     
-    filename = f"{uuid.uuid4().hex}.jpg"
-    filepath = os.path.join(upload_dir, filename)
-    
-    with open(filepath, "wb") as f:
-        f.write(image_data)
+    try:
+        blob_url = azure_blob_service.upload_file(image_data, filename, content_type="image/jpeg")
+    except StorageError as e:
+        logger.error(f"Failed to upload media proxy to Azure: {e}")
+        raise RuntimeError(f"Storage error: {e}")
         
     asset = MediaAsset(
         trip_id=trip.id,
-        proxy_s3_url=filepath,
+        proxy_blob_url=blob_url,
         media_type=media_type,
         device_local_id=device_local_id,
         status=AssetStatus.PROCESSING,
@@ -222,13 +222,18 @@ async def process_media_asset(
     """Background task to extract faces and compute matches against attendees."""
     try:
         asset = await MediaAsset.get(asset_id)
-        if not asset or not asset.proxy_s3_url:
+        if not asset or not asset.proxy_blob_url:
             logger.error(f"Asset {asset_id} not found or missing proxy URL")
             return
             
-        # Read the file
-        with open(asset.proxy_s3_url, "rb") as f:
-            image_data = f.read()
+        # Download the file bytes from Azure
+        try:
+            image_data = azure_blob_service.download_file(asset.proxy_blob_url)
+        except StorageError as e:
+            logger.error(f"Failed to download asset {asset_id} from Azure: {e}")
+            asset.status = AssetStatus.FAILED
+            await asset.save()
+            return
             
         # Extract all faces
         try:

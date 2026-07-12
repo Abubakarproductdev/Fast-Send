@@ -55,8 +55,8 @@ class MediaAsset(Document):
     """A photo or video uploaded during a trip."""
 
     trip_id: PydanticObjectId
-    proxy_s3_url: str | None = None
-    high_res_s3_url: str | None = None
+    proxy_blob_url: str | None = None
+    high_res_blob_url: str | None = None
     high_res_web_url: str | None = None
     media_type: str  # "image" or "video"
     is_nature: bool = False

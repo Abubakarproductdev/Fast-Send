@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     ml_min_det_score: float = 0.5
     ml_min_face_size: int = 50
 
+    # ── Azure Storage ───────────────────────────────────────────────
+    azure_storage_connection_string: str = "UseDevelopmentStorage=true"  # Azurite default
+    azure_container_name: str = "fastsend-media"
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

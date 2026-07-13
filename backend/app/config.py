@@ -46,8 +46,10 @@ class Settings(BaseSettings):
     ml_min_face_size: int = 50
 
     # ── Azure Storage ───────────────────────────────────────────────
-    azure_storage_connection_string: str = "UseDevelopmentStorage=true"  # Azurite default
-    azure_container_name: str = "fastsend-media"
+    azure_storage_connection_string: str
+    azure_container_proxies: str = "proxies"
+    azure_container_originals: str = "originals"
+    azure_container_web: str = "web"
 
 
 @lru_cache(maxsize=1)

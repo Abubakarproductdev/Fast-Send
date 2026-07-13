@@ -182,10 +182,11 @@ async def upload_media_proxy(
         raise TripInactiveError(f"Trip {trip_id} has ended — cannot upload media")
 
     # Upload to Azure
-    filename = f"trips/{trip_id}/proxies/{uuid.uuid4().hex}.jpg"
+    container_name = azure_blob_service.settings.azure_container_proxies
+    filename = f"trip_{trip_id}/{uuid.uuid4().hex}.jpg"
     
     try:
-        blob_url = azure_blob_service.upload_file(image_data, filename, content_type="image/jpeg")
+        blob_url = azure_blob_service.upload_file(image_data, container_name, filename, content_type="image/jpeg")
     except StorageError as e:
         logger.error(f"Failed to upload media proxy to Azure: {e}")
         raise RuntimeError(f"Storage error: {e}")

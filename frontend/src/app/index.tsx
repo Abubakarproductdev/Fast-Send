@@ -1,21 +1,23 @@
 import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { colors } from '../theme/colors';
+import { typography } from '../theme/typography';
+import { useAuth } from '../context/AuthContext';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { isLoading, user, organizerId } = useAuth();
 
   useEffect(() => {
-    // Check Firebase Auth state here later.
-    // For now, mock a 2 second delay then go to onboarding.
-    const timer = setTimeout(() => {
-      router.replace('/onboarding');
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (!isLoading) {
+      if (user && organizerId) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/onboarding');
+      }
+    }
+  }, [isLoading, user, organizerId]);
 
   return (
     <View style={styles.container}>

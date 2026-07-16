@@ -8,7 +8,7 @@ the service layer retries generation on the rare collision.
 
 from datetime import datetime, timezone
 
-from beanie import Document
+from beanie import Document, PydanticObjectId
 from pydantic import Field
 from pymongo import IndexModel
 
@@ -16,7 +16,7 @@ from pymongo import IndexModel
 class Trip(Document):
     """A trip/event created by an organizer."""
 
-    organizer_name: str
+    organizer_id: PydanticObjectId
     invite_code: str
     is_active: bool = True
     created_at: datetime = Field(
@@ -30,4 +30,5 @@ class Trip(Document):
         name = "trips"
         indexes = [
             IndexModel([("invite_code", 1)], unique=True),
+            IndexModel([("organizer_id", 1)]),
         ]

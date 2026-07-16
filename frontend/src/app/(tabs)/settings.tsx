@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../../config/firebase';
+import { useAuth } from '../../../context/AuthContext';
 import { HalfHalfLayout } from '../../components/HalfHalfLayout';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -8,6 +11,7 @@ import { spacing, radius } from '../../theme/spacing';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { user, setOrganizerId } = useAuth();
 
   const yellowContent = (
     <View style={styles.yellowContent}>
@@ -45,7 +49,15 @@ export default function SettingsScreen() {
         <SettingRow 
           label="Sign Out" 
           danger 
-          onPress={() => router.replace('/login')} 
+          onPress={async () => {
+            try {
+              await signOut(auth);
+              setOrganizerId(null);
+              router.replace('/login');
+            } catch (e: any) {
+              Alert.alert('Error signing out', e.message);
+            }
+          }} 
         />
       </View>
     </ScrollView>

@@ -19,11 +19,11 @@ from app.models.attendee import GalleryPreference
 class TripCreate(BaseModel):
     """Body of ``POST /api/v1/trips``."""
 
-    organizer_name: str = Field(
+    organizer_id: str = Field(
         ...,
         min_length=1,
-        max_length=100,
-        examples=["Abubakar"],
+        max_length=50,
+        examples=["60f1c..."],
     )
 
 
@@ -31,7 +31,7 @@ class TripResponse(BaseModel):
     """Standard trip representation returned by most endpoints."""
 
     id: str
-    organizer_name: str
+    organizer_id: str
     invite_code: str
     is_active: bool
     created_at: datetime

@@ -39,7 +39,7 @@ def _trip_to_response(trip) -> TripResponse:
     """Map a Trip document to the public API representation."""
     return TripResponse(
         id=str(trip.id),
-        organizer_name=trip.organizer_name,
+        organizer_id=str(trip.organizer_id),
         invite_code=trip.invite_code,
         is_active=trip.is_active,
         created_at=trip.created_at,
@@ -71,7 +71,7 @@ def _attendee_to_response(attendee) -> AttendeeResponse:
 )
 async def create_trip(body: TripCreate):
     """Create a trip and generate a unique invite code for QR sharing."""
-    trip = await trip_service.create_trip(body.organizer_name)
+    trip = await trip_service.create_trip(PydanticObjectId(body.organizer_id))
     return _trip_to_response(trip)
 
 

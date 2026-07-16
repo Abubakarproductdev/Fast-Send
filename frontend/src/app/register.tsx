@@ -1,27 +1,58 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing } from '../../theme/spacing';
-import { InputField } from '../../components/InputField';
-import { PrimaryButton } from '../../components/PrimaryButton';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../../config/firebase';
+import { useAuth } from '../../context/AuthContext';
+import { colors } from '../theme/colors';
+import { typography } from '../theme/typography';
+import { spacing } from '../theme/spacing';
+import { InputField } from '../components/InputField';
+import { PrimaryButton } from '../components/PrimaryButton';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { setOrganizerId } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    if (!email || !password || !name) return;
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+    
     setLoading(true);
-    // Mock API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      
+      // Sync with backend
+      const response = await fetch('http://localhost:8000/api/v1/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firebase_uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          name: name,
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Backend sync failed');
+      
+      const data = await response.json();
+      setOrganizerId(data.organizer_id);
+      
       router.replace('/(tabs)');
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert('Registration Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -36,7 +36,7 @@ class TripInactiveError(Exception):
 # ── Trip operations ───────────────────────────────────────────────────
 
 
-async def create_trip(organizer_name: str) -> Trip:
+async def create_trip(organizer_id: PydanticObjectId) -> Trip:
     """Create a new trip with a unique invite code.
 
     ``secrets.token_urlsafe`` produces a URL-safe base-64 string.  On the
@@ -51,7 +51,7 @@ async def create_trip(organizer_name: str) -> Trip:
     for attempt in range(max_retries):
         invite_code = secrets.token_urlsafe(settings.invite_code_length)
         trip = Trip(
-            organizer_name=organizer_name,
+            organizer_id=organizer_id,
             invite_code=invite_code,
         )
         try:

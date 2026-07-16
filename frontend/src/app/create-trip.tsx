@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing, radius } from '../theme/spacing';
@@ -9,16 +10,37 @@ import { PrimaryButton } from '../components/PrimaryButton';
 
 export default function CreateTripScreen() {
   const router = useRouter();
+  const { organizerId } = useAuth();
   const [tripName, setTripName] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
+    if (!organizerId) {
+      Alert.alert('Error', 'Not logged in');
+      return;
+    }
+    
     setLoading(true);
-    // Mock API Call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/trips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organizer_id: organizerId,
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to create trip');
+      
+      const trip = await response.json();
+      // Store trip ID in local storage here if needed
+      
       router.replace('/active-trip');
-    }, 1000);
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

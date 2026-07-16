@@ -71,6 +71,9 @@ def create_app() -> FastAPI:
     
     from app.routers import gallery as gallery_router
     app.include_router(gallery_router.router)
+    
+    from app.routers import auth as auth_router
+    app.include_router(auth_router.router)
 
     # ── Health check ──────────────────────────────────────────────────
     @app.get("/", tags=["Health"])

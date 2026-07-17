@@ -1,56 +1,89 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { HalfHalfLayout } from '../../components/HalfHalfLayout';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
 
-const MOCK_TRIPS = [
-  { id: '1', name: 'Lahore Trip', date: 'Jul 14 - Jul 16', photos: 142 },
-  { id: '2', name: 'Birthday Party', date: 'Jun 22', photos: 45 },
-];
-
 export default function TripsScreen() {
-  const router = useRouter();
+  const { organizerId } = useAuth();
+  const [trips, setTrips] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadTrips = async () => {
+    if (!organizerId) return;
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/trips/organizer/${organizerId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTrips(data);
+      }
+    } catch (e) {
+      console.error('Failed to load trips', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTrips();
+  }, [organizerId]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadTrips();
+  };
 
   const yellowContent = (
     <View style={styles.yellowContent}>
-      <Text style={styles.title}>Your Trips</Text>
+      <Text style={typography.h2}>Your Trips</Text>
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>{MOCK_TRIPS.length}</Text>
+        <Text style={styles.badgeText}>{trips.length}</Text>
       </View>
     </View>
   );
 
   const whiteContent = (
-    <View style={styles.whiteContent}>
-      <FlatList
-        data={MOCK_TRIPS}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.card}
-            onPress={() => router.push(`/trip-detail/${item.id}`)}
-          >
-            <View>
-              <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardDate}>{item.date}</Text>
+    <ScrollView 
+      style={styles.whiteContent}
+      contentContainerStyle={styles.listContainer}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      {loading ? (
+        <Text style={styles.emptyText}>Loading...</Text>
+      ) : trips.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>📁</Text>
+          <Text style={styles.emptyTitle}>No past trips yet</Text>
+          <Text style={styles.emptySub}>Completed trips will appear here</Text>
+        </View>
+      ) : (
+        trips.map((trip) => (
+          <TouchableOpacity key={trip.id} style={styles.tripCard}>
+            <View style={styles.tripHeader}>
+              <Text style={typography.bodyBold}>Code: {trip.invite_code}</Text>
+              <View style={[
+                styles.statusBadge, 
+                { backgroundColor: trip.is_active ? colors.success : colors.offWhite }
+              ]}>
+                <Text style={[
+                  styles.statusText,
+                  { color: trip.is_active ? colors.white : colors.textSecondary }
+                ]}>
+                  {trip.is_active ? 'Live' : 'Ended'}
+                </Text>
+              </View>
             </View>
-            <View style={styles.photoCount}>
-              <Text style={styles.photoCountText}>{item.photos} photos</Text>
+            
+            <View style={styles.tripStats}>
+              <Text style={typography.caption}>Created: {new Date(trip.created_at).toLocaleDateString()}</Text>
             </View>
           </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>📁</Text>
-            <Text style={styles.emptyTitle}>No past trips yet</Text>
-            <Text style={styles.emptySub}>Completed trips will appear here</Text>
-          </View>
-        }
-      />
-    </View>
+        ))
+      )}
+    </ScrollView>
   );
 
   return (
@@ -64,60 +97,56 @@ export default function TripsScreen() {
 const styles = StyleSheet.create({
   yellowContent: {
     alignItems: 'center',
-  },
-  title: {
-    fontSize: typography.size.xl,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
+    width: '100%',
   },
   badge: {
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    marginTop: spacing.md,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+    marginTop: spacing.sm,
   },
   badgeText: {
+    fontSize: typography.size.sm,
     fontWeight: 'bold',
+    color: colors.primary,
   },
   whiteContent: {
     flex: 1,
   },
-  card: {
+  listContainer: {
+    paddingBottom: spacing.xl,
+  },
+  tripCard: {
+    backgroundColor: colors.white,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  tripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: radius.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
-  cardTitle: {
-    fontSize: typography.size.base,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-  },
-  cardDate: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  photoCount: {
-    backgroundColor: colors.yellowLight,
+  statusBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    borderRadius: radius.sm,
+    borderRadius: 12,
   },
-  photoCountText: {
-    color: colors.yellowDark,
+  statusText: {
     fontSize: typography.size.xs,
     fontWeight: 'bold',
   },
+  tripStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   emptyState: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 60,
+    marginTop: spacing.xxl,
   },
   emptyIcon: {
     fontSize: 48,
@@ -127,9 +156,15 @@ const styles = StyleSheet.create({
     fontSize: typography.size.lg,
     fontWeight: 'bold',
     color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   emptySub: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: spacing.xl,
+    color: colors.textSecondary,
   }
 });

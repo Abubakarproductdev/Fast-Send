@@ -85,6 +85,11 @@ async def get_trip_by_invite_code(invite_code: str) -> Trip:
     return trip
 
 
+async def get_trips_by_organizer(organizer_id: PydanticObjectId) -> list[Trip]:
+    """Fetch all trips created by a specific organizer, sorted newest first."""
+    return await Trip.find(Trip.organizer_id == organizer_id).sort("-created_at").to_list()
+
+
 async def end_trip(trip_id: PydanticObjectId) -> Trip:
     """Mark a trip as inactive.
 

@@ -97,6 +97,17 @@ async def join_trip(invite_code: str):
 
 
 @router.get(
+    "/organizer/{organizer_id}",
+    response_model=list[TripResponse],
+    summary="List all trips for an organizer",
+)
+async def list_organizer_trips(organizer_id: PydanticObjectId):
+    """Return every trip created by the given organizer."""
+    trips = await trip_service.get_trips_by_organizer(organizer_id)
+    return [_trip_to_response(t) for t in trips]
+
+
+@router.get(
     "/{trip_id}",
     response_model=TripDetail,
     summary="Get trip details",

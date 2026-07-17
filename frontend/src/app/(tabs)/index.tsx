@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 import { HalfHalfLayout } from '../../components/HalfHalfLayout';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { spacing } from '../../theme/spacing';
+import { spacing, radius } from '../../theme/spacing';
 
 const StatBadge = ({ value, label }: { value: string | number, label: string }) => (
   <View style={styles.statBadge}>
@@ -16,63 +17,61 @@ const StatBadge = ({ value, label }: { value: string | number, label: string }) 
 
 export default function HomeScreen() {
   const router = useRouter();
-  
-  // Mock state for now
-  const [hasActiveTrip, setHasActiveTrip] = useState(false);
-  const [userName, setUserName] = useState('Ahmed');
+  const { activeTripId } = useAuth();
 
   const yellowContent = (
     <View style={styles.yellowContent}>
-      <Text style={styles.greeting}>Good morning, {userName}</Text>
-      <Text style={styles.dateSubtitle}>Thursday, 16 July</Text>
+      <Text style={styles.greeting}>Dashboard</Text>
+      <Text style={styles.dateSubtitle}>
+        {activeTripId ? 'You have an active trip running.' : "You're all caught up. Start a new trip to begin."}
+      </Text>
       
       <View style={styles.heroIconContainer}>
         <Text style={styles.heroIcon}>📷</Text>
-        {!hasActiveTrip && <Text style={styles.heroSubtext}>No active trip</Text>}
+        {!activeTripId && <Text style={styles.heroSubtext}>No active trip</Text>}
       </View>
     </View>
   );
 
-  const whiteContent = hasActiveTrip ? (
+  const whiteContent = (
     <View style={styles.whiteContent}>
-      <Text style={styles.tripName}>Ahmed's Wedding</Text>
-      <View style={styles.liveBadge}>
-        <View style={styles.liveDot} />
-        <Text style={styles.liveText}>LIVE</Text>
-      </View>
+      {activeTripId ? (
+        <>
+          <Text style={styles.tripName}>Live Event Active</Text>
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
 
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <PrimaryButton 
-          title="Push New Photos" 
-          onPress={() => alert('Scanning delta...')} 
-        />
-        <PrimaryButton 
-          title="View QR Code" 
-          type="secondary"
-          onPress={() => router.push('/active-trip')} 
-        />
-        <PrimaryButton 
-          title="End Trip" 
-          type="danger"
-          onPress={() => setHasActiveTrip(false)} 
-        />
-      </View>
-    </View>
-  ) : (
-    <View style={styles.whiteContent}>
-      <Text style={styles.heading}>Start your first trip</Text>
-      <Text style={styles.subtitle}>Create a trip and share your QR code with guests</Text>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <PrimaryButton 
+              title="Push New Photos" 
+              onPress={() => alert('Scanning delta...')} 
+            />
+            <PrimaryButton 
+              title="View Trip Stats" 
+              type="secondary"
+              onPress={() => router.push('/active-trip')} 
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <Text style={styles.heading}>Start your first trip</Text>
+          <Text style={styles.subtitle}>Create a trip and share your QR code with guests</Text>
 
-      <PrimaryButton 
-        title="Start New Trip" 
-        onPress={() => router.push('/create-trip')} 
-      />
+          <PrimaryButton 
+            title="Start New Trip" 
+            onPress={() => router.push('/create-trip')} 
+          />
 
-      <View style={styles.statsRow}>
-        <StatBadge value="12" label="Total Trips" />
-        <StatBadge value="840" label="Total Photos" />
-        <StatBadge value="45" label="Total Guests" />
-      </View>
+          <View style={styles.statsRow}>
+            <StatBadge value="-" label="Total Trips" />
+            <StatBadge value="-" label="Total Photos" />
+            <StatBadge value="-" label="Total Guests" />
+          </View>
+        </>
+      )}
     </View>
   );
 

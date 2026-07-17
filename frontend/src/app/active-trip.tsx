@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 import { HalfHalfLayout } from '../components/HalfHalfLayout';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { colors } from '../theme/colors';
@@ -16,31 +17,84 @@ const StatBadge = ({ value, label }: { value: string | number, label: string }) 
 
 export default function ActiveTripScreen() {
   const router = useRouter();
+  const { activeTripId, setActiveTripId } = useAuth();
+  
+  const [inviteCode, setInviteCode] = useState('LOADING...');
+  const [guests, setGuests] = useState(0);
+  const [photos, setPhotos] = useState(0);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!activeTripId) return;
+      try {
+        const response = await fetch(`http://localhost:8000/api/v1/trips/${activeTripId}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        setInviteCode(data.invite_code);
+        setGuests(data.attendee_count);
+        setPhotos(data.media_count);
+      } catch (e) {
+        console.error('Failed to load trip stats', e);
+      }
+    };
+    loadStats();
+    // In a real app, you might want to poll this endpoint every X seconds to keep it fresh
+    const interval = setInterval(loadStats, 5000);
+    return () => clearInterval(interval);
+  }, [activeTripId]);
+
+  const handleEndTrip = async () => {
+    Alert.alert(
+      "End Trip",
+      "Are you sure you want to end this trip? You won't be able to upload more photos.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "End Trip", 
+          style: "destructive",
+          onPress: async () => {
+            if (!activeTripId) return;
+            try {
+              await fetch(`http://localhost:8000/api/v1/trips/${activeTripId}/end`, {
+                method: 'POST'
+              });
+              await setActiveTripId(null);
+              router.replace('/(tabs)');
+            } catch (e: any) {
+              Alert.alert('Error', 'Failed to end trip: ' + e.message);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const yellowContent = (
     <View style={styles.yellowContent}>
       <Text style={styles.liveText}>Trip is Live</Text>
       
       <View style={styles.qrCard}>
-        {/* Placeholder for actual QR code component */}
-        <View style={styles.qrPlaceholder}>
-          <Text style={styles.qrPlaceholderText}>QR CODE</Text>
-        </View>
+        {inviteCode !== 'LOADING...' ? (
+          <QRCode value={`http://localhost:8000/join/${inviteCode}`} size={180} />
+        ) : (
+          <View style={styles.qrPlaceholder}>
+            <Text style={styles.qrPlaceholderText}>QR CODE</Text>
+          </View>
+        )}
       </View>
       
-      <Text style={styles.inviteCode}>FA3B2C89</Text>
+      <Text style={styles.inviteCode}>{inviteCode}</Text>
     </View>
   );
 
   const whiteContent = (
     <View style={styles.whiteContent}>
-      <Text style={styles.heading}>Ahmed's Wedding</Text>
+      <Text style={styles.heading}>Live Event</Text>
       <Text style={styles.subtitle}>Share this QR with your guests to let them register</Text>
 
       <View style={styles.statsRow}>
-        <StatBadge value="14" label="Guests" />
-        <StatBadge value="102" label="Photos" />
-        <StatBadge value="3" label="Videos" />
+        <StatBadge value={guests} label="Guests" />
+        <StatBadge value={photos} label="Photos" />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -56,7 +110,7 @@ export default function ActiveTripScreen() {
         <PrimaryButton 
           title="End Trip" 
           type="danger"
-          onPress={() => router.replace('/(tabs)')} 
+          onPress={handleEndTrip} 
         />
       </View>
     </View>

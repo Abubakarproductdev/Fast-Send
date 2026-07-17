@@ -10,7 +10,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 
 export default function CreateTripScreen() {
   const router = useRouter();
-  const { organizerId } = useAuth();
+  const { organizerId, setActiveTripId } = useAuth();
   const [tripName, setTripName] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +33,7 @@ export default function CreateTripScreen() {
       if (!response.ok) throw new Error('Failed to create trip');
       
       const trip = await response.json();
-      // Store trip ID in local storage here if needed
+      await setActiveTripId(trip.id);
       
       router.replace('/active-trip');
     } catch (e: any) {

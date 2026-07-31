@@ -3,12 +3,13 @@ import { getAuth } from 'firebase/auth';
 
 // TODO: Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+   apiKey: "AIzaSyDh9naw5yWwt6kYlBPd-CHQ7rk6P0tEBlk",
+  authDomain: "fastsend-6e4e9.firebaseapp.com",
+  projectId: "fastsend-6e4e9",
+  storageBucket: "fastsend-6e4e9.firebasestorage.app",
+  messagingSenderId: "98382858258",
+  appId: "1:98382858258:web:0f6370d0e8be14b927b0cb",
+  measurementId: "G-FMWDWV42DD"
 };
 
 export const app = initializeApp(firebaseConfig);

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "98382858258",
+    "project_id": "fastsend-6e4e9",
+    "storage_bucket": "fastsend-6e4e9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98382858258:android:e1a01041bd25fd6427b0cb",
+        "android_client_info": {
+          "package_name": "fast.sends"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "98382858258-0euv2r9jbjbkp3uffmibl7va5105jr5n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOLObzyFokfvPAG0pimrqEfiPj0RmZNUQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "98382858258-0euv2r9jbjbkp3uffmibl7va5105jr5n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

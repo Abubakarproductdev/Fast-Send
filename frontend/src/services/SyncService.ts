@@ -11,6 +11,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -38,11 +40,11 @@ export class SyncService {
     
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '📸 FastSend Trip is Live!',
-        body: 'Tap here to instantly sync all new photos taken to the cloud.',
-        data: { action: 'sync_photos' },
+        title: "Keep the memories flowing! 📸",
+        body: "Don't forget to upload your latest photos to the trip gallery.",
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: 2 * 60 * 60, // 2 hours
         repeats: true,
       },

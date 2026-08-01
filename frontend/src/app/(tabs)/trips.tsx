@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { HalfHalfLayout } from '../../components/HalfHalfLayout';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: typography.size.sm,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.textPrimary,
   },
   whiteContent: {
     flex: 1,

@@ -82,7 +82,7 @@ class MediaAsset(Document):
             IndexModel(
                 [("trip_id", 1), ("device_local_id", 1)],
                 unique=True,
-                partialFilterExpression={"device_local_id": {"$ne": None}},
+                partialFilterExpression={"device_local_id": {"$type": "string"}},
             ),
 
             # Multikey index — Mongo indexes every element in the array,

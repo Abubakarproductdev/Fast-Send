@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import QRCode from 'react-native-qrcode-svg';
 import { useAuth } from '../context/AuthContext';
 import { HalfHalfLayout } from '../components/HalfHalfLayout';
 import { PrimaryButton } from '../components/PrimaryButton';

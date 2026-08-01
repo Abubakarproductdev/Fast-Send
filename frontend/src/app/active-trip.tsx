@@ -10,6 +10,11 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImageManipulator from 'expo-image-manipulator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
+import {
+  cancelAllUploadReminders,
+  notifyTripEnded,
+  notifyUploadComplete,
+} from '../services/NotificationService';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -117,6 +122,11 @@ export default function ActiveTripScreen() {
 
               await setActiveTripId(null);
               await setTripStartTime(null);
+
+              // Cancel all upload reminders and confirm to user
+              await cancelAllUploadReminders();
+              notifyTripEnded().catch(() => {});
+
               router.replace('/(tabs)');
             } catch (e: any) {
               Alert.alert('Error', 'Something went wrong ending the trip. Please try again.');
@@ -155,9 +165,16 @@ export default function ActiveTripScreen() {
     setUploadErrors([]);
 
     try {
-      const tripStartMs = new Date(tripStartTime).getTime();
+      // Normalize the stored tripStartTime:
+      // 1. Ensure it has a 'Z' suffix so new Date() parses it as UTC (not local time)
+      // 2. Subtract 5 seconds as a buffer in case of phone/server clock skew
+      let normalizedTime = tripStartTime.trim();
+      if (!normalizedTime.endsWith('Z') && !normalizedTime.includes('+')) {
+        normalizedTime += 'Z'; // Treat bare datetime strings as UTC
+      }
+      const tripStartMs = new Date(normalizedTime).getTime() - 5_000; // 5-second grace buffer
       if (isNaN(tripStartMs)) {
-        throw new Error('Invalid trip start time stored. Please create a new trip.');
+        throw new Error('Invalid trip start time stored. Please end this trip and create a new one.');
       }
 
       // 3. Collect all photos since trip start
@@ -249,11 +266,7 @@ export default function ActiveTripScreen() {
           }
 
           // 5d. Handle response
-          if (uploadRes.status === 409) {
-            // Duplicate — already synced by server, treat as success
-            syncedIds.push(asset.id);
-            successCount++;
-          } else if (uploadRes.status === 400) {
+          if (uploadRes.status === 400) {
             const body = await uploadRes.json().catch(() => ({}));
             localErrors.push(`"${fileName}": ${body.detail || 'Invalid photo format'}`);
           } else if (uploadRes.status === 404) {
@@ -262,6 +275,7 @@ export default function ActiveTripScreen() {
             const body = await uploadRes.json().catch(() => ({}));
             localErrors.push(`"${fileName}": Upload failed (${uploadRes.status}) — ${body.detail || 'please try again'}`);
           } else {
+            // 200 or 202 — success (backend returns 202 for new, 202 for duplicate idempotent)
             syncedIds.push(asset.id);
             successCount++;
           }
@@ -278,15 +292,21 @@ export default function ActiveTripScreen() {
 
       setUploadErrors(localErrors);
 
-      // 6. Summary
+      // 6. Summary alert + push local notification
       if (localErrors.length === 0) {
         Alert.alert('Upload Complete ✓', `${successCount} photo${successCount !== 1 ? 's' : ''} pushed successfully!`);
+        if (successCount > 0) {
+          notifyUploadComplete(successCount).catch(() => {});
+        }
       } else {
         Alert.alert(
           `Uploaded ${successCount}/${unsyncedAssets.length}`,
           `${localErrors.length} photo${localErrors.length > 1 ? 's' : ''} had issues:\n\n${localErrors.slice(0, 3).join('\n')}${localErrors.length > 3 ? `\n...and ${localErrors.length - 3} more.` : ''}`,
           [{ text: 'OK' }]
         );
+        if (successCount > 0) {
+          notifyUploadComplete(successCount).catch(() => {});
+        }
       }
 
     } catch (e: any) {

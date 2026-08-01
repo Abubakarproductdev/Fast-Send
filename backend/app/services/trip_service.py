@@ -10,13 +10,13 @@ way of signalling a problem; the router decides which HTTP status code
 that maps to.
 """
 
+import asyncio
 import secrets
 from datetime import datetime, timezone
 
 from beanie import PydanticObjectId
 from pymongo.errors import DuplicateKeyError
 
-from app.config import get_settings
 from app.models.attendee import Attendee, GalleryPreference
 from app.models.media_asset import MediaAsset
 from app.models.trip import Trip
@@ -39,17 +39,16 @@ class TripInactiveError(Exception):
 async def create_trip(organizer_id: PydanticObjectId) -> Trip:
     """Create a new trip with a unique invite code.
 
-    ``secrets.token_urlsafe`` produces a URL-safe base-64 string.  On the
-    rare collision (caught by the unique index on ``invite_code``), we
-    regenerate and retry up to three times.  The probability of even a
-    single collision is negligible at any realistic scale, but the retry
-    makes the function correct under all circumstances.
+    ``secrets.token_hex`` produces a clean uppercase hex string (only 0-9 A-F).
+    This is safe in URLs, easy to read aloud, and renders cleanly in the QR code
+    display. On the rare collision (caught by the unique index on ``invite_code``),
+    we regenerate and retry up to three times.
     """
-    settings = get_settings()
     max_retries = 3
 
     for attempt in range(max_retries):
-        invite_code = secrets.token_urlsafe(settings.invite_code_length)
+        # token_hex(4) → 8-character hex string (e.g. "3a8f2b1c") → uppercase it
+        invite_code = secrets.token_hex(4).upper()
         trip = Trip(
             organizer_id=organizer_id,
             invite_code=invite_code,
@@ -191,7 +190,11 @@ async def upload_media_proxy(
     filename = f"trip_{trip_id}/{uuid.uuid4().hex}.jpg"
     
     try:
-        blob_url = azure_blob_service.upload_file(image_data, container_name, filename, content_type="image/jpeg")
+        # Run the synchronous Azure SDK call in a thread pool to avoid blocking the event loop
+        blob_url = await asyncio.to_thread(
+            azure_blob_service.upload_file,
+            image_data, container_name, filename, "image/jpeg"
+        )
     except StorageError as e:
         logger.error(f"Failed to upload media proxy to Azure: {e}")
         raise  # Re-raise StorageError so the global storage_error_handler returns a proper 503
@@ -232,9 +235,11 @@ async def process_media_asset(
             logger.error(f"Asset {asset_id} not found or missing proxy URL")
             return
             
-        # Download the file bytes from Azure
+        # Download the file bytes from Azure (run sync SDK in thread pool)
         try:
-            image_data = azure_blob_service.download_file(asset.proxy_blob_url)
+            image_data = await asyncio.to_thread(
+                azure_blob_service.download_file, asset.proxy_blob_url
+            )
         except StorageError as e:
             logger.error(f"Failed to download asset {asset_id} from Azure: {e}")
             asset.status = AssetStatus.FAILED

@@ -287,6 +287,21 @@ async def upload_media(
     """
     image_data = await file.read()
     
+    # Pre-flight validation: reject empty or trivially small files immediately
+    # at the router level so we return 400 (Bad Request) not 503 (Service Error)
+    if not image_data or len(image_data) < 100:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty or too small. Please try again.",
+        )
+    
+    # 50 MB hard cap
+    if len(image_data) > 50 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File exceeds the 50 MB size limit.",
+        )
+    
     # We only handle image proxies for now, even if the original is video
     media_type = "image"
     
@@ -306,6 +321,12 @@ async def upload_media(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This trip has ended — media upload is closed",
+        )
+    except StorageError as e:
+        # Surface storage errors as 503 with a clear message
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Cloud storage error: {e}. Please try again in a moment.",
         )
 
     # Queue the background processing if it isn't already processed/processing

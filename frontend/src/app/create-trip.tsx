@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
+import { scheduleUploadReminders } from '../services/NotificationService';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing, radius } from '../theme/spacing';
@@ -65,8 +66,21 @@ export default function CreateTripScreen() {
       const trip = await response.json();
       if (!trip.id) throw new Error('Server returned an invalid trip. Please try again.');
 
+      // CRITICAL: Use the device clock time (the moment the user tapped "Create")
+      // NOT trip.created_at from the server, because:
+      // 1. Server clock may differ from phone clock
+      // 2. Beanie may return a datetime string without 'Z' suffix, causing timezone parse bugs
+      // 3. We want to include photos taken in the seconds between tapping and server confirming
+      const deviceStartTime = new Date().toISOString();
+
       await setActiveTripId(trip.id);
-      await setTripStartTime(trip.created_at);
+      await setTripStartTime(deviceStartTime);
+
+      // Schedule 2-hourly upload reminders for the next 24 hours
+      // Do this in the background — don't block navigation on it
+      scheduleUploadReminders().catch(e =>
+        console.warn('[CreateTrip] Could not schedule reminders:', e)
+      );
 
       router.replace('/active-trip');
     } catch (e: any) {

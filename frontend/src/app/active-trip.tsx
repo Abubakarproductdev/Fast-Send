@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -28,7 +29,7 @@ export default function ActiveTripScreen() {
     const loadStats = async () => {
       if (!activeTripId) return;
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/trips/${activeTripId}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/trips/${activeTripId}`);
         if (!response.ok) return;
         const data = await response.json();
         setInviteCode(data.invite_code);
@@ -56,7 +57,7 @@ export default function ActiveTripScreen() {
           onPress: async () => {
             if (!activeTripId) return;
             try {
-              await fetch(`http://localhost:8000/api/v1/trips/${activeTripId}/end`, {
+              await fetch(`${API_BASE_URL}/api/v1/trips/${activeTripId}/end`, {
                 method: 'POST'
               });
               await setActiveTripId(null);
@@ -76,7 +77,7 @@ export default function ActiveTripScreen() {
       
       <View style={styles.qrCard}>
         {inviteCode !== 'LOADING...' ? (
-          <QRCode value={`http://localhost:8000/join/${inviteCode}`} size={180} />
+          <QRCode value={`${API_BASE_URL}/join/${inviteCode}`} size={180} />
         ) : (
           <View style={styles.qrPlaceholder}>
             <Text style={styles.qrPlaceholderText}>QR CODE</Text>

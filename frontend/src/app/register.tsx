@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -32,7 +33,7 @@ export default function RegisterScreen() {
       await updateProfile(userCredential.user, { displayName: name });
       
       // Sync with backend
-      const response = await fetch('http://localhost:8000/api/v1/auth/sync', {
+      const response = await fetch(API_BASE_URL + '/api/v1/auth/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

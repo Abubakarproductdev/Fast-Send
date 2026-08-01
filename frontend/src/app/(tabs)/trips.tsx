@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../config/api';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
@@ -15,7 +16,7 @@ export default function TripsScreen() {
   const loadTrips = async () => {
     if (!organizerId) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/trips/organizer/${organizerId}`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/trips/organizer/${organizerId}`);
       if (response.ok) {
         const data = await response.json();
         setTrips(data);

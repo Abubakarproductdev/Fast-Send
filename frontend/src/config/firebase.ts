@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 // TODO: Replace with your actual Firebase config
@@ -12,8 +12,8 @@ const firebaseConfig = {
   measurementId: "G-FMWDWV42DD"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely for Fast Refresh
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Pass 'app' directly into getAuth()
 export const auth = getAuth(app);

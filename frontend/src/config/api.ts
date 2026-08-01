@@ -1,0 +1,2 @@
+// Use the computer's local IP address instead of localhost so physical phones can reach the FastAPI backend
+export const API_BASE_URL = 'http://192.168.10.8:8000';

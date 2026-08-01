@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, GUEST_WEBAPP_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -77,7 +77,7 @@ export default function ActiveTripScreen() {
       
       <View style={styles.qrCard}>
         {inviteCode !== 'LOADING...' ? (
-          <QRCode value={`${API_BASE_URL}/join/${inviteCode}`} size={180} />
+          <QRCode value={`${GUEST_WEBAPP_URL}/join/${inviteCode}`} size={180} />
         ) : (
           <View style={styles.qrPlaceholder}>
             <Text style={styles.qrPlaceholderText}>QR CODE</Text>

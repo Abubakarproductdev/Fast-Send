@@ -1,174 +1,251 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { HalfHalfLayout } from '../../components/HalfHalfLayout';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
 
-const StatBadge = ({ value, label }: { value: string | number, label: string }) => (
-  <View style={styles.statBadge}>
-    <Text style={styles.statValue}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
-);
-
 export default function HomeScreen() {
   const router = useRouter();
   const { activeTripId } = useAuth();
 
-  const yellowContent = (
-    <View style={styles.yellowContent}>
-      <Text style={styles.greeting}>Dashboard</Text>
-      <Text style={styles.dateSubtitle}>
-        {activeTripId ? 'You have an active trip running.' : "You're all caught up. Start a new trip to begin."}
-      </Text>
-      
-      <View style={styles.heroIconContainer}>
-        <Text style={styles.heroIcon}>📷</Text>
-        {!activeTripId && <Text style={styles.heroSubtext}>No active trip</Text>}
-      </View>
-    </View>
-  );
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
-  const whiteContent = (
-    <View style={styles.whiteContent}>
-      {activeTripId ? (
-        <>
-          <Text style={styles.tripName}>Live Event Active</Text>
-          <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>LIVE</Text>
-          </View>
-
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <PrimaryButton 
-              title="Push New Photos" 
-              onPress={() => alert('Scanning delta...')} 
-            />
-            <PrimaryButton 
-              title="View Trip Stats" 
-              type="secondary"
-              onPress={() => router.push('/active-trip')} 
-            />
-          </View>
-        </>
-      ) : (
-        <>
-          <Text style={styles.heading}>Start your first trip</Text>
-          <Text style={styles.subtitle}>Create a trip and share your QR code with guests</Text>
-
-          <PrimaryButton 
-            title="Start New Trip" 
-            onPress={() => router.push('/create-trip')} 
-          />
-
-          <View style={styles.statsRow}>
-            <StatBadge value="-" label="Total Trips" />
-            <StatBadge value="-" label="Total Photos" />
-            <StatBadge value="-" label="Total Guests" />
-          </View>
-        </>
-      )}
-    </View>
-  );
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, bounciness: 6, speed: 10, useNativeDriver: true }),
+    ]).start();
+  }, []);
 
   return (
-    <HalfHalfLayout 
-      yellowContent={yellowContent} 
-      whiteContent={whiteContent} 
-    />
+    <SafeAreaView style={styles.container}>
+      <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+
+        {/* Top bar */}
+        <View style={styles.topBar}>
+          <View>
+            <Text style={styles.greeting}>Dashboard</Text>
+            <Text style={styles.greetingSub}>
+              {activeTripId ? 'A trip is live right now' : 'Ready to start a new trip?'}
+            </Text>
+          </View>
+          <View style={styles.logoMark}>
+            <Text style={{ fontSize: 22 }}>📷</Text>
+          </View>
+        </View>
+
+        {activeTripId ? (
+          /* === ACTIVE TRIP STATE === */
+          <>
+            {/* Live banner */}
+            <View style={styles.liveBanner}>
+              <View style={styles.liveBannerLeft}>
+                <View style={styles.liveDot} />
+                <View>
+                  <Text style={styles.liveBannerTitle}>Trip is Live</Text>
+                  <Text style={styles.liveBannerSub}>Guests can scan & register now</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.viewBtn}
+                onPress={() => router.push('/active-trip')}
+              >
+                <Text style={styles.viewBtnText}>View →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick action */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Quick Actions</Text>
+              <PrimaryButton
+                title="Push New Photos"
+                onPress={() => router.push('/active-trip')}
+              />
+              <PrimaryButton
+                title="View Trip Details"
+                type="secondary"
+                onPress={() => router.push('/active-trip')}
+              />
+            </View>
+          </>
+        ) : (
+          /* === IDLE STATE === */
+          <>
+            {/* Hero card */}
+            <View style={styles.heroCard}>
+              <Text style={styles.heroEmoji}>📷</Text>
+              <Text style={styles.heroTitle}>No active trip</Text>
+              <Text style={styles.heroSub}>
+                Create a trip to start sharing photos with your guests in real-time.
+              </Text>
+              <PrimaryButton
+                title="Start New Trip"
+                onPress={() => router.push('/create-trip')}
+              />
+            </View>
+
+            {/* Feature hints */}
+            <View style={styles.hintsRow}>
+              {[
+                { icon: '🤖', label: 'AI Face Match' },
+                { icon: '📲', label: 'Instant Delivery' },
+                { icon: '🔒', label: 'Private & Secure' },
+              ].map(h => (
+                <View key={h.label} style={styles.hintChip}>
+                  <Text style={styles.hintIcon}>{h.icon}</Text>
+                  <Text style={styles.hintLabel}>{h.label}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+      </Animated.View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  yellowContent: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  greeting: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-  },
-  dateSubtitle: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing.xxl,
-  },
-  heroIconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroIcon: {
-    fontSize: 64,
-  },
-  heroSubtext: {
-    marginTop: spacing.md,
-    fontSize: typography.size.md,
-    color: colors.textPrimary,
-    fontWeight: '500',
-  },
-  whiteContent: {
+  container: { flex: 1, backgroundColor: colors.bg },
+  inner: {
     flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
-  heading: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.size.base,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
-  },
-  statsRow: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.xl,
-  },
-  statBadge: {
     alignItems: 'center',
-    flex: 1,
+    marginBottom: spacing.xl,
   },
-  statValue: {
-    fontSize: typography.size.xl,
-    fontWeight: 'bold',
+  greeting: {
+    fontSize: typography.size.xxl,
+    fontWeight: '800',
     color: colors.textPrimary,
+    letterSpacing: -0.5,
   },
-  statLabel: {
-    fontSize: typography.size.xs,
+  greetingSub: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
+    marginTop: 2,
   },
-  tripName: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
+  logoMark: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: colors.amberGlow,
+    borderWidth: 1,
+    borderColor: colors.amber + '40',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  liveBadge: {
+  // Live state
+  liveBanner: {
+    backgroundColor: colors.successLight,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.success + '30',
+    padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.yellowLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  liveBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.warning,
-    marginRight: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.success,
   },
-  liveText: {
+  liveBannerTitle: {
+    fontSize: typography.size.base,
+    fontWeight: '700',
+    color: colors.success,
+  },
+  liveBannerSub: {
     fontSize: typography.size.xs,
-    fontWeight: 'bold',
-    color: colors.warning,
-  }
+    color: colors.success + 'AA',
+    marginTop: 1,
+  },
+  viewBtn: {
+    backgroundColor: colors.success,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+  },
+  viewBtnText: {
+    fontSize: typography.size.sm,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  card: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+  },
+  cardTitle: {
+    fontSize: typography.size.base,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  // Idle state
+  heroCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  heroEmoji: { fontSize: 56, marginBottom: spacing.sm },
+  heroTitle: {
+    fontSize: typography.size.xl,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+  },
+  heroSub: {
+    fontSize: typography.size.base,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: spacing.sm,
+  },
+  hintsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+  },
+  hintChip: {
+    flex: 1,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm,
+    alignItems: 'center',
+    gap: 4,
+  },
+  hintIcon: { fontSize: 20 },
+  hintLabel: {
+    fontSize: typography.size.xs,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });

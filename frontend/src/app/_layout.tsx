@@ -1,15 +1,17 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../context/AuthContext';
+import { colors } from '../theme/colors';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" backgroundColor={colors.bg} />
       <Stack
         screenOptions={{
           headerShown: false,
           animation: 'fade',
+          contentStyle: { backgroundColor: colors.bg },
         }}
       >
         <Stack.Screen name="index" />

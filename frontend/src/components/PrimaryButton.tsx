@@ -1,5 +1,11 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { radius, spacing } from '../theme/spacing';
@@ -10,73 +16,134 @@ interface PrimaryButtonProps {
   fullWidth?: boolean;
   loading?: boolean;
   disabled?: boolean;
-  type?: 'primary' | 'secondary' | 'danger';
+  type?: 'primary' | 'secondary' | 'danger' | 'ghost';
 }
 
-export const PrimaryButton = ({ 
-  title, 
-  onPress, 
-  fullWidth = true, 
-  loading = false, 
+export const PrimaryButton = ({
+  title,
+  onPress,
+  fullWidth = true,
+  loading = false,
   disabled = false,
-  type = 'primary'
+  type = 'primary',
 }: PrimaryButtonProps) => {
-  
-  const getBackgroundColor = () => {
-    if (disabled) return colors.divider;
-    if (type === 'secondary') return colors.white;
-    if (type === 'danger') return colors.error;
-    return colors.yellow;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 4,
+    }).start();
   };
 
-  const getTextColor = () => {
-    if (disabled) return colors.textDisabled;
-    if (type === 'secondary') return colors.textPrimary;
-    if (type === 'danger') return colors.white;
-    return colors.textPrimary;
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 4,
+    }).start();
+  };
+
+  const getStyle = () => {
+    if (disabled) return styles.disabled;
+    switch (type) {
+      case 'secondary': return styles.secondary;
+      case 'danger':    return styles.danger;
+      case 'ghost':     return styles.ghost;
+      default:          return styles.primary;
+    }
+  };
+
+  const getTextStyle = () => {
+    if (disabled) return styles.textDisabled;
+    switch (type) {
+      case 'secondary': return styles.textSecondary;
+      case 'danger':    return styles.textWhite;
+      case 'ghost':     return styles.textAmber;
+      default:          return styles.textDark;
+    }
   };
 
   return (
-    <TouchableOpacity
+    <Animated.View
       style={[
-        styles.button,
-        { backgroundColor: getBackgroundColor() },
         fullWidth && styles.fullWidth,
-        type === 'secondary' && styles.secondaryBorder
+        { transform: [{ scale: scaleAnim }] },
+        styles.wrapper,
       ]}
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.8}
     >
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} />
-      ) : (
-        <Text style={[styles.text, { color: getTextColor() }]}>
-          {title}
-        </Text>
-      )}
-    </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.button, getStyle()]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        activeOpacity={1}
+      >
+        {loading ? (
+          <ActivityIndicator
+            color={type === 'primary' ? colors.bg : colors.amber}
+            size="small"
+          />
+        ) : (
+          <Text style={[styles.text, getTextStyle()]}>{title}</Text>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    height: 56,
-    borderRadius: radius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+  wrapper: {
     marginBottom: spacing.md,
   },
   fullWidth: {
     width: '100%',
   },
-  secondaryBorder: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
+  button: {
+    height: 56,
+    borderRadius: radius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
+  // variants
+  primary: {
+    backgroundColor: colors.amber,
+    shadowColor: colors.amber,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  secondary: {
+    backgroundColor: colors.bgElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  danger: {
+    backgroundColor: colors.error,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  disabled: {
+    backgroundColor: colors.bgElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  // text
   text: {
     fontSize: typography.size.md,
-    fontWeight: 'bold',
-  }
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  textDark:     { color: colors.bg },
+  textSecondary: { color: colors.textPrimary },
+  textWhite:    { color: '#FFFFFF' },
+  textAmber:    { color: colors.amber },
+  textDisabled: { color: colors.textDisabled },
 });

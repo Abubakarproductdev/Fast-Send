@@ -11,8 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import get_settings
+from app.exceptions import (
+    AppException,
+    app_exception_handler,
+    storage_error_handler,
+    unhandled_exception_handler,
+)
 from app.models import ALL_MODELS
 from app.routers import trips as trip_router
+from app.services.storage_service import StorageError
     
 
 @asynccontextmanager
@@ -65,6 +72,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ── Exception handlers ────────────────────────────────────────────
+    app.add_exception_handler(AppException, app_exception_handler)
+    app.add_exception_handler(StorageError, storage_error_handler)
+    app.add_exception_handler(Exception, unhandled_exception_handler)
 
     # ── Routers ───────────────────────────────────────────────────────
     app.include_router(trip_router.router)

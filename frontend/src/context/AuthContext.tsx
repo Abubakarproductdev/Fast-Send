@@ -7,24 +7,29 @@ interface AuthContextType {
   user: User | null;
   organizerId: string | null;
   activeTripId: string | null;
+  tripStartTime: string | null;
   isLoading: boolean;
   setOrganizerId: (id: string | null) => void;
   setActiveTripId: (id: string | null) => Promise<void>;
+  setTripStartTime: (time: string | null) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   organizerId: null,
   activeTripId: null,
+  tripStartTime: null,
   isLoading: true,
   setOrganizerId: () => {},
   setActiveTripId: async () => {},
+  setTripStartTime: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [organizerId, setOrganizerId] = useState<string | null>(null);
   const [activeTripId, setActiveTripIdState] = useState<string | null>(null);
+  const [tripStartTime, setTripStartTimeState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +38,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const storedTripId = await AsyncStorage.getItem('activeTripId');
         if (storedTripId) setActiveTripIdState(storedTripId);
+
+        const storedStartTime = await AsyncStorage.getItem('tripStartTime');
+        if (storedStartTime) setTripStartTimeState(storedStartTime);
       } catch (e) {
         console.error('Failed to load state', e);
       }
@@ -41,7 +49,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      // We will set organizerId after the /sync API call in login/register components
       setIsLoading(false);
     });
 
@@ -61,8 +68,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const setTripStartTime = async (time: string | null) => {
+    try {
+      if (time) {
+        await AsyncStorage.setItem('tripStartTime', time);
+      } else {
+        await AsyncStorage.removeItem('tripStartTime');
+      }
+      setTripStartTimeState(time);
+    } catch (e) {
+      console.error('Failed to save trip start time', e);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, organizerId, activeTripId, isLoading, setOrganizerId, setActiveTripId }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      organizerId, 
+      activeTripId, 
+      tripStartTime, 
+      isLoading, 
+      setOrganizerId, 
+      setActiveTripId,
+      setTripStartTime
+    }}>
       {children}
     </AuthContext.Provider>
   );

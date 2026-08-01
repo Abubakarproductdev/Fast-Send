@@ -194,7 +194,7 @@ async def upload_media_proxy(
         blob_url = azure_blob_service.upload_file(image_data, container_name, filename, content_type="image/jpeg")
     except StorageError as e:
         logger.error(f"Failed to upload media proxy to Azure: {e}")
-        raise RuntimeError(f"Storage error: {e}")
+        raise  # Re-raise StorageError so the global storage_error_handler returns a proper 503
         
     asset = MediaAsset(
         trip_id=trip.id,

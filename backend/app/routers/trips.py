@@ -17,7 +17,7 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, BackgroundTasks
 
 from app.models.attendee import Attendee
-from app.models.media_asset import MediaAsset
+from app.models.media_asset import MediaAsset, AssetStatus
 from app.schemas.trips import (
     AttendeeRegister,
     AttendeeResponse,
@@ -28,6 +28,7 @@ from app.schemas.trips import (
 )
 from app.ml import FaceEngine, FaceProcessingError, get_face_engine
 from app.services import trip_service
+from app.services.storage_service import StorageError
 
 router = APIRouter(prefix="/api/v1/trips", tags=["Trips"])
 
@@ -98,13 +99,24 @@ async def join_trip(invite_code: str):
 
 @router.get(
     "/organizer/{organizer_id}",
-    response_model=list[TripResponse],
+    response_model=list[TripDetail],
     summary="List all trips for an organizer",
 )
 async def list_organizer_trips(organizer_id: PydanticObjectId):
-    """Return every trip created by the given organizer."""
+    """Return every trip created by the given organizer, with attendee and media counts."""
     trips = await trip_service.get_trips_by_organizer(organizer_id)
-    return [_trip_to_response(t) for t in trips]
+    
+    result = []
+    for trip in trips:
+        attendee_count = await Attendee.find(Attendee.trip_id == trip.id).count()
+        media_count = await MediaAsset.find(MediaAsset.trip_id == trip.id).count()
+        base = _trip_to_response(trip)
+        result.append(TripDetail(
+            **base.model_dump(),
+            attendee_count=attendee_count,
+            media_count=media_count,
+        ))
+    return result
 
 
 @router.get(

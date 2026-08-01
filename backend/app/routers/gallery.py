@@ -38,7 +38,7 @@ async def get_attendee_gallery(trip_id: PydanticObjectId, attendee_id: PydanticO
     # Using Beanie's query syntax for embedded documents
     assets = await MediaAsset.find(
         MediaAsset.trip_id == trip_id,
-        MediaAsset.status == AssetStatus.COMPLETED,
+        MediaAsset.status == AssetStatus.PROCESSED,
         {"matches.attendee_id": attendee_id}
     ).sort("-created_at").to_list()
     

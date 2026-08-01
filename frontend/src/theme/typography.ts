@@ -1,9 +1,7 @@
 export const typography = {
-  // Font families
-  fontBold:    'System',   // Platform default bold
-  fontRegular: 'System',   // Platform default regular
+  fontBold:    'System',
+  fontRegular: 'System',
 
-  // Font sizes
   size: {
     xs:   11,
     sm:   13,
@@ -15,23 +13,21 @@ export const typography = {
     hero: 38,
   },
 
-  // Line heights
   lineHeight: {
     tight:  1.2,
     normal: 1.5,
     loose:  1.8,
   },
 
-  // Common text styles
   h2: {
-    fontSize: 24, // Matches size.xl
+    fontSize: 24,
     fontWeight: 'bold' as const,
   },
   bodyBold: {
-    fontSize: 15, // Matches size.base
+    fontSize: 15,
     fontWeight: 'bold' as const,
   },
   caption: {
-    fontSize: 13, // Matches size.sm
-  }
+    fontSize: 13,
+  },
 };

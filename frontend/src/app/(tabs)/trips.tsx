@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../config/api';
+import { fetchWithTimeout } from '../../utils/fetchWithTimeout';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -41,9 +42,10 @@ export default function TripsScreen() {
     }
     setError(null);
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${API_BASE_URL}/api/v1/trips/organizer/${organizerId}`,
-        { signal: AbortSignal.timeout(10000) }
+        {},
+        10000
       );
       if (response.status === 404) {
         setTrips([]);

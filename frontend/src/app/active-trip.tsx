@@ -1,4 +1,5 @@
 import { API_BASE_URL, GUEST_WEBAPP_URL } from '../config/api';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, Alert, SafeAreaView,
@@ -6,9 +7,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
-import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import {
   cancelAllUploadReminders,
@@ -63,9 +63,11 @@ export default function ActiveTripScreen() {
     const loadStats = async () => {
       if (!activeTripId) return;
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/trips/${activeTripId}`, {
-          signal: AbortSignal.timeout(8000),
-        });
+        const response = await fetchWithTimeout(
+          `${API_BASE_URL}/api/v1/trips/${activeTripId}`,
+          {},
+          8000
+        );
         if (response.status === 404) {
           setTripError('This trip no longer exists.');
           return;
@@ -105,10 +107,11 @@ export default function ActiveTripScreen() {
             try {
               let response;
               try {
-                response = await fetch(`${API_BASE_URL}/api/v1/trips/${activeTripId}/end`, {
-                  method: 'POST',
-                  signal: AbortSignal.timeout(10000),
-                });
+                response = await fetchWithTimeout(
+                  `${API_BASE_URL}/api/v1/trips/${activeTripId}/end`,
+                  { method: 'POST' },
+                  10000
+                );
               } catch {
                 Alert.alert('Network Error', 'Could not reach the server. Please check your connection and try again.');
                 return;
@@ -140,8 +143,24 @@ export default function ActiveTripScreen() {
   };
 
   const handlePushPhotos = async () => {
-    // 1. Permission check
-    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (!activeTripId) return;
+
+    // ─────────────────────────────────────────────────────────────────
+    // NOTE ON PHOTO ACCESS IN EXPO GO
+    // expo-media-library's automatic scanning (reading all photos since
+    // trip start) requires a Development Build on Android 13+ because
+    // Expo Go cannot declare READ_MEDIA_IMAGES in its manifest.
+    //
+    // We use expo-image-picker here instead — it shows the system photo
+    // picker which always works in Expo Go. The user selects photos
+    // manually. All upload logic is identical.
+    //
+    // To restore auto-scan: run `eas build --profile development`
+    // and switch back to the MediaLibrary.getAssetsAsync() approach.
+    // ─────────────────────────────────────────────────────────────────
+
+    // 1. Request permission
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
         'Permission Required',
@@ -151,80 +170,45 @@ export default function ActiveTripScreen() {
       return;
     }
 
-    // 2. Guard: must have trip start time
-    if (!tripStartTime) {
-      Alert.alert(
-        'Missing Trip Start Time',
-        'Unable to determine when this trip started. Please end this trip and create a new one.'
-      );
+    // 2. Open photo picker — allow multiple selection
+    let pickerResult;
+    try {
+      pickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        quality: 1, // We'll compress ourselves below
+        exif: false,
+        orderedSelection: true,
+      });
+    } catch (pickerErr) {
+      Alert.alert('Error', 'Could not open photo picker. Please try again.');
       return;
     }
 
+    if (pickerResult.canceled || pickerResult.assets.length === 0) {
+      return; // User dismissed picker — silent exit, no error
+    }
+
+    const selectedAssets = pickerResult.assets;
+
     setUploading(true);
     setUploadProgress(0);
+    setTotalToUpload(selectedAssets.length);
     setUploadErrors([]);
 
+    const localErrors: string[] = [];
+    let successCount = 0;
+
     try {
-      // Normalize the stored tripStartTime:
-      // 1. Ensure it has a 'Z' suffix so new Date() parses it as UTC (not local time)
-      // 2. Subtract 5 seconds as a buffer in case of phone/server clock skew
-      let normalizedTime = tripStartTime.trim();
-      if (!normalizedTime.endsWith('Z') && !normalizedTime.includes('+')) {
-        normalizedTime += 'Z'; // Treat bare datetime strings as UTC
-      }
-      const tripStartMs = new Date(normalizedTime).getTime() - 5_000; // 5-second grace buffer
-      if (isNaN(tripStartMs)) {
-        throw new Error('Invalid trip start time stored. Please end this trip and create a new one.');
-      }
-
-      // 3. Collect all photos since trip start
-      let allAssets: MediaLibrary.Asset[] = [];
-      let hasNextPage = true;
-      let after: string | undefined = undefined;
-
-      while (hasNextPage) {
-        const result = await MediaLibrary.getAssetsAsync({
-          mediaType: ['photo'],
-          createdAfter: tripStartMs,
-          after,
-          first: 100,
-        });
-        allAssets = allAssets.concat(result.assets);
-        hasNextPage = result.hasNextPage;
-        after = result.endCursor;
-      }
-
-      // 4. Delta filter: skip already-uploaded
-      const syncedKey = `syncedPhotos_${activeTripId}`;
-      let syncedIds: string[] = [];
-      try {
-        const stored = await AsyncStorage.getItem(syncedKey);
-        syncedIds = stored ? JSON.parse(stored) : [];
-      } catch {
-        syncedIds = []; // If storage read fails, re-upload is safer than losing photos
-      }
-
-      const syncedSet = new Set(syncedIds);
-      const unsyncedAssets = allAssets.filter(a => !syncedSet.has(a.id));
-
-      if (unsyncedAssets.length === 0) {
-        Alert.alert('All caught up! ✓', 'No new photos to push since your last sync.');
-        setUploading(false);
-        return;
-      }
-
-      setTotalToUpload(unsyncedAssets.length);
-
-      const localErrors: string[] = [];
-      let successCount = 0;
-
-      // 5. Upload loop
-      for (let i = 0; i < unsyncedAssets.length; i++) {
-        const asset = unsyncedAssets[i];
+      // 3. Upload loop — identical to the auto-scan version
+      for (let i = 0; i < selectedAssets.length; i++) {
+        const asset = selectedAssets[i];
         setUploadProgress(i + 1);
 
+        const fileName = asset.fileName || `photo_${Date.now()}_${i}.jpg`;
+
         try {
-          // 5a. Compress
+          // 3a. Compress to 1080px wide JPEG at 70% quality
           let manipResult;
           try {
             manipResult = await ImageManipulator.manipulateAsync(
@@ -233,39 +217,42 @@ export default function ActiveTripScreen() {
               { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
             );
           } catch (compressErr) {
-            localErrors.push(`Photo "${asset.filename || asset.id}" could not be compressed — skipped.`);
+            localErrors.push(`"${fileName}" could not be compressed — skipped.`);
             continue;
           }
 
-          // 5b. Build FormData
+          // 3b. Build multipart form
           const formData = new FormData();
-          const fileName = asset.filename || `photo_${Date.now()}.jpg`;
           formData.append('file', {
             uri: manipResult.uri,
             name: fileName,
             type: 'image/jpeg',
           } as any);
-          formData.append('device_local_id', asset.id);
+          // Use URI as device_local_id for idempotency
+          formData.append('device_local_id', asset.uri);
 
-          // 5c. Upload with timeout
+          // 3c. Upload with 30s timeout
           let uploadRes;
           try {
-            uploadRes = await fetch(`${API_BASE_URL}/api/v1/trips/${activeTripId}/media`, {
-              method: 'POST',
-              body: formData,
-              headers: { Accept: 'application/json' },
-              signal: AbortSignal.timeout(30000), // 30s per photo
-            });
+            uploadRes = await fetchWithTimeout(
+              `${API_BASE_URL}/api/v1/trips/${activeTripId}/media`,
+              {
+                method: 'POST',
+                body: formData,
+                headers: { Accept: 'application/json' },
+              },
+              30000
+            );
           } catch (fetchErr: any) {
             if (fetchErr.name === 'AbortError') {
-              localErrors.push(`Photo "${fileName}" upload timed out — skipped.`);
+              localErrors.push(`"${fileName}" upload timed out — skipped.`);
             } else {
               localErrors.push(`Network error uploading "${fileName}" — skipped.`);
             }
             continue;
           }
 
-          // 5d. Handle response
+          // 3d. Handle response
           if (uploadRes.status === 400) {
             const body = await uploadRes.json().catch(() => ({}));
             localErrors.push(`"${fileName}": ${body.detail || 'Invalid photo format'}`);
@@ -275,38 +262,30 @@ export default function ActiveTripScreen() {
             const body = await uploadRes.json().catch(() => ({}));
             localErrors.push(`"${fileName}": Upload failed (${uploadRes.status}) — ${body.detail || 'please try again'}`);
           } else {
-            // 200 or 202 — success (backend returns 202 for new, 202 for duplicate idempotent)
-            syncedIds.push(asset.id);
+            // 202 Accepted — success
             successCount++;
           }
 
-          // Save progress after each successful upload
-          await AsyncStorage.setItem(syncedKey, JSON.stringify(syncedIds));
-
         } catch (assetErr: any) {
-          // Rethrow critical errors (trip not found etc)
           if (assetErr.message?.includes('no longer exists')) throw assetErr;
-          localErrors.push(`Photo "${asset.filename || asset.id}": Unexpected error — skipped.`);
+          localErrors.push(`"${fileName}": Unexpected error — skipped.`);
         }
       }
 
       setUploadErrors(localErrors);
 
-      // 6. Summary alert + push local notification
+      // 4. Summary
       if (localErrors.length === 0) {
         Alert.alert('Upload Complete ✓', `${successCount} photo${successCount !== 1 ? 's' : ''} pushed successfully!`);
-        if (successCount > 0) {
-          notifyUploadComplete(successCount).catch(() => {});
-        }
       } else {
         Alert.alert(
-          `Uploaded ${successCount}/${unsyncedAssets.length}`,
+          `Uploaded ${successCount}/${selectedAssets.length}`,
           `${localErrors.length} photo${localErrors.length > 1 ? 's' : ''} had issues:\n\n${localErrors.slice(0, 3).join('\n')}${localErrors.length > 3 ? `\n...and ${localErrors.length - 3} more.` : ''}`,
           [{ text: 'OK' }]
         );
-        if (successCount > 0) {
-          notifyUploadComplete(successCount).catch(() => {});
-        }
+      }
+      if (successCount > 0) {
+        notifyUploadComplete(successCount).catch(() => {});
       }
 
     } catch (e: any) {

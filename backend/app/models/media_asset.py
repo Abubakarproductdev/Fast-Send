@@ -62,6 +62,7 @@ class MediaAsset(Document):
     is_nature: bool = False
     status: AssetStatus = AssetStatus.PENDING_PROXY
     device_local_id: str | None = None
+    batch_id: str | None = None
     matches: list[EmbeddedMatch] = Field(default_factory=list)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
@@ -88,4 +89,7 @@ class MediaAsset(Document):
             # Multikey index — Mongo indexes every element in the array,
             # so "find all assets where attendee X was matched" is fast.
             IndexModel([("matches.attendee_id", 1)]),
+
+            # Compound index for fast timestamp queries by trip (e.g. for reminders)
+            IndexModel([("trip_id", 1), ("created_at", -1)]),
         ]

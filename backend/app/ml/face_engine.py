@@ -40,9 +40,10 @@ class FaceEngine:
     def __init__(self):
         settings = get_settings()
 
+        providers = ["TensorrtExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider"]
         self._app = FaceAnalysis(
             name=settings.ml_model_name,
-            providers=["CPUExecutionProvider"],  # GPU config swapped here later
+            providers=providers,
         )
 
         self._app.prepare(
@@ -92,7 +93,7 @@ class FaceEngine:
         # face.embedding is a numpy array of shape (512,)
         return face.embedding.tolist()
 
-    def extract_multiple_embeddings(self, image_data: bytes) -> list[list[float]]:
+    def extract_multiple_embeddings(self, image_data: bytes) -> dict:
         """Extract embeddings for all detected faces in an image.
 
         Used for processing trip photos which may contain many people.
@@ -101,8 +102,8 @@ class FaceEngine:
             image_data: Raw bytes of the uploaded image file.
 
         Returns:
-            A list of 512-D embeddings (one for each confident face).
-            Returns an empty list if no faces are found.
+            A dictionary containing the overall image 'brightness' and a list of 'faces'.
+            Each face is a dictionary with 'embedding' and 'det_score'.
 
         Raises:
             ImageDecodeError: If bytes aren't a valid image.
@@ -116,7 +117,22 @@ class FaceEngine:
         faces = self._app.get(img)
         confident_faces = [f for f in faces if f.det_score >= self.min_det_score]
         
-        return [f.embedding.tolist() for f in confident_faces]
+        # Calculate overall image brightness (0-255)
+        if img.size > 0:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            brightness = float(np.mean(gray))
+        else:
+            brightness = 128.0
+        
+        return {
+            "brightness": brightness,
+            "faces": [
+                {
+                    "embedding": f.embedding.tolist(),
+                    "det_score": float(f.det_score)
+                } for f in confident_faces
+            ]
+        }
 
     @staticmethod
     def compute_similarity(emb1: list[float], emb2: list[float]) -> float:

@@ -252,7 +252,7 @@ async def list_attendees(trip_id: PydanticObjectId):
 # ── Media endpoints ───────────────────────────────────────────────────
 
 
-from app.services.storage_service import azure_blob_service
+from app.services.storage_service import azure_blob_service, StorageError
 
 def _asset_to_response(asset: MediaAsset) -> MediaAssetResponse:
     """Map a MediaAsset document to the public API representation, with a signed SAS token."""
@@ -277,6 +277,7 @@ async def upload_media(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     device_local_id: str | None = Form(None),
+    batch_id: str | None = Form(None),
     face_engine: FaceEngine = Depends(get_face_engine),
 ):
     """Upload a proxy photo and queue it for background processing.
@@ -311,6 +312,7 @@ async def upload_media(
             image_data=image_data,
             media_type=media_type,
             device_local_id=device_local_id,
+            batch_id=batch_id,
         )
     except trip_service.TripNotFoundError:
         raise HTTPException(
@@ -330,12 +332,48 @@ async def upload_media(
         )
 
     # Queue the background processing if it isn't already processed/processing
-    if asset.status == AssetStatus.PROCESSING:
-        background_tasks.add_task(
-            trip_service.process_media_asset,
-            asset.id,
-            trip_id,
-            face_engine,
-        )
+    if asset.status == AssetStatus.PROCESSING and not batch_id:
+        from app.tasks import process_media_asset_task
+        process_media_asset_task.delay(str(asset.id), str(trip_id))
 
     return _asset_to_response(asset)
+
+@router.post(
+    "/{trip_id}/batches/{batch_id}/finalize",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Finalize a batch of media uploads and trigger processing",
+)
+async def finalize_batch(trip_id: PydanticObjectId, batch_id: str):
+    """Trigger background processing for all media in a batch using a Celery Chord."""
+    assets = await MediaAsset.find(
+        MediaAsset.trip_id == trip_id,
+        MediaAsset.batch_id == batch_id,
+        MediaAsset.status == AssetStatus.PROCESSING
+    ).to_list()
+
+    if not assets:
+        return {"message": "No pending assets found for this batch."}
+
+    from app.tasks import process_media_asset_task, notify_batch_complete_task, notify_batch_failed_task
+    from celery import chord
+
+    # Create a chord of task signatures to run in parallel
+    task_signatures = [
+        process_media_asset_task.s(str(asset.id), str(trip_id))
+        for asset in assets
+    ]
+    
+    # Callback to run when all tasks in the group have finished
+    callback = notify_batch_complete_task.s(batch_id, str(trip_id)).set(
+        link_error=[notify_batch_failed_task.s(batch_id, str(trip_id))]
+    )
+
+    try:
+        chord(task_signatures)(callback)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Message broker is currently unavailable. Please try again later."
+        ) from e
+
+    return {"message": f"Queued {len(assets)} assets for processing."}

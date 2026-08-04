@@ -9,9 +9,12 @@ from app.models.organizer import Organizer
 from app.models.attendee import Attendee, GalleryPreference
 from app.models.media_asset import AssetStatus, EmbeddedMatch, MediaAsset
 from app.models.trip import Trip
+from app.models.notification import Notification
+from app.models.dlq import DeadLetter
+from app.models.unknown_face import UnknownFace
 
 # Every Document subclass that Beanie needs to initialize.
-ALL_MODELS = [Organizer, Trip, Attendee, MediaAsset]
+ALL_MODELS = [Organizer, Trip, Attendee, MediaAsset, Notification, DeadLetter, UnknownFace]
 
 __all__ = [
     "ALL_MODELS",
@@ -21,4 +24,5 @@ __all__ = [
     "GalleryPreference",
     "MediaAsset",
     "Trip",
+    "UnknownFace",
 ]

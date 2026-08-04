@@ -15,7 +15,7 @@ from azure.core.exceptions import (
     ResourceNotFoundError,
     ServiceRequestError,
 )
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, ContentSettings
 
 from app.config import get_settings
 
@@ -152,7 +152,7 @@ class AzureBlobService:
             blob_client.upload_blob(
                 file_bytes,
                 overwrite=True,
-                content_settings={"content_type": content_type},
+                content_settings=ContentSettings(content_type=content_type),
             )
             logger.info("Uploaded blob: %s/%s (%d bytes)", container_name, destination_blob_name, len(file_bytes))
             return blob_client.url

@@ -1,14 +1,42 @@
 import { Tabs } from 'expo-router';
 import { Text, View, StyleSheet } from 'react-native';
+import { useState, useEffect } from 'react';
 import { colors } from '../../theme/colors';
+import { API_BASE_URL } from '../../config/api';
 
-const TabIcon = ({ emoji, focused }: { emoji: string; focused: boolean }) => (
+const TabIcon = ({ emoji, focused, badge }: { emoji: string; focused: boolean; badge?: number }) => (
   <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
     <Text style={styles.emoji}>{emoji}</Text>
+    {!!badge && badge > 0 && (
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
+      </View>
+    )}
   </View>
 );
 
 export default function TabLayout() {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Poll for unread notifications every 15 seconds
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/notifications`);
+        if (res.ok) {
+          const data = await res.json();
+          const unread = data.filter((n: any) => !n.is_read).length;
+          setUnreadCount(unread);
+        }
+      } catch (e) {
+        // silent fail for polling
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Tabs
       screenOptions={{
@@ -44,6 +72,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🔔" focused={focused} badge={unreadCount} />,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -67,5 +102,24 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 20,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    backgroundColor: colors.danger,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: colors.bgCard,
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

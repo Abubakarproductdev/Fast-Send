@@ -20,6 +20,7 @@ from pymongo.errors import DuplicateKeyError
 from app.models.attendee import Attendee, GalleryPreference
 from app.models.media_asset import MediaAsset
 from app.models.trip import Trip
+from app.models.unknown_face import UnknownFace
 
 
 # ── Exceptions ────────────────────────────────────────────────────────
@@ -178,6 +179,7 @@ async def upload_media_proxy(
     image_data: bytes,
     media_type: str,
     device_local_id: str | None = None,
+    batch_id: str | None = None,
 ) -> MediaAsset:
     """Upload the proxy image to Azure Blob Storage and create a MediaAsset document."""
     trip = await get_trip(trip_id)
@@ -204,6 +206,7 @@ async def upload_media_proxy(
         proxy_blob_url=blob_url,
         media_type=media_type,
         device_local_id=device_local_id,
+        batch_id=batch_id,
         status=AssetStatus.PROCESSING,
     )
     
@@ -248,14 +251,14 @@ async def process_media_asset(
             
         # Extract all faces
         try:
-            face_embeddings = face_engine.extract_multiple_embeddings(image_data)
+            face_data = face_engine.extract_multiple_embeddings(image_data)
         except FaceProcessingError as e:
             logger.error(f"Failed to process faces for asset {asset_id}: {e}")
             asset.status = AssetStatus.FAILED
             await asset.save()
             return
 
-        if not face_embeddings:
+        if not face_data["faces"]:
             # Valid image, just no faces (e.g. landscape)
             asset.is_nature = True
             asset.status = AssetStatus.PROCESSED
@@ -266,22 +269,42 @@ async def process_media_asset(
         attendees = await get_trip_attendees(trip_id)
         matches = []
         
-        # Generous lower bound for V1
-        MATCH_THRESHOLD = 0.4
-        
-        for face_emb in face_embeddings:
+        # Base threshold based on image brightness
+        brightness = face_data.get("brightness", 128.0)
+        base_threshold = 0.45
+        if brightness < 60: # Very dark, faces might be less clear
+            base_threshold = 0.38
+        elif brightness > 200: # Overexposed
+            base_threshold = 0.40
+            
+        for face_info in face_data["faces"]:
+            face_emb = face_info["embedding"]
+            det_score = face_info["det_score"]
+            
+            # Fine-tune threshold per face based on detection confidence
+            match_threshold = base_threshold - (0.05 if det_score < 0.7 else 0.0)
+            face_matched = False
+
             for attendee in attendees:
                 if not attendee.selfie_embedding:
                     continue
                     
                 score = FaceEngine.compute_similarity(face_emb, attendee.selfie_embedding)
-                if score >= MATCH_THRESHOLD:
+                if score >= match_threshold:
                     matches.append(EmbeddedMatch(
                         attendee_id=attendee.id,
                         confidence=score,
                     ))
+                    face_matched = True
                     
-        # Update asset with matches
+            if not face_matched:
+                unknown_face = UnknownFace(
+                    trip_id=trip_id,
+                    asset_id=asset_id,
+                    embedding=face_emb,
+                )
+                await unknown_face.insert()
+                    
         asset.matches = matches
         asset.status = AssetStatus.PROCESSED
         asset.updated_at = datetime.now(timezone.utc)
@@ -294,3 +317,5 @@ async def process_media_asset(
         if asset:
             asset.status = AssetStatus.FAILED
             await asset.save()
+        raise
+

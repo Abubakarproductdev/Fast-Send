@@ -223,8 +223,8 @@ class AzureBlobService:
                 code="DOWNLOAD_FAILED",
             ) from e
 
-    def get_signed_url(self, blob_url: str) -> str | None:
-        """Generate a 24-hour SAS URL for a private blob."""
+    def get_signed_url(self, blob_url: str, expires_in_hours: int = 24) -> str | None:
+        """Generate a SAS URL for a private blob."""
         if not blob_url:
             return None
 
@@ -250,7 +250,7 @@ class AzureBlobService:
                 blob_name=blob_client.blob_name,
                 account_key=account_key,
                 permission=BlobSasPermissions(read=True),
-                expiry=datetime.now(timezone.utc) + timedelta(hours=24),
+                expiry=datetime.now(timezone.utc) + timedelta(hours=expires_in_hours),
             )
 
             return f"{blob_url}?{sas_token}"

@@ -10,6 +10,9 @@ import io
 import cv2
 import numpy as np
 from insightface.app import FaceAnalysis
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 from app.config import get_settings
 
@@ -68,11 +71,13 @@ class FaceEngine:
             MultipleFacesDetectedError: If >1 face > min_det_score is found.
         """
         # 1. Decode bytes to numpy array
-        nparr = np.frombuffer(image_data, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        if img is None:
-            raise ImageDecodeError("Failed to decode image data")
+        try:
+            from PIL import Image
+            pil_img = Image.open(io.BytesIO(image_data))
+            img_array = np.array(pil_img.convert('RGB'))
+            img = img_array[:, :, ::-1]
+        except Exception as e:
+            raise ImageDecodeError(f"Failed to decode image data: {e}")
 
         # 2. Extract faces
         faces = self._app.get(img)
@@ -108,11 +113,13 @@ class FaceEngine:
         Raises:
             ImageDecodeError: If bytes aren't a valid image.
         """
-        nparr = np.frombuffer(image_data, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        if img is None:
-            raise ImageDecodeError("Failed to decode image data")
+        try:
+            from PIL import Image
+            pil_img = Image.open(io.BytesIO(image_data))
+            img_array = np.array(pil_img.convert('RGB'))
+            img = img_array[:, :, ::-1]
+        except Exception as e:
+            raise ImageDecodeError(f"Failed to decode image data: {e}")
 
         faces = self._app.get(img)
         confident_faces = [f for f in faces if f.det_score >= self.min_det_score]

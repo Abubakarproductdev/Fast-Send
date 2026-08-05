@@ -346,7 +346,7 @@ export default function ActiveTripScreen() {
     }
   };
 
-  const qrValue = inviteCode ? `${GUEST_WEBAPP_URL}/join/${inviteCode}` : 'loading';
+  const qrValue = inviteCode ? `${GUEST_WEBAPP_URL}/?trip=${inviteCode}` : 'loading';
   const uploadLabel = uploading
     ? `Uploading ${uploadProgress} / ${totalToUpload}...`
     : 'Push Photos Now';

@@ -12,9 +12,11 @@ from app.models.trip import Trip
 from app.models.notification import Notification
 from app.models.dlq import DeadLetter
 from app.models.unknown_face import UnknownFace
+from app.models.trip_insights import TripInsights
+from app.models.guest_token import GuestToken
 
 # Every Document subclass that Beanie needs to initialize.
-ALL_MODELS = [Organizer, Trip, Attendee, MediaAsset, Notification, DeadLetter, UnknownFace]
+ALL_MODELS = [Organizer, Trip, Attendee, MediaAsset, Notification, DeadLetter, UnknownFace, TripInsights, GuestToken]
 
 __all__ = [
     "ALL_MODELS",
@@ -25,4 +27,6 @@ __all__ = [
     "MediaAsset",
     "Trip",
     "UnknownFace",
+    "TripInsights",
+    "GuestToken",
 ]

@@ -25,6 +25,19 @@ class GalleryPreference(StrEnum):
     ALL_PHOTOS = "all_photos"
 
 
+class SelfieStatus(StrEnum):
+    """Processing status of the attendee's selfie.
+
+    Allows the frontend to show a meaningful error message when a selfie
+    cannot be processed, rather than presenting a silently empty gallery.
+    """
+
+    PENDING = "pending"
+    OK = "ok"
+    NO_FACE_DETECTED = "no_face_detected"
+    MULTIPLE_FACES_DETECTED = "multiple_faces_detected"
+
+
 class Attendee(Document):
     """A registered guest for a specific trip."""
 
@@ -34,6 +47,7 @@ class Attendee(Document):
     selfie_s3_url: str | None = None
     selfie_embedding: list[float] = Field(default_factory=list)
     gallery_preference: GalleryPreference = GalleryPreference.MINE_ONLY
+    selfie_status: SelfieStatus = SelfieStatus.PENDING
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
     )

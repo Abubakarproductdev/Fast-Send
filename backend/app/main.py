@@ -86,7 +86,9 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router, prefix="/api/v1")
     
     from app.routers import auth as auth_router
+    from app.routers import guest as guest_router
     app.include_router(auth_router.router)
+    app.include_router(guest_router.router)
 
     # ── Health check ──────────────────────────────────────────────────
     @app.get("/", tags=["Health"])

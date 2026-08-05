@@ -59,6 +59,7 @@ class MediaAsset(Document):
     high_res_blob_url: str | None = None
     high_res_web_url: str | None = None
     media_type: str  # "image" or "video"
+    file_size_bytes: int | None = None
     is_nature: bool = False
     status: AssetStatus = AssetStatus.PENDING_PROXY
     device_local_id: str | None = None

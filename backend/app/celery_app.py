@@ -16,11 +16,18 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    broker_transport_options={"protocol": 2},
 )
 
 celery_app.conf.beat_schedule = {
     "send-trip-reminders-every-hour": {
         "task": "app.tasks.send_trip_reminders_task",
         "schedule": 3600.0,
+    },
+    # Catch-up: re-queue any photos that arrived while Celery was offline.
+    # Runs every 5 minutes so recovery happens quickly after a restart.
+    "recover-pending-assets-every-5-min": {
+        "task": "app.tasks.recover_pending_assets_task",
+        "schedule": 300.0,
     },
 }

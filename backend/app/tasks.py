@@ -164,42 +164,23 @@ def process_selfie_task(attendee_id: str, selfie_url: str):
             await attendee.save()
             return
             
-        attendee.selfie_embedding = embedding
-        attendee.selfie_status = "ok"
-        await attendee.save()
-        
-        # Match against all media assets for the trip
+        # Match against all assets for the trip using detected_faces
         assets = await MediaAsset.find(MediaAsset.trip_id == attendee.trip_id).to_list()
         for asset in assets:
-            if not asset.proxy_blob_url:
+            if not asset.detected_faces:
                 continue
-            
-            try:
-                asset_data = await asyncio.to_thread(azure_blob_service.download_file, asset.proxy_blob_url)
-                face_data = engine.extract_multiple_embeddings(asset_data)
                 
-                brightness = face_data.get("brightness", 128.0)
-                base_threshold = 0.45
-                if brightness < 60:
-                    base_threshold = 0.38
-                elif brightness > 200:
-                    base_threshold = 0.40
-                    
-                matched = False
-                for face_info in face_data["faces"]:
-                    score = FaceEngine.compute_similarity(face_info["embedding"], embedding)
-                    match_threshold = base_threshold - (0.05 if face_info["det_score"] < 0.7 else 0.0)
-                    if score >= match_threshold:
-                        # Avoid duplicates
-                        if not any(m.attendee_id == attendee.id for m in asset.matches):
-                            asset.matches.append(EmbeddedMatch(attendee_id=attendee.id, confidence=score))
-                            matched = True
-                            
-                if matched:
-                    await asset.save()
-                    
-            except Exception as e:
-                logger.error(f"Failed to match selfie against asset {asset.id}: {e}")
+            matched = False
+            for face_emb in asset.detected_faces:
+                score = FaceEngine.compute_similarity(face_emb, embedding)
+                if score >= 0.40:  # Use a base threshold
+                    if not any(m.attendee_id == attendee.id for m in asset.matches):
+                        asset.matches.append(EmbeddedMatch(attendee_id=attendee.id, confidence=score))
+                        matched = True
+                        break  # Found a match in this photo, no need to check other faces in the same photo
+            
+            if matched:
+                await asset.save()
 
     global worker_loop
     if worker_loop is None:
@@ -232,19 +213,11 @@ def build_trip_insights_task(trip_id: str):
         await init_db()
         from app.models.media_asset import MediaAsset
         from app.models.trip_insights import TripInsights
-        from app.models.unknown_face import UnknownFace
         from app.services.storage_service import azure_blob_service
         from azure.storage.blob import BlobClient
         
         tid = PydanticObjectId(trip_id)
         assets = await MediaAsset.find(MediaAsset.trip_id == tid).to_list()
-        
-        # Pre-fetch unknown faces to count them per asset
-        unknowns = await UnknownFace.find(UnknownFace.trip_id == tid).to_list()
-        unknown_counts = {}
-        for uf in unknowns:
-            asset_str = str(uf.asset_id)
-            unknown_counts[asset_str] = unknown_counts.get(asset_str, 0) + 1
         
         total_photos = len(assets)
         total_size_bytes = 0
@@ -259,7 +232,7 @@ def build_trip_insights_task(trip_id: str):
             # 1. Exact Size Calculation
             if a.file_size_bytes is None:
                 size = 1000000  # Default fallback
-                url = a.high_res_blob_url or a.proxy_blob_url
+                url = a.original_blob_url
                 if url and azure_blob_service.blob_service_client:
                     try:
                         import asyncio
@@ -278,7 +251,7 @@ def build_trip_insights_task(trip_id: str):
             total_size_bytes += a.file_size_bytes
             
             # 2. Total Faces Calculation
-            total_faces = len(a.matches) + unknown_counts.get(str(a.id), 0)
+            total_faces = len(a.detected_faces)
             
             if total_faces == 0:
                 nature_count += 1

@@ -259,7 +259,7 @@ def _asset_to_response(asset: MediaAsset) -> MediaAssetResponse:
     return MediaAssetResponse(
         id=str(asset.id),
         trip_id=str(asset.trip_id),
-        proxy_blob_url=azure_blob_service.get_signed_url(asset.proxy_blob_url),
+        original_blob_url=azure_blob_service.get_signed_url(asset.original_blob_url),
         status=asset.status.value,
         media_type=asset.media_type,
         created_at=asset.created_at,
@@ -270,7 +270,7 @@ def _asset_to_response(asset: MediaAsset) -> MediaAssetResponse:
     "/{trip_id}/media",
     response_model=MediaAssetResponse,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Upload a media proxy for matching",
+    summary="Upload original media",
 )
 async def upload_media(
     trip_id: PydanticObjectId,
@@ -280,7 +280,7 @@ async def upload_media(
     batch_id: str | None = Form(None),
     face_engine: FaceEngine = Depends(get_face_engine),
 ):
-    """Upload a proxy photo and queue it for background processing.
+    """Upload an original photo and queue it for background processing.
     
     The photo will be saved and passed to the ML engine to extract all faces,
     match them against the trip's attendees, and embed the results into the
@@ -296,23 +296,34 @@ async def upload_media(
             detail="Uploaded file is empty or too small. Please try again.",
         )
     
-    # 50 MB hard cap
-    if len(image_data) > 50 * 1024 * 1024:
+    # 70 MB hard cap
+    if len(image_data) > 70 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="File exceeds the 50 MB size limit.",
+            detail="File exceeds the 70 MB size limit.",
         )
     
-    # We only handle image proxies for now, even if the original is video
+    # We only handle image for now
     media_type = "image"
     
     try:
-        asset = await trip_service.upload_media_proxy(
+        azure_blob_service.validate_upload(image_data, file.content_type)
+    except StorageError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        
+    try:
+        asset = await trip_service.upload_media(
             trip_id=trip_id,
             image_data=image_data,
             media_type=media_type,
+            content_type=file.content_type or "image/jpeg",
             device_local_id=device_local_id,
             batch_id=batch_id,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e),
         )
     except trip_service.TripNotFoundError:
         raise HTTPException(

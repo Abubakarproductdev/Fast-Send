@@ -49,7 +49,7 @@ async def get_attendee_gallery(trip_id: PydanticObjectId, attendee_id: PydanticO
             MediaAssetResponse(
                 id=str(asset.id),
                 trip_id=str(asset.trip_id),
-                proxy_blob_url=azure_blob_service.get_signed_url(asset.proxy_blob_url),
+                original_blob_url=azure_blob_service.get_signed_url(asset.original_blob_url),
                 status=asset.status.value,
                 media_type=asset.media_type,
                 created_at=asset.created_at,

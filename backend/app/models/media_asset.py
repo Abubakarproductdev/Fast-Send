@@ -1,11 +1,7 @@
 """MediaAsset document model with embedded match results.
 
-The three-URL design reflects the upload pipeline described in the
-architecture plan:
-
-* ``proxy_s3_url``   — low-res proxy uploaded instantly over cellular
-* ``high_res_s3_url`` — original HEIC/MOV uploaded over Wi-Fi later
-* ``high_res_web_url`` — browser-safe JPEG/WebP derivative of the original
+The architecture plan defines a unified storage approach:
+* ``original_blob_url`` — high-res original uploaded directly over Wi-Fi/Cellular
 
 Face-match results are **embedded** as an array of ``EmbeddedMatch``
 sub-documents rather than stored in a separate collection.  This fits
@@ -55,13 +51,12 @@ class MediaAsset(Document):
     """A photo or video uploaded during a trip."""
 
     trip_id: PydanticObjectId
-    proxy_blob_url: str | None = None
-    high_res_blob_url: str | None = None
-    high_res_web_url: str | None = None
+    original_blob_url: str | None = None
     media_type: str  # "image" or "video"
     file_size_bytes: int | None = None
     is_nature: bool = False
     status: AssetStatus = AssetStatus.PENDING_PROXY
+    detected_faces: list[list[float]] = []
     device_local_id: str | None = None
     batch_id: str | None = None
     matches: list[EmbeddedMatch] = Field(default_factory=list)

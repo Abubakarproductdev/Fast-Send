@@ -21,8 +21,8 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-# Maximum upload size: 50 MB
-MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+# Maximum upload size: 70 MB
+MAX_UPLOAD_BYTES = 70 * 1024 * 1024
 MIN_UPLOAD_BYTES = 100  # Reject empty/trivial files
 
 ALLOWED_CONTENT_TYPES = {
@@ -32,8 +32,10 @@ ALLOWED_CONTENT_TYPES = {
     "image/webp",
     "image/heic",
     "image/heif",
+    "image/x-adobe-dng",
+    "image/raw",
+    "image/tiff",
 }
-
 
 class StorageError(Exception):
     """Raised when an operation with Blob Storage fails."""
@@ -63,9 +65,7 @@ class AzureBlobService:
             )
 
             for container in [
-                self.settings.azure_container_proxies,
                 self.settings.azure_container_originals,
-                self.settings.azure_container_web,
             ]:
                 self._ensure_container(container)
 

@@ -20,7 +20,6 @@ from pymongo.errors import DuplicateKeyError
 from app.models.attendee import Attendee, GalleryPreference
 from app.models.media_asset import MediaAsset
 from app.models.trip import Trip
-from app.models.unknown_face import UnknownFace
 
 
 # ── Exceptions ────────────────────────────────────────────────────────
@@ -168,42 +167,45 @@ async def get_trip_attendees(trip_id: PydanticObjectId) -> list[Attendee]:
 import os
 import uuid
 import logging
+import mimetypes
 from app.models.media_asset import AssetStatus, EmbeddedMatch
 from app.ml import FaceEngine, FaceProcessingError
 from app.services.storage_service import azure_blob_service, StorageError
 
 logger = logging.getLogger(__name__)
 
-async def upload_media_proxy(
+async def upload_media(
     trip_id: PydanticObjectId,
     image_data: bytes,
     media_type: str,
+    content_type: str,
     device_local_id: str | None = None,
     batch_id: str | None = None,
 ) -> MediaAsset:
-    """Upload the proxy image to Azure Blob Storage and create a MediaAsset document."""
+    """Upload the original image to Azure Blob Storage and create a MediaAsset document."""
     trip = await get_trip(trip_id)
-    
+
     if not trip.is_active:
         raise TripInactiveError(f"Trip {trip_id} has ended — cannot upload media")
 
     # Upload to Azure
-    container_name = azure_blob_service.settings.azure_container_proxies
-    filename = f"trip_{trip_id}/{uuid.uuid4().hex}.jpg"
+    container_name = azure_blob_service.settings.azure_container_originals
+    ext = mimetypes.guess_extension(content_type) or ".jpg"
+    filename = f"trip_{trip_id}/{uuid.uuid4().hex}{ext}"
     
     try:
         # Run the synchronous Azure SDK call in a thread pool to avoid blocking the event loop
         blob_url = await asyncio.to_thread(
             azure_blob_service.upload_file,
-            image_data, container_name, filename, "image/jpeg"
+            image_data, container_name, filename, content_type
         )
     except StorageError as e:
-        logger.error(f"Failed to upload media proxy to Azure: {e}")
+        logger.error(f"Failed to upload media to Azure: {e}")
         raise  # Re-raise StorageError so the global storage_error_handler returns a proper 503
         
     asset = MediaAsset(
         trip_id=trip.id,
-        proxy_blob_url=blob_url,
+        original_blob_url=blob_url,
         media_type=media_type,
         device_local_id=device_local_id,
         batch_id=batch_id,
@@ -234,14 +236,14 @@ async def process_media_asset(
     """Background task to extract faces and compute matches against attendees."""
     try:
         asset = await MediaAsset.get(asset_id)
-        if not asset or not asset.proxy_blob_url:
-            logger.error(f"Asset {asset_id} not found or missing proxy URL")
+        if not asset or not asset.original_blob_url:
+            logger.error(f"Asset {asset_id} not found or missing original URL")
             return
             
         # Download the file bytes from Azure (run sync SDK in thread pool)
         try:
             image_data = await asyncio.to_thread(
-                azure_blob_service.download_file, asset.proxy_blob_url
+                azure_blob_service.download_file, asset.original_blob_url
             )
         except StorageError as e:
             logger.error(f"Failed to download asset {asset_id} from Azure: {e}")
@@ -268,6 +270,7 @@ async def process_media_asset(
         # Match against attendees
         attendees = await get_trip_attendees(trip_id)
         matches = []
+        detected_faces = []
         
         # Base threshold based on image brightness
         brightness = face_data.get("brightness", 128.0)
@@ -280,10 +283,10 @@ async def process_media_asset(
         for face_info in face_data["faces"]:
             face_emb = face_info["embedding"]
             det_score = face_info["det_score"]
+            detected_faces.append(face_emb)
             
             # Fine-tune threshold per face based on detection confidence
             match_threshold = base_threshold - (0.05 if det_score < 0.7 else 0.0)
-            face_matched = False
 
             for attendee in attendees:
                 if not attendee.selfie_embedding:
@@ -295,17 +298,9 @@ async def process_media_asset(
                         attendee_id=attendee.id,
                         confidence=score,
                     ))
-                    face_matched = True
-                    
-            if not face_matched:
-                unknown_face = UnknownFace(
-                    trip_id=trip_id,
-                    asset_id=asset_id,
-                    embedding=face_emb,
-                )
-                await unknown_face.insert()
                     
         asset.matches = matches
+        asset.detected_faces = detected_faces
         asset.status = AssetStatus.PROCESSED
         asset.updated_at = datetime.now(timezone.utc)
         await asset.save()

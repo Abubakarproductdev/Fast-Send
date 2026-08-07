@@ -47,9 +47,7 @@ class Settings(BaseSettings):
 
     # ── Azure Storage ───────────────────────────────────────────────
     azure_storage_connection_string: str
-    azure_container_proxies: str = "proxies"
     azure_container_originals: str = "originals"
-    azure_container_web: str = "web"
 
 
 @lru_cache(maxsize=1)

@@ -91,7 +91,7 @@ class MediaAssetResponse(BaseModel):
 
     id: str
     trip_id: str
-    proxy_blob_url: str | None
+    original_blob_url: str | None
     status: str
     media_type: str
     created_at: datetime

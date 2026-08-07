@@ -44,7 +44,7 @@ export default function GalleryPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [unknownFaces, setUnknownFaces] = useState<UnknownFace[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"mine_only" | "group" | "nature" | "all">("mine_only");
+  const [activeTab, setActiveTab] = useState<"mine_only" | "group" | "nature" | "all">("all");
   const [claiming, setClaiming] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -62,7 +62,7 @@ export default function GalleryPage() {
 
     const fetchMe = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/guest/me", {
+        const res = await fetch("http://192.168.10.10:8000/api/v1/guest/me", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) {
@@ -83,7 +83,7 @@ export default function GalleryPage() {
 
     const fetchPhotos = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/guest/photos?filter=${activeTab}`, {
+        const res = await fetch(`http://192.168.10.10:8000/api/v1/guest/photos?filter=${activeTab}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -103,7 +103,7 @@ export default function GalleryPage() {
     if (!token) return;
     const fetchUnknowns = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/guest/unknown-faces", {
+        const res = await fetch("http://192.168.10.10:8000/api/v1/guest/unknown-faces", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -121,7 +121,7 @@ export default function GalleryPage() {
     setIsDownloading(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/v1/guest/download?filter=${activeTab}`,
+        `http://192.168.10.10:8000/api/v1/guest/download?filter=${activeTab}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error("Download failed");
@@ -144,7 +144,7 @@ export default function GalleryPage() {
   const handleClaim = async (faceId: string) => {
     setClaiming(faceId);
     try {
-      await fetch(`http://localhost:8000/api/v1/guest/claim/${faceId}`, {
+      await fetch(`http://192.168.10.10:8000/api/v1/guest/claim/${faceId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });

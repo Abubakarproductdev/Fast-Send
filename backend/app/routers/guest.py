@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -14,7 +15,6 @@ from app.models.guest_token import GuestToken
 from app.models.trip import Trip
 from app.models.trip_insights import TripInsights
 from app.models.media_asset import MediaAsset, AssetStatus
-from app.models.unknown_face import UnknownFace
 from app.services.storage_service import azure_blob_service
 from app.tasks import process_selfie_task, reprocess_asset_task
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -25,7 +25,7 @@ security = HTTPBearer()
 async def get_current_guest(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Attendee:
     token_str = credentials.credentials
     guest_token = await GuestToken.find_one(GuestToken.token == token_str)
-    if not guest_token or guest_token.expires_at < datetime.now(timezone.utc):
+    if not guest_token or guest_token.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     
     attendee = await Attendee.get(guest_token.attendee_id)
@@ -50,7 +50,13 @@ async def register_guest(req: RegisterRequest):
         header, encoded = req.selfie_base64.split(",", 1) if "," in req.selfie_base64 else ("", req.selfie_base64)
         image_data = base64.b64decode(encoded)
         filename = f"selfies/{trip.id}/{uuid.uuid4().hex}.jpg"
-        selfie_url = azure_blob_service.upload_file(image_data, azure_blob_service.settings.azure_container_proxies, filename, "image/jpeg")
+        selfie_url = await asyncio.to_thread(
+            azure_blob_service.upload_file,
+            image_data, 
+            azure_blob_service.settings.azure_container_originals, 
+            filename, 
+            "image/jpeg"
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to process selfie: {str(e)}")
         
@@ -83,10 +89,10 @@ async def register_guest(req: RegisterRequest):
 async def get_me(attendee: Attendee = Depends(get_current_guest)):
     insights = await TripInsights.find_one(TripInsights.trip_id == attendee.trip_id)
     
-    matched_assets = await MediaAsset.find(
-        MediaAsset.trip_id == attendee.trip_id,
-        MediaAsset.matches.attendee_id == attendee.id  # type: ignore
-    ).to_list()
+    matched_assets = await MediaAsset.find({
+        "trip_id": attendee.trip_id,
+        "matches.attendee_id": attendee.id
+    }).to_list()
     
     matched_count = len(matched_assets)
     my_photos_size_bytes = 0
@@ -94,15 +100,10 @@ async def get_me(attendee: Attendee = Depends(get_current_guest)):
     my_solo_count = 0
     from typing import Dict, Any
     partner_counts: dict[Any, int] = {}
-    
-    unknowns = await UnknownFace.find(UnknownFace.trip_id == attendee.trip_id).to_list()
-    unknown_counts: dict[str, int] = {}
-    for uf in unknowns:
-        unknown_counts[str(uf.asset_id)] = unknown_counts.get(str(uf.asset_id), 0) + 1
         
     for a in matched_assets:
         my_photos_size_bytes += (a.file_size_bytes or 0)
-        total_faces = len(a.matches) + unknown_counts.get(str(a.id), 0)
+        total_faces = len(a.detected_faces)
         
         if total_faces >= 2:
             my_group_count += 1
@@ -188,7 +189,7 @@ async def get_photos(
     
     return [{
         "id": str(a.id),
-        "proxy_url": a.proxy_blob_url,
+        "proxy_url": azure_blob_service.get_signed_url(a.original_blob_url) if a.original_blob_url else "",
         "media_type": a.media_type,
         "created_at": a.created_at,
         "face_count": len(a.matches)
@@ -220,59 +221,54 @@ async def download_photos(
     if not assets:
         raise HTTPException(status_code=404, detail="No photos found")
         
-    def zip_generator():
-        import requests
-        zs = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
-        for i, asset in enumerate(assets):
-            url = asset.high_res_blob_url or asset.proxy_blob_url
-            if url:
-                try:
-                    sas_url = azure_blob_service.get_signed_url(url, expires_in_hours=1)
-                    if sas_url:
-                        response = requests.get(sas_url, stream=True, timeout=10)
-                        response.raise_for_status()
-                        ext = ".jpg" if "jpg" in url or "jpeg" in url else ".heic" if "heic" in url else ".mov" if "mov" in url else ".bin"
-                        zs.add(response.iter_content(chunk_size=1024 * 1024), arcname=f"photo_{i}{ext}")
-                except Exception:
-                    pass
-        yield from zs
-        
-    return StreamingResponse(zip_generator(), media_type="application/zip", headers={"Content-Disposition": "attachment; filename=photos.zip"})
+    import os
+    import tempfile
+    import zipfile
+    import requests
+    from fastapi.responses import FileResponse
+    from starlette.background import BackgroundTask
 
-@router.post("/claim/{unknown_face_id}")
-async def claim_face(unknown_face_id: str, attendee: Attendee = Depends(get_current_guest)):
-    uf = await UnknownFace.get(PydanticObjectId(unknown_face_id))
-    if not uf:
-        raise HTTPException(status_code=404, detail="Unknown face not found")
-        
-    asset = await MediaAsset.get(uf.asset_id)
-    if asset:
-        reprocess_asset_task.delay(str(asset.id), str(attendee.trip_id))
-        
-    await uf.delete()
-    return {"status": "success"}
+    # Create a temporary file to hold the zip
+    fd, temp_path = tempfile.mkstemp(suffix=".zip")
+    os.close(fd)
 
-@router.get("/unknown-faces")
-async def get_unknown_faces(attendee: Attendee = Depends(get_current_guest)):
-    """Return up to 50 unmatched faces from the trip.
+    def cleanup():
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
-    Uses a single batched $in query instead of per-face round trips
-    to avoid N+1 query performance degradation.
-    """
-    faces = await UnknownFace.find(UnknownFace.trip_id == attendee.trip_id).limit(50).to_list()
-    if not faces:
-        return []
+    try:
+        with zipfile.ZipFile(temp_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for i, asset in enumerate(assets):
+                url = asset.original_blob_url
+                if url:
+                    try:
+                        sas_url = azure_blob_service.get_signed_url(url, expires_in_hours=1)
+                        if sas_url:
+                            response = requests.get(sas_url, stream=True, timeout=10)
+                            response.raise_for_status()
+                            
+                            clean_url = url.split("?")[0]
+                            _, ext = os.path.splitext(clean_url)
+                            if not ext:
+                                ext = ".jpg"
+                                
+                            # Write directly from response to zip file
+                            with zf.open(f"photo_{i+1}{ext}", "w") as dest:
+                                for chunk in response.iter_content(chunk_size=8192):
+                                    if chunk:
+                                        dest.write(chunk)
+                    except Exception as e:
+                        print(f"Error zipping asset {asset.id}: {e}")
+                        pass
+                        
+        return FileResponse(
+            temp_path, 
+            media_type="application/zip", 
+            filename="photos.zip",
+            background=BackgroundTask(cleanup)
+        )
+    except Exception as e:
+        cleanup()
+        raise HTTPException(status_code=500, detail=f"Failed to generate zip: {str(e)}")
 
-    # Single batched query — no N+1
-    asset_ids = [f.asset_id for f in faces]
-    assets = await MediaAsset.find({"_id": {"$in": asset_ids}}).to_list()
-    asset_map = {a.id: a for a in assets}
 
-    return [
-        {
-            "id": str(f.id),
-            "asset_id": str(f.asset_id),
-            "thumbnail_url": asset_map[f.asset_id].proxy_blob_url if f.asset_id in asset_map else None,
-        }
-        for f in faces
-    ]

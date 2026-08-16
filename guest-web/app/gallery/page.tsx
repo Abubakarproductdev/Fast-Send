@@ -62,7 +62,7 @@ export default function GalleryPage() {
 
     const fetchMe = async () => {
       try {
-        const res = await fetch("http://192.168.10.10:8000/api/v1/guest/me", {
+        const res = await fetch("http://192.168.10.4:8000/api/v1/guest/me", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) {
@@ -83,7 +83,7 @@ export default function GalleryPage() {
 
     const fetchPhotos = async () => {
       try {
-        const res = await fetch(`http://192.168.10.10:8000/api/v1/guest/photos?filter=${activeTab}`, {
+        const res = await fetch(`http://192.168.10.4:8000/api/v1/guest/photos?filter=${activeTab}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -103,7 +103,7 @@ export default function GalleryPage() {
     if (!token) return;
     const fetchUnknowns = async () => {
       try {
-        const res = await fetch("http://192.168.10.10:8000/api/v1/guest/unknown-faces", {
+        const res = await fetch("http://192.168.10.4:8000/api/v1/guest/unknown-faces", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -121,7 +121,7 @@ export default function GalleryPage() {
     setIsDownloading(true);
     try {
       const res = await fetch(
-        `http://192.168.10.10:8000/api/v1/guest/download?filter=${activeTab}`,
+        `http://192.168.10.4:8000/api/v1/guest/download?filter=${activeTab}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error("Download failed");
@@ -144,7 +144,7 @@ export default function GalleryPage() {
   const handleClaim = async (faceId: string) => {
     setClaiming(faceId);
     try {
-      await fetch(`http://192.168.10.10:8000/api/v1/guest/claim/${faceId}`, {
+      await fetch(`http://192.168.10.4:8000/api/v1/guest/claim/${faceId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -303,9 +303,32 @@ export default function GalleryPage() {
                     loading="lazy"
                     className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-3 left-3 text-xs font-medium text-white/80">
-                      {photo.face_count > 0 ? `${photo.face_count} faces` : "Nature"}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                    <div className="flex items-end justify-between">
+                      <div className="text-xs font-medium text-white/90">
+                        {photo.face_count > 0 ? `${photo.face_count} faces` : "Nature"}
+                      </div>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const r = await fetch(photo.proxy_url);
+                            const blob = await r.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `fastsend-${photo.id}.jpg`;
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                          } catch (err) {
+                            window.open(photo.proxy_url, '_blank');
+                          }
+                        }}
+                        className="p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-md transition-colors"
+                        title="Download Original"
+                      >
+                        <Download className="w-4 h-4 text-white" />
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -393,23 +393,16 @@ export default function ActiveTripScreen() {
         const fileName = asset.filename || `photo_${Date.now()}.jpg`;
 
         try {
-          let manipResult;
-          try {
-            manipResult = await ImageManipulator.manipulateAsync(
-              asset.uri,
-              [{ resize: { width: 1080 } }],
-              { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-            );
-          } catch {
-            localErrors.push(`Photo "${asset.filename || asset.id}" could not be compressed — skipped.`);
-            continue;
-          }
+          let fileType = 'image/jpeg';
+          const lowerName = fileName.toLowerCase();
+          if (lowerName.endsWith('.heic')) fileType = 'image/heic';
+          else if (lowerName.endsWith('.png')) fileType = 'image/png';
 
           const formData = new FormData();
           formData.append('file', {
-            uri: manipResult.uri,
+            uri: asset.uri,
             name: fileName,
-            type: 'image/jpeg',
+            type: fileType,
           } as any);
           formData.append('device_local_id', asset.id);
           formData.append('batch_id', batchId);

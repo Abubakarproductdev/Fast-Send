@@ -237,7 +237,7 @@ async def download_photos(
             os.remove(temp_path)
 
     try:
-        with zipfile.ZipFile(temp_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(temp_path, mode="w", compression=zipfile.ZIP_STORED) as zf:
             for i, asset in enumerate(assets):
                 url = asset.original_blob_url
                 if url:

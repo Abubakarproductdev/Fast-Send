@@ -73,7 +73,7 @@ export default function Home() {
     setError("");
 
     try {
-      const res = await fetch("http://192.168.10.10:8000/api/v1/guest/register", {
+      const res = await fetch("http://192.168.10.4:8000/api/v1/guest/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -154,8 +154,8 @@ export default function Home() {
 
             <button
               type="button"
-              onClick={handleNext}
-              className="w-full bg-amber hover:bg-amber-hover text-black font-semibold py-3.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+              onClick={() => handleNext()}
+              className="w-full bg-amber hover:bg-amber-hover text-black font-semibold py-3.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer relative z-10"
             >
               Get Started <ArrowRight className="w-5 h-5" />
             </button>

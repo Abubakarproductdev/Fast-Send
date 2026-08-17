@@ -121,7 +121,8 @@ export default function Home() {
       localStorage.setItem("guestToken", data.token);
       router.push("/gallery");
     } catch (err: any) {
-      setError(err.message);
+      const targetUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000";
+      setError(`Failed: ${err.message}. Target URL was: ${targetUrl}`);
       setStep("method"); // go back to let them try again
     }
   };

@@ -66,6 +66,7 @@ class AzureBlobService:
 
             for container in [
                 self.settings.azure_container_originals,
+                self.settings.azure_container_thumbnails,
             ]:
                 self._ensure_container(container)
 
@@ -257,6 +258,67 @@ class AzureBlobService:
         except Exception as e:
             logger.error("Failed to generate SAS token for %s: %s", blob_url, e)
             return blob_url
+
+    def generate_and_upload_thumbnail(
+        self,
+        image_bytes: bytes,
+        original_blob_name: str,
+        max_size: int = 800,
+        quality: int = 85,
+    ) -> str:
+        """Create a compressed thumbnail and upload it to the thumbnails container.
+
+        Args:
+            image_bytes: Raw bytes of the original full-resolution image.
+            original_blob_name: The blob name from the originals container
+                (used to derive the thumbnail blob name, e.g. trip_xxx/abc.jpg).
+            max_size: Maximum width or height in pixels (default 800).
+            quality: JPEG compression quality 1-95 (default 85 ≈ ~150 KB).
+
+        Returns:
+            The URL of the uploaded thumbnail blob.
+        """
+        import io
+        from PIL import Image
+
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+
+            # Preserve EXIF orientation so thumbnails aren't rotated incorrectly
+            try:
+                from PIL import ImageOps
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass  # Non-critical, skip if EXIF data is malformed
+
+            # Convert HEIC/TIFF/RGBA to RGB so JPEG encoding always works
+            if img.mode not in ("RGB", "L"):
+                img = img.convert("RGB")
+
+            # Maintain aspect ratio — thumbnail() only shrinks, never enlarges
+            img.thumbnail((max_size, max_size), Image.LANCZOS)
+
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=quality, optimize=True)
+            buf.seek(0)
+            thumb_bytes = buf.read()
+        except Exception as e:
+            logger.error("Failed to generate thumbnail: %s", e)
+            raise StorageError(
+                f"Thumbnail generation failed: {e}",
+                code="THUMBNAIL_FAILED",
+            ) from e
+
+        # Derive thumbnail blob name from the original (keep folder structure)
+        base_name = original_blob_name.rsplit(".", 1)[0]
+        thumb_blob_name = f"{base_name}_thumb.jpg"
+
+        return self.upload_file(
+            thumb_bytes,
+            self.settings.azure_container_thumbnails,
+            thumb_blob_name,
+            content_type="image/jpeg",
+        )
 
     def delete_file(self, blob_url: str) -> None:
         """Delete a blob from storage. Silently succeeds if blob doesn't exist."""

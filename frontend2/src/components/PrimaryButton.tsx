@@ -45,9 +45,7 @@ export const PrimaryButton = ({
 
   const handlePressIn = () => {
     scale.value = withSpring(0.95, SPRING_PRESS);
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (_) {}
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   };
 
   const handlePressOut = () => {

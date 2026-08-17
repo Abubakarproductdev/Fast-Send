@@ -187,13 +187,22 @@ async def get_photos(
     skip = (page - 1) * per_page
     assets = await MediaAsset.find(query).sort("-created_at").skip(skip).limit(per_page).to_list()
     
-    return [{
-        "id": str(a.id),
-        "proxy_url": azure_blob_service.get_signed_url(a.original_blob_url) if a.original_blob_url else "",
-        "media_type": a.media_type,
-        "created_at": a.created_at,
-        "face_count": len(a.matches)
-    } for a in assets]
+    return [
+        {
+            "id": str(a.id),
+            # Use the thumbnail for fast gallery display.
+            # Fall back to the original if the thumbnail hasn't been generated yet
+            # (e.g. this is an older asset or thumbnail generation failed).
+            "proxy_url": azure_blob_service.get_signed_url(
+                a.thumbnail_blob_url if a.thumbnail_blob_url else a.original_blob_url
+            ) if (a.thumbnail_blob_url or a.original_blob_url) else "",
+            "original_url": azure_blob_service.get_signed_url(a.original_blob_url) if a.original_blob_url else "",
+            "media_type": a.media_type,
+            "created_at": a.created_at,
+            "face_count": len(a.matches),
+        }
+        for a in assets
+    ]
 
 @router.get("/download")
 async def download_photos(

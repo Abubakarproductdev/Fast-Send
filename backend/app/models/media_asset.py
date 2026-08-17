@@ -52,6 +52,7 @@ class MediaAsset(Document):
 
     trip_id: PydanticObjectId
     original_blob_url: str | None = None
+    thumbnail_blob_url: str | None = None  # 800px compressed version for gallery display
     media_type: str  # "image" or "video"
     file_size_bytes: int | None = None
     is_nature: bool = False

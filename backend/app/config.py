@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     # ── Azure Storage ───────────────────────────────────────────────
     azure_storage_connection_string: str
     azure_container_originals: str = "originals"
+    azure_container_thumbnails: str = "thumbnails"
 
 
 @lru_cache(maxsize=1)

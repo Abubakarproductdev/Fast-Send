@@ -301,6 +301,32 @@ async def process_media_asset(
                     
         asset.matches = matches
         asset.detected_faces = detected_faces
+
+        # ── Generate thumbnail ────────────────────────────────────────
+        # We already have image_data in memory from the ML download step.
+        # Generate a compressed 800px version for fast gallery display.
+        # This runs AFTER ML so the original full-resolution is always
+        # what InsightFace sees. A failure here is non-fatal: the gallery
+        # will fall back to the original URL so guests still see their photos.
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(asset.original_blob_url)
+            # Extract just the blob name (everything after the container segment)
+            path_parts = parsed.path.lstrip("/").split("/", 1)
+            original_blob_name = path_parts[1] if len(path_parts) > 1 else parsed.path.lstrip("/")
+
+            thumb_url = await asyncio.to_thread(
+                azure_blob_service.generate_and_upload_thumbnail,
+                image_data,
+                original_blob_name,
+            )
+            asset.thumbnail_blob_url = thumb_url
+        except Exception as thumb_err:
+            logger.warning(
+                f"Thumbnail generation failed for asset {asset_id} (non-fatal): {thumb_err}"
+            )
+            # thumbnail_blob_url remains None; the API will fall back to original
+
         asset.status = AssetStatus.PROCESSED
         asset.updated_at = datetime.now(timezone.utc)
         await asset.save()

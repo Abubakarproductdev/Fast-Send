@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "../lib/api";
 import { Download, Loader2, Image as ImageIcon, Users, Clock, Database, Check } from "lucide-react";
 
 type MeData = {
@@ -62,7 +63,7 @@ export default function GalleryPage() {
 
     const fetchMe = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000"}` + "/api/v1/guest/me", {
+        const res = await fetch(`${API_BASE_URL}/api/v1/guest/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) {
@@ -83,7 +84,7 @@ export default function GalleryPage() {
 
     const fetchPhotos = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000"}` + `/api/v1/guest/photos?filter=${activeTab}`, {
+        const res = await fetch(`${API_BASE_URL}/api/v1/guest/photos?filter=${activeTab}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -103,7 +104,7 @@ export default function GalleryPage() {
     if (!token) return;
     const fetchUnknowns = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000"}` + "/api/v1/guest/unknown-faces", {
+        const res = await fetch(`${API_BASE_URL}/api/v1/guest/unknown-faces`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -121,7 +122,7 @@ export default function GalleryPage() {
     setIsDownloading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000"}` + `/api/v1/guest/download?filter=${activeTab}`,
+        `${API_BASE_URL}/api/v1/guest/download?filter=${activeTab}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error("Download failed");
@@ -144,7 +145,7 @@ export default function GalleryPage() {
   const handleClaim = async (faceId: string) => {
     setClaiming(faceId);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000"}` + `/api/v1/guest/claim/${faceId}`, {
+      await fetch(`${API_BASE_URL}/api/v1/guest/claim/${faceId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });

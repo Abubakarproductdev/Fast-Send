@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "./lib/api";
 import Webcam from "react-webcam";
 import { Camera, Loader2, Image as ImageIcon, ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 
@@ -105,7 +106,7 @@ export default function Home() {
     setError("");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000"}` + "/api/v1/guest/register", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/guest/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,8 +122,7 @@ export default function Home() {
       localStorage.setItem("guestToken", data.token);
       router.push("/gallery");
     } catch (err: any) {
-      const targetUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.10.4:8000";
-      setError(`Failed: ${err.message}. Target URL was: ${targetUrl}`);
+      setError(`Failed: ${err.message}. API: ${API_BASE_URL}`);
       setStep("method"); // go back to let them try again
     }
   };

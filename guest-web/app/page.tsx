@@ -37,13 +37,43 @@ export default function Home() {
     }
   };
 
+  // Resize the selfie to max 640px before sending to the API.
+  // A mobile gallery photo can be 8-16MB (21MB as base64) which causes mobile browsers
+  // to time out. InsightFace works perfectly at 640px — this is its native resolution.
+  const resizeSelfie = (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const MAX = 640;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) {
+            height = Math.round((height * MAX) / width);
+            width = MAX;
+          } else {
+            width = Math.round((width * MAX) / height);
+            height = MAX;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = dataUrl;
+    });
+  };
+
   const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelfie(reader.result as string);
-        submitRegistration(reader.result as string);
+      reader.onloadend = async () => {
+        const resized = await resizeSelfie(reader.result as string);
+        setSelfie(resized);
+        submitRegistration(resized);
       };
       reader.readAsDataURL(file);
     }
@@ -58,12 +88,14 @@ export default function Home() {
     }
   };
 
-  const captureCamera = useCallback(() => {
+  const captureCamera = useCallback(async () => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
-        setSelfie(imageSrc);
-        submitRegistration(imageSrc);
+        // Webcam screenshots are already small but resize for consistency
+        const resized = await resizeSelfie(imageSrc);
+        setSelfie(resized);
+        submitRegistration(resized);
       }
     }
   }, [webcamRef]);

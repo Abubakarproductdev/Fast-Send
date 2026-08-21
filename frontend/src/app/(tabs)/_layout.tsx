@@ -6,7 +6,7 @@ import { API_BASE_URL } from '../../config/api';
 
 const TabIcon = ({ emoji, focused, badge }: { emoji: string; focused: boolean; badge?: number }) => (
   <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-    <Text style={styles.emoji}>{emoji}</Text>
+    <Text style={[styles.emoji, focused && styles.emojiActive]}>{emoji}</Text>
     {!!badge && badge > 0 && (
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
@@ -18,7 +18,6 @@ const TabIcon = ({ emoji, focused, badge }: { emoji: string; focused: boolean; b
 export default function TabLayout() {
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Poll for unread notifications every 15 seconds
   useEffect(() => {
     const fetchUnread = async () => {
       try {
@@ -41,19 +40,28 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.amber,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           backgroundColor: colors.bgCard,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 72,
-          paddingBottom: 12,
-          paddingTop: 8,
+          borderTopColor: colors.borderStrong,
+          borderTopWidth: 1.5,
+          height: 84,
+          paddingBottom: 24,
+          paddingTop: 12,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          fontSize: 10,
+          fontWeight: '700',
+          letterSpacing: 1,
+          textTransform: 'uppercase',
+          marginTop: 4,
         },
       }}
     >
@@ -74,15 +82,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: 'Notifications',
+          title: 'Inbox',
           tabBarIcon: ({ focused }) => <TabIcon emoji="🔔" focused={focused} badge={unreadCount} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" focused={focused} />,
+          title: 'Profile',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
         }}
       />
     </Tabs>
@@ -91,26 +99,30 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconWrapActive: {
-    backgroundColor: colors.amberGlow,
+    backgroundColor: colors.primaryGlow,
   },
   emoji: {
-    fontSize: 20,
+    fontSize: 22,
+    opacity: 0.6,
+  },
+  emojiActive: {
+    opacity: 1,
   },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -6,
-    backgroundColor: colors.danger,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    top: 2,
+    right: 2,
+    backgroundColor: colors.error,
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
@@ -119,7 +131,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#FFF',
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: 9,
+    fontWeight: '900',
   },
 });

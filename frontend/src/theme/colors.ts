@@ -1,41 +1,46 @@
-// New design token: dark, minimalist with amber accent
+/**
+ * LuxeRoam Inspired Premium Theme
+ * Palette: Sophisticated Black, Deep Charcoal, and Golden Accents
+ */
 export const colors = {
-  // Primary brand
-  amber:         '#F59E0B',
-  amberLight:    '#FEF3C7',
-  amberDark:     '#D97706',
-  amberGlow:     'rgba(245,158,11,0.15)',
+  // Primary brand (Luxe Gold)
+  primary:       '#D4AF37',   // Metallic Gold
+  primaryLight:  '#F9E4A0',   // Champagne
+  primaryDark:   '#AA8831',   // Antique Gold
+  primaryGlow:   'rgba(212, 175, 55, 0.15)',
 
-  // Background layers (dark theme)
-  bg:            '#0A0A0F',   // Near-black base
-  bgCard:        '#13131A',   // Card surface
-  bgElevated:    '#1C1C28',   // Elevated surface (modals, inputs)
-  bgStripe:      '#0F0F17',   // Alternating rows
+  // Background layers (Deep Midnight)
+  bg:            '#050505',   // Absolute Black
+  bgCard:        '#0F0F0F',   // Deep Charcoal
+  bgElevated:    '#1A1A1A',   // Surface
+  bgStripe:      '#0A0A0A',   // Subtle distinction
 
-  // Text
-  textPrimary:   '#F5F5F5',
-  textSecondary: '#8A8A99',
-  textMuted:     '#4A4A5A',
-  textDisabled:  '#3A3A4A',
+  // Text (High Contrast & Elegant)
+  textPrimary:   '#FFFFFF',
+  textSecondary: '#A0A0A0',   // Silver/Grey
+  textMuted:     '#666666',
+  textDisabled:  '#333333',
+  textGold:      '#D4AF37',
 
   // Borders / dividers
-  border:        '#22222E',
-  borderStrong:  '#2E2E3E',
-  divider:       '#1E1E2A',
+  border:        '#222222',
+  borderStrong:  '#333333',
+  divider:       '#151515',
 
   // Semantic
-  success:       '#10B981',
-  successLight:  'rgba(16,185,129,0.12)',
-  error:         '#EF4444',
-  errorLight:    'rgba(239,68,68,0.12)',
-  warning:       '#F59E0B',
-  warningLight:  'rgba(245,158,11,0.12)',
+  success:       '#2ECC71',
+  successLight:  'rgba(46, 204, 113, 0.12)',
+  error:         '#E74C3C',
+  errorLight:    'rgba(231, 76, 60, 0.12)',
+  warning:       '#F1C40F',
+  warningLight:  'rgba(241, 196, 15, 0.12)',
 
-  // Legacy aliases (keep for compatibility with any remaining usages)
-  white:         '#F5F5F5',
-  offWhite:      '#13131A',
-  yellow:        '#F59E0B',
-  yellowLight:   '#FEF3C7',
-  yellowDark:    '#D97706',
-  inputBorder:   '#22222E',
+  // Compatibility Aliases (preserving existing logic references)
+  amber:         '#D4AF37',
+  amberLight:    '#F9E4A0',
+  amberDark:     '#AA8831',
+  amberGlow:     'rgba(212, 175, 55, 0.15)',
+  danger:        '#E74C3C',
+  bgBase:        '#050505',
+  textBase:      '#FFFFFF',
 };

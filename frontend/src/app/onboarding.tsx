@@ -1,34 +1,32 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, Dimensions,
+  View, Text, StyleSheet, Dimensions,
   ScrollView, TouchableOpacity, Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
+import { spacing, radius } from '../theme/spacing';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { ScreenShell } from '../components/ScreenShell';
 
 const { width } = Dimensions.get('window');
 
 const SLIDES = [
   {
-    icon: '📷',
-    title: 'Start a Trip',
-    subtitle: 'Create a trip in seconds and let our AI handle the rest.',
-    accent: '#F59E0B',
+    icon: '✨',
+    title: 'Experience\nElegance',
+    subtitle: 'Fast Send is the premium way to capture and share trip memories.',
   },
   {
-    icon: '☁️',
-    title: 'Auto-Push Photos',
-    subtitle: 'We remind you to upload. One tap — all new photos are sent instantly.',
-    accent: '#6366F1',
+    icon: '📸',
+    title: 'Intelligent\nCapture',
+    subtitle: 'Our AI identifies every guest, delivering photos to the right hands.',
   },
   {
-    icon: '📲',
-    title: 'Share Instantly',
-    subtitle: 'Guests scan the QR and get their personal photo gallery — delivered automatically.',
-    accent: '#10B981',
+    icon: '🌟',
+    title: 'Instant\nConnection',
+    subtitle: 'Scan, join, and relive the journey in high-definition quality.',
   },
 ];
 
@@ -37,12 +35,12 @@ export default function OnboardingScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, bounciness: 6, speed: 8, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, bounciness: 4, speed: 10, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -51,20 +49,18 @@ export default function OnboardingScreen() {
     setActiveIndex(index);
   };
 
-  const currentAccent = SLIDES[activeIndex].accent;
-
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell noPadding>
       <Animated.View
         style={[
           styles.inner,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
-        {/* Logo */}
-        <View style={styles.logoRow}>
-          <Text style={styles.logoIcon}>📷</Text>
-          <Text style={styles.logoText}>FastSend</Text>
+        {/* Header Logo */}
+        <View style={styles.header}>
+          <Text style={styles.logoText}>FAST SEND</Text>
+          <View style={styles.logoDot} />
         </View>
 
         {/* Slides */}
@@ -77,8 +73,9 @@ export default function OnboardingScreen() {
         >
           {SLIDES.map((slide, index) => (
             <View key={index} style={styles.slide}>
-              <View style={[styles.iconRing, { backgroundColor: slide.accent + '1A', borderColor: slide.accent + '44' }]}>
-                <Text style={styles.icon}>{slide.icon}</Text>
+              <View style={styles.iconContainer}>
+                <Text style={styles.iconText}>{slide.icon}</Text>
+                <View style={styles.iconGlow} />
               </View>
               <Text style={styles.title}>{slide.title}</Text>
               <Text style={styles.subtitle}>{slide.subtitle}</Text>
@@ -86,118 +83,145 @@ export default function OnboardingScreen() {
           ))}
         </ScrollView>
 
-        {/* Dots */}
-        <View style={styles.dotsContainer}>
-          {SLIDES.map((slide, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: activeIndex === index ? slide.accent : colors.border,
-                  width: activeIndex === index ? 24 : 8,
-                },
-              ]}
-            />
-          ))}
-        </View>
+        {/* Navigation Area */}
+        <View style={styles.navArea}>
+          {/* Page Indicators */}
+          <View style={styles.dotsContainer}>
+            {SLIDES.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  activeIndex === index && styles.dotActive,
+                ]}
+              />
+            ))}
+          </View>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <PrimaryButton
-            title="Get Started"
-            onPress={() => router.push('/register')}
-          />
-          <TouchableOpacity onPress={() => router.push('/login')} style={styles.linkButton}>
-            <Text style={styles.linkText}>
-              Already have an account?{' '}
-              <Text style={styles.linkTextBold}>Sign in</Text>
-            </Text>
-          </TouchableOpacity>
+          {/* Actions */}
+          <View style={styles.actions}>
+            <PrimaryButton
+              title="Get Started"
+              onPress={() => router.push('/register')}
+            />
+            <TouchableOpacity 
+              onPress={() => router.push('/login')} 
+              style={styles.linkButton}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>
+                Already a member? <Text style={styles.linkTextGold}>Sign In</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Animated.View>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
   inner: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
   },
-  logoRow: {
+  header: {
+    paddingTop: 60,
+    alignItems: 'center',
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
+    justifyContent: 'center',
+    gap: 4,
   },
-  logoIcon: { fontSize: 24 },
   logoText: {
-    fontSize: typography.size.lg,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
     color: colors.textPrimary,
-    letterSpacing: -0.5,
+    letterSpacing: 4,
   },
-  scrollView: { flex: 1 },
+  logoDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
+  scrollView: { 
+    flex: 1,
+  },
   slide: {
-    width: width - spacing.lg * 2,
+    width: width,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    gap: spacing.lg,
+    paddingHorizontal: 40,
   },
-  iconRing: {
-    width: 120,
-    height: 120,
-    borderRadius: 36,
-    borderWidth: 1,
+  iconContainer: {
+    width: 140,
+    height: 140,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 40,
   },
-  icon: { fontSize: 56 },
+  iconText: {
+    fontSize: 72,
+    zIndex: 2,
+  },
+  iconGlow: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.primaryGlow,
+    zIndex: 1,
+  },
   title: {
-    fontSize: typography.size.xxl,
+    fontSize: 42,
     fontWeight: '800',
     color: colors.textPrimary,
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    lineHeight: 48,
+    marginBottom: 20,
   },
   subtitle: {
-    fontSize: typography.size.base,
+    fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: typography.size.base * typography.lineHeight.normal,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  navArea: {
+    paddingHorizontal: 24,
+    paddingBottom: 60,
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
-    marginVertical: spacing.lg,
+    gap: 8,
+    marginBottom: 40,
   },
   dot: {
+    width: 8,
     height: 8,
     borderRadius: 4,
+    backgroundColor: colors.borderStrong,
+  },
+  dotActive: {
+    width: 24,
+    backgroundColor: colors.primary,
   },
   actions: {
-    paddingBottom: spacing.xxl,
-    gap: 0,
+    gap: 16,
   },
   linkButton: {
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: 8,
   },
   linkText: {
     color: colors.textSecondary,
-    fontSize: typography.size.base,
+    fontSize: 15,
+    fontWeight: '500',
   },
-  linkTextBold: {
+  linkTextGold: {
+    color: colors.primary,
     fontWeight: '700',
-    color: colors.amber,
   },
 });

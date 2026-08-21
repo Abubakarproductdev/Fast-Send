@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  SafeAreaView, KeyboardAvoidingView, Platform, Alert,
+  KeyboardAvoidingView, Platform, Alert,
   ScrollView, Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -14,6 +14,7 @@ import { typography } from '../theme/typography';
 import { spacing, radius } from '../theme/spacing';
 import { InputField } from '../components/InputField';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { ScreenShell } from '../components/ScreenShell';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -24,12 +25,12 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(40)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, bounciness: 6, speed: 8, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, bounciness: 4, speed: 10, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -73,7 +74,6 @@ export default function LoginScreen() {
       setOrganizerId(data.organizer_id);
       router.replace('/(tabs)');
     } catch (error: any) {
-      // Map Firebase error codes to human-readable messages
       const code = error.code || '';
       let message = error.message;
       if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
@@ -105,7 +105,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell>
       <KeyboardAvoidingView
         style={styles.kav}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -118,163 +118,143 @@ export default function LoginScreen() {
           <Animated.View
             style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
           >
-            {/* Header */}
+            {/* Header Section */}
             <View style={styles.header}>
-              <View style={styles.logoMark}>
-                <Text style={styles.logoIcon}>📷</Text>
-              </View>
-              <Text style={styles.appName}>FastSend</Text>
-              <Text style={styles.heading}>Welcome back</Text>
-              <Text style={styles.subtitle}>Sign in to manage your trips</Text>
+              <Text style={styles.preTitle}>WELCOME BACK</Text>
+              <Text style={styles.title}>Sign In</Text>
+              <Text style={styles.subtitle}>Enter your credentials to access your trips</Text>
             </View>
 
-            {/* Card */}
-            <View style={styles.card}>
+            {/* Form Section */}
+            <View style={styles.form}>
               {errors.general && (
                 <View style={styles.errorBanner}>
-                  <Text style={styles.errorBannerIcon}>⚠️</Text>
                   <Text style={styles.errorBannerText}>{errors.general}</Text>
                 </View>
               )}
 
               <InputField
                 label="Email Address"
-                placeholder="you@example.com"
+                placeholder="you@luxeroam.com"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
                 value={email}
                 onChangeText={(t) => { setEmail(t); setErrors(e => ({ ...e, email: undefined })); }}
                 error={errors.email}
-                icon="✉️"
               />
 
               <InputField
                 label="Password"
-                placeholder="Your password"
+                placeholder="••••••••"
                 secureTextEntry
                 value={password}
                 onChangeText={(t) => { setPassword(t); setErrors(e => ({ ...e, password: undefined })); }}
                 error={errors.password}
-                icon="🔒"
               />
 
-              <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotRow}>
+              <TouchableOpacity 
+                onPress={handleForgotPassword} 
+                style={styles.forgotRow}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.forgotText}>Forgot Password?</Text>
               </TouchableOpacity>
 
               <PrimaryButton
-                title={loading ? 'Signing In...' : 'Sign In'}
+                title={loading ? 'Authenticating...' : 'Sign In'}
                 onPress={handleLogin}
                 loading={loading}
+                style={styles.submitBtn}
               />
             </View>
 
-            {/* Footer link */}
-            <TouchableOpacity onPress={() => router.push('/register')} style={styles.footerLink}>
+            {/* Footer Section */}
+            <TouchableOpacity 
+              onPress={() => router.push('/register')} 
+              style={styles.footerLink}
+              activeOpacity={0.7}
+            >
               <Text style={styles.footerText}>
-                Don't have an account?{' '}
-                <Text style={styles.footerTextBold}>Create one →</Text>
+                New to Fast Send? <Text style={styles.footerTextGold}>Create Account</Text>
               </Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
   kav: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xxl,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    gap: spacing.xs,
+    marginBottom: 48,
   },
-  logoMark: {
-    width: 72,
-    height: 72,
-    borderRadius: 22,
-    backgroundColor: colors.amberGlow,
-    borderWidth: 1,
-    borderColor: colors.amber + '44',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  logoIcon: { fontSize: 32 },
-  appName: {
-    fontSize: typography.size.sm,
-    fontWeight: '700',
-    color: colors.amber,
+  preTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
     letterSpacing: 2,
-    textTransform: 'uppercase',
+    marginBottom: 8,
   },
-  heading: {
-    fontSize: typography.size.xxl,
+  title: {
+    fontSize: 42,
     fontWeight: '800',
     color: colors.textPrimary,
-    letterSpacing: -0.5,
-    marginTop: spacing.xs,
+    letterSpacing: -1,
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: typography.size.base,
+    fontSize: 16,
     color: colors.textSecondary,
+    lineHeight: 24,
   },
-  card: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
+  form: {
     gap: 0,
   },
   errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: colors.errorLight,
     borderRadius: radius.md,
     padding: spacing.md,
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.error + '40',
+    marginBottom: spacing.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.error,
   },
-  errorBannerIcon: { fontSize: 16 },
   errorBannerText: {
-    flex: 1,
     color: colors.error,
-    fontSize: typography.size.sm,
-    lineHeight: 20,
+    fontSize: 14,
+    fontWeight: '600',
   },
   forgotRow: {
     alignSelf: 'flex-end',
-    marginBottom: spacing.lg,
-    marginTop: -spacing.sm,
+    marginBottom: 32,
+    marginTop: -8,
   },
   forgotText: {
-    color: colors.amber,
-    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    fontSize: 14,
     fontWeight: '600',
+  },
+  submitBtn: {
+    marginTop: 8,
   },
   footerLink: {
     alignItems: 'center',
-    marginTop: spacing.xl,
-    paddingVertical: spacing.sm,
+    marginTop: 40,
   },
   footerText: {
     color: colors.textSecondary,
-    fontSize: typography.size.base,
+    fontSize: 15,
+    fontWeight: '500',
   },
-  footerTextBold: {
+  footerTextGold: {
+    color: colors.primary,
     fontWeight: '700',
-    color: colors.amber,
   },
 });

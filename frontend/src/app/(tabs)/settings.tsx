@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, SafeAreaView, Animated,
+  Alert, Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
+import { ScreenShell } from '../../components/ScreenShell';
 
 const SettingRow = ({
   label, value, onPress, danger, disabled,
@@ -27,7 +28,7 @@ const SettingRow = ({
       {label}
     </Text>
     {value && <Text style={styles.rowValue}>{value}</Text>}
-    {!value && onPress && <Text style={styles.rowChevron}>›</Text>}
+    {!value && onPress && <Text style={styles.rowChevron}>→</Text>}
   </TouchableOpacity>
 );
 
@@ -38,7 +39,7 @@ export default function SettingsScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
   }, []);
 
   const displayName = user?.displayName || 'Organizer';
@@ -48,7 +49,7 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     Alert.alert(
       'Sign Out',
-      'Are you sure you want to sign out?',
+      'Are you sure you want to end your session?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -58,12 +59,11 @@ export default function SettingsScreen() {
             try {
               await signOut(auth);
               setOrganizerId(null);
-              // Clear trip state on sign out
               await setActiveTripId(null);
               await setTripStartTime(null);
               router.replace('/login');
             } catch (e: any) {
-              Alert.alert('Sign Out Failed', e.message || 'Please try again.');
+              Alert.alert('Error', 'Sign out failed');
             }
           },
         },
@@ -72,158 +72,192 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell>
       <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+          
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.preTitle}>PREFERENCES</Text>
+            <Text style={styles.title}>Profile</Text>
+          </View>
 
-          {/* Profile header */}
+          {/* Profile Card */}
           <View style={styles.profileCard}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{initials}</Text>
+              <View style={styles.avatarGlow} />
             </View>
-            <Text style={styles.displayName}>{displayName}</Text>
-            <Text style={styles.emailText}>{email}</Text>
+            <View style={styles.profileInfo}>
+              <Text style={styles.displayName}>{displayName}</Text>
+              <Text style={styles.emailText}>{email}</Text>
+            </View>
           </View>
 
-          {/* Upload Settings */}
-          <Text style={styles.sectionTitle}>Upload Settings</Text>
+          {/* Sections */}
+          <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.section}>
-            <SettingRow label="Reminder Interval" value="Every 2 hours" />
-            <SettingRow label="Upload on Wi-Fi Only" value="On" />
-            <SettingRow label="Proxy Quality" value="1080px / 70%" />
+            <SettingRow label="Sync Interval" value="2 Hours" />
+            <SettingRow label="Upload Mode" value="Wi-Fi Only" />
+            <SettingRow label="Image Quality" value="High (1080p)" />
           </View>
 
-          {/* Account */}
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>Security</Text>
           <View style={styles.section}>
             <SettingRow label="Display Name" value={displayName} />
-            <SettingRow
-              label="Change Password"
-              onPress={() =>
-                Alert.alert(
-                  'Change Password',
-                  'A password reset email will be sent to ' + email,
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Send Email', onPress: () => {} },
-                  ]
-                )
-              }
-            />
+            <SettingRow label="Update Password" onPress={() => {}} />
           </View>
 
-          {/* About */}
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>Legal</Text>
           <View style={styles.section}>
-            <SettingRow label="Version" value="1.0.0" />
             <SettingRow label="Terms of Service" onPress={() => {}} />
             <SettingRow label="Privacy Policy" onPress={() => {}} />
+            <SettingRow label="App Version" value="1.0.0" />
           </View>
 
-          {/* Danger */}
-          <Text style={styles.sectionTitle}>Account</Text>
-          <View style={styles.section}>
-            <SettingRow label="Sign Out" danger onPress={handleSignOut} />
+          <View style={styles.signOutWrapper}>
+            <TouchableOpacity 
+              onPress={handleSignOut} 
+              style={styles.signOutBtn}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.signOutText}>Sign Out Session</Text>
+            </TouchableOpacity>
           </View>
 
         </ScrollView>
       </Animated.View>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1 },
-  scroll: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxl,
-    gap: 0,
+  inner: { flex: 1, paddingTop: 20 },
+  scroll: { paddingBottom: 120 },
+  header: {
+    marginBottom: 32,
   },
-  profileCard: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.xl,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 26,
-    backgroundColor: colors.amberGlow,
-    borderWidth: 1.5,
-    borderColor: colors.amber,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  avatarText: {
-    fontSize: typography.size.xl,
+  preTitle: {
+    fontSize: 12,
     fontWeight: '800',
-    color: colors.amber,
+    color: colors.primary,
+    letterSpacing: 2,
+    marginBottom: 4,
   },
-  displayName: {
-    fontSize: typography.size.xl,
+  title: {
+    fontSize: 32,
     fontWeight: '800',
     color: colors.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -1,
+  },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: 24,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    marginBottom: 40,
+    gap: 20,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.bgElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.primary,
+    zIndex: 2,
+  },
+  avatarGlow: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primaryGlow,
+    zIndex: 1,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  displayName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: 2,
   },
   emailText: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   sectionTitle: {
-    fontSize: typography.size.xs,
-    fontWeight: '700',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: spacing.sm,
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.xs,
+    fontSize: 11,
+    fontWeight: '900',
+    color: colors.textGold,
+    letterSpacing: 2,
+    marginBottom: 12,
+    marginTop: 8,
   },
   section: {
     backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
     overflow: 'hidden',
+    marginBottom: 24,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  rowDisabled: {
-    opacity: 0.4,
-  },
+  rowDisabled: { opacity: 0.5 },
   rowLabel: {
-    fontSize: typography.size.base,
+    fontSize: 15,
     color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  rowLabelDisabled: { color: colors.textMuted },
+  rowValue: {
+    fontSize: 14,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
-  rowLabelDisabled: {
-    color: colors.textMuted,
-  },
-  rowValue: {
-    fontSize: typography.size.base,
-    color: colors.textSecondary,
-  },
   rowChevron: {
-    fontSize: typography.size.lg,
+    fontSize: 18,
     color: colors.textMuted,
-  },
-  dangerText: {
-    color: colors.error,
     fontWeight: '700',
+  },
+  dangerText: { color: colors.error },
+  signOutWrapper: {
+    marginTop: 16,
+  },
+  signOutBtn: {
+    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    borderRadius: radius.md,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(231, 76, 60, 0.2)',
+  },
+  signOutText: {
+    color: colors.error,
+    fontWeight: '800',
+    fontSize: 15,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });

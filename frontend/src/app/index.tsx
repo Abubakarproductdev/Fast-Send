@@ -2,16 +2,15 @@ import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
 import { useAuth } from '../context/AuthContext';
 
 export default function SplashScreen() {
   const router = useRouter();
   const { isLoading, user, organizerId } = useAuth();
 
-  const logoScale = useRef(new Animated.Value(0.7)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
-  const taglineOpacity = useRef(new Animated.Value(0)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.sequence([
@@ -19,18 +18,18 @@ export default function SplashScreen() {
         Animated.spring(logoScale, {
           toValue: 1,
           useNativeDriver: true,
-          bounciness: 10,
-          speed: 6,
+          bounciness: 8,
+          speed: 4,
         }),
         Animated.timing(logoOpacity, {
           toValue: 1,
-          duration: 500,
+          duration: 800,
           useNativeDriver: true,
         }),
       ]),
-      Animated.timing(taglineOpacity, {
+      Animated.timing(textOpacity, {
         toValue: 1,
-        duration: 400,
+        duration: 600,
         useNativeDriver: true,
       }),
     ]).start();
@@ -44,7 +43,7 @@ export default function SplashScreen() {
         } else {
           router.replace('/onboarding');
         }
-      }, 1200);
+      }, 2000);
       return () => clearTimeout(timeout);
     }
   }, [isLoading, user, organizerId]);
@@ -53,17 +52,18 @@ export default function SplashScreen() {
     <View style={styles.container}>
       <Animated.View
         style={[
-          styles.logoRing,
+          styles.logoContainer,
           { transform: [{ scale: logoScale }], opacity: logoOpacity },
         ]}
       >
-        <Text style={styles.icon}>📷</Text>
+        <Text style={styles.logoIcon}>✨</Text>
+        <View style={styles.logoGlow} />
       </Animated.View>
-      <Animated.View style={{ opacity: logoOpacity }}>
-        <Text style={styles.title}>FastSend</Text>
-      </Animated.View>
-      <Animated.View style={{ opacity: taglineOpacity }}>
-        <Text style={styles.tagline}>Your moments, delivered instantly.</Text>
+      
+      <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
+        <Text style={styles.title}>FAST SEND</Text>
+        <View style={styles.divider} />
+        <Text style={styles.subtitle}>PREMIUM PHOTO DELIVERY</Text>
       </Animated.View>
     </View>
   );
@@ -75,31 +75,45 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
   },
-  logoRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 32,
-    backgroundColor: colors.amberGlow,
-    borderWidth: 1,
-    borderColor: colors.amber,
+  logoContainer: {
+    width: 120,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 40,
   },
-  icon: {
-    fontSize: 44,
+  logoIcon: {
+    fontSize: 64,
+    zIndex: 2,
+  },
+  logoGlow: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primaryGlow,
+    zIndex: 1,
+  },
+  textContainer: {
+    alignItems: 'center',
   },
   title: {
-    fontSize: typography.size.hero,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '900',
     color: colors.textPrimary,
-    letterSpacing: -1,
+    letterSpacing: 8,
   },
-  tagline: {
-    fontSize: typography.size.base,
-    color: colors.textSecondary,
-    letterSpacing: 0.2,
+  divider: {
+    width: 40,
+    height: 2,
+    backgroundColor: colors.primary,
+    marginVertical: 16,
+  },
+  subtitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.textGold,
+    letterSpacing: 3,
   },
 });

@@ -122,8 +122,31 @@ export default function Home() {
       localStorage.setItem("guestToken", data.token);
       router.push("/gallery");
     } catch (err: any) {
-      setError(`Failed: ${err.message}. API: ${API_BASE_URL}`);
-      setStep("method"); // go back to let them try again
+      // Run a full diagnostic to find the EXACT failure reason
+      const diag: string[] = [];
+      diag.push(`Error: ${err.message}`);
+      if (err.cause) diag.push(`Cause: ${JSON.stringify(err.cause)}`);
+      diag.push(`Online: ${navigator.onLine}`);
+      diag.push(`API Target: ${API_BASE_URL}`);
+
+      // Test 1: Can the browser reach the API server at all?
+      try {
+        const healthCheck = await fetch(`${API_BASE_URL}/`, { method: "GET", signal: AbortSignal.timeout(5000) });
+        diag.push(`Health check: ${healthCheck.status} ${healthCheck.statusText}`);
+      } catch (healthErr: any) {
+        diag.push(`Health check FAILED: ${healthErr.message}`);
+      }
+
+      // Test 2: Can the browser reach google.com? (proves internet works)
+      try {
+        const googleCheck = await fetch("https://www.google.com/generate_204", { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) });
+        diag.push(`Internet: OK (${googleCheck.type})`);
+      } catch (googleErr: any) {
+        diag.push(`Internet FAILED: ${googleErr.message}`);
+      }
+
+      setError(diag.join(" | "));
+      setStep("method");
     }
   };
 
@@ -192,6 +215,11 @@ export default function Home() {
             >
               Get Started <ArrowRight className="w-5 h-5" />
             </button>
+
+            <div className="mt-8 text-xs text-gray-500 text-center">
+              App Version: 2.1 <br/>
+              Target API: {API_BASE_URL}
+            </div>
           </div>
         )}
 

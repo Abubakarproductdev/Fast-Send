@@ -6,7 +6,7 @@ import { colors } from '../theme/colors';
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="light" backgroundColor={colors.bg} />
+      <StatusBar style="light" translucent backgroundColor="transparent" />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -18,6 +18,8 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="login" />
         <Stack.Screen name="register" />
+        <Stack.Screen name="create-trip" />
+        <Stack.Screen name="active-trip" />
         <Stack.Screen name="(tabs)" />
       </Stack>
     </AuthProvider>

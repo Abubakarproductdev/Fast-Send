@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  SafeAreaView, Alert, Animated, ScrollView,
+  Alert, Animated, ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
@@ -12,6 +12,7 @@ import { typography } from '../theme/typography';
 import { spacing, radius } from '../theme/spacing';
 import { InputField } from '../components/InputField';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { ScreenShell } from '../components/ScreenShell';
 
 export default function CreateTripScreen() {
   const router = useRouter();
@@ -25,8 +26,8 @@ export default function CreateTripScreen() {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, bounciness: 6, speed: 10, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, bounciness: 4, speed: 10, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -36,219 +37,194 @@ export default function CreateTripScreen() {
       return;
     }
     if (!organizerId) {
-      Alert.alert('Session Error', 'You are not logged in. Please sign in again.', [
-        { text: 'Sign In', onPress: () => router.replace('/login') },
-      ]);
+      Alert.alert('Session Error', 'Please sign in again.');
+      router.replace('/login');
       return;
     }
 
     setLoading(true);
     try {
-      let response;
-      try {
-        response = await fetch(`${API_BASE_URL}/api/v1/trips`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ organizer_id: organizerId }),
-        });
-      } catch {
-        throw new Error('Cannot reach server. Check your network and try again.');
-      }
+      const response = await fetch(`${API_BASE_URL}/api/v1/trips`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizer_id: organizerId }),
+      });
 
-      if (response.status === 422) {
-        throw new Error('Invalid data sent to server. Please try again.');
-      }
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.detail || `Failed to create trip (${response.status})`);
+        throw new Error(body.detail || 'Failed to create trip');
       }
 
       const trip = await response.json();
-      if (!trip.id) throw new Error('Server returned an invalid trip. Please try again.');
-
-      // CRITICAL: Use the device clock time (the moment the user tapped "Create")
-      // NOT trip.created_at from the server, because:
-      // 1. Server clock may differ from phone clock
-      // 2. Beanie may return a datetime string without 'Z' suffix, causing timezone parse bugs
-      // 3. We want to include photos taken in the seconds between tapping and server confirming
       const deviceStartTime = new Date().toISOString();
 
       await setActiveTripId(trip.id);
       await setTripStartTime(deviceStartTime);
 
-      // Schedule 2-hourly upload reminders for the next 24 hours
-      // Do this in the background — don't block navigation on it
-      scheduleUploadReminders().catch(e =>
-        console.warn('[CreateTrip] Could not schedule reminders:', e)
-      );
-
+      scheduleUploadReminders().catch(() => {});
       router.replace('/active-trip');
     } catch (e: any) {
-      Alert.alert('Could Not Create Trip', e.message, [{ text: 'OK' }]);
+      Alert.alert('Error', e.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell>
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-          {/* Top bar */}
-          <View style={styles.topBar}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity 
+              onPress={() => router.back()} 
+              style={styles.backBtn}
+              activeOpacity={0.7}
+            >
               <Text style={styles.backIcon}>←</Text>
             </TouchableOpacity>
-            <View style={styles.logoBadge}>
-              <Text style={styles.logoIcon}>📷</Text>
-              <Text style={styles.appName}>FastSend</Text>
-            </View>
+            <Text style={styles.preTitle}>NEW JOURNEY</Text>
+            <Text style={styles.title}>Create Trip</Text>
+            <Text style={styles.subtitle}>Set up a new session to begin sharing memories.</Text>
           </View>
 
-          {/* Heading */}
-          <View style={styles.headingBlock}>
-            <Text style={styles.heading}>New Trip</Text>
-            <Text style={styles.subtitle}>Give it a name so you can find it later</Text>
-          </View>
-
-          {/* Input Card */}
-          <View style={styles.card}>
+          {/* Form */}
+          <View style={styles.form}>
             <InputField
               label="Trip Name"
-              placeholder="e.g. Ahmed's Wedding"
+              placeholder="e.g. Summer Gala 2026"
               value={tripName}
               onChangeText={(t) => { setTripName(t); setTripNameError(undefined); }}
               autoFocus
               error={tripNameError}
-              icon="🏷️"
             />
           </View>
 
-          {/* Info block */}
-          <View style={styles.infoBlock}>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconWrap}><Text>⚡</Text></View>
-              <View style={styles.infoTextWrap}>
-                <Text style={styles.infoTitle}>Smart photo scanning</Text>
-                <Text style={styles.infoDesc}>Only photos taken after this trip starts will be uploaded.</Text>
+          {/* Feature List */}
+          <View style={styles.featureList}>
+            <View style={styles.featureItem}>
+              <View style={styles.featureIconWrap}>
+                <Text style={styles.featureIcon}>⚡</Text>
+              </View>
+              <View style={styles.featureText}>
+                <Text style={styles.featureTitle}>Smart Scanning</Text>
+                <Text style={styles.featureDesc}>Only photos taken from this moment forward will be synced.</Text>
               </View>
             </View>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconWrap}><Text>🔔</Text></View>
-              <View style={styles.infoTextWrap}>
-                <Text style={styles.infoTitle}>Reminders every 2 hours</Text>
-                <Text style={styles.infoDesc}>We'll nudge you to push new photos so guests don't miss a moment.</Text>
+
+            <View style={styles.featureItem}>
+              <View style={styles.featureIconWrap}>
+                <Text style={styles.featureIcon}>🤖</Text>
               </View>
-            </View>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconWrap}><Text>🤖</Text></View>
-              <View style={styles.infoTextWrap}>
-                <Text style={styles.infoTitle}>AI face matching</Text>
-                <Text style={styles.infoDesc}>Each guest automatically receives only the photos they appear in.</Text>
+              <View style={styles.featureText}>
+                <Text style={styles.featureTitle}>AI Delivery</Text>
+                <Text style={styles.featureDesc}>Guests receive their personalized gallery via face recognition.</Text>
               </View>
             </View>
           </View>
 
           {/* CTA */}
           <PrimaryButton
-            title="Create Trip & Get QR Code"
+            title={loading ? 'Creating...' : 'Launch Trip Session'}
             onPress={handleCreate}
-            disabled={!tripName.trim()}
+            disabled={!tripName.trim() || loading}
             loading={loading}
+            style={styles.submitBtn}
           />
+
         </Animated.View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
   scroll: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxl,
-    gap: 0,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xl,
+  header: {
+    marginBottom: 40,
   },
   backBtn: {
-    padding: spacing.xs,
-  },
-  backIcon: {
-    fontSize: 24,
-    color: colors.textSecondary,
-  },
-  logoBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  logoIcon: { fontSize: 20 },
-  appName: {
-    fontSize: typography.size.base,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  headingBlock: {
-    marginBottom: spacing.xl,
-    gap: spacing.xs,
-  },
-  heading: {
-    fontSize: typography.size.xxl,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: typography.size.base,
-    color: colors.textSecondary,
-  },
-  card: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
-    marginBottom: spacing.xl,
-  },
-  infoBlock: {
-    marginBottom: spacing.xl,
-    gap: spacing.lg,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
-  },
-  infoIconWrap: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.amberGlow,
-    borderWidth: 1,
-    borderColor: colors.amber + '30',
+    borderRadius: 20,
+    backgroundColor: colors.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  infoTextWrap: { flex: 1, gap: 2 },
-  infoTitle: {
-    fontSize: typography.size.base,
-    fontWeight: '600',
+  backIcon: {
+    fontSize: 20,
     color: colors.textPrimary,
   },
-  infoDesc: {
-    fontSize: typography.size.sm,
+  preTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -1,
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 15,
     color: colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 22,
+  },
+  form: {
+    marginBottom: 32,
+  },
+  featureList: {
+    gap: 24,
+    marginBottom: 48,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  featureIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.bgCard,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  featureIcon: {
+    fontSize: 20,
+  },
+  featureText: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  featureDesc: {
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 18,
+  },
+  submitBtn: {
+    marginTop: 8,
   },
 });

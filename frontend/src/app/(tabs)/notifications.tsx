@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Animated } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { API_BASE_URL } from '../../config/api';
 import { colors } from '../../theme/colors';
+import { ScreenShell } from '../../components/ScreenShell';
+import { radius } from '../../theme/spacing';
 
 interface Notification {
   id: string;
@@ -45,22 +47,19 @@ export default function NotificationsTab() {
   };
 
   const markAsRead = async (id: string) => {
-    // Optimistic update
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     try {
       await fetch(`${API_BASE_URL}/api/v1/notifications/${id}/read`, {
         method: 'PATCH',
       });
-    } catch (e) {
-      console.error("Failed to mark as read");
-    }
+    } catch (e) {}
   };
 
   const renderItem = ({ item }: { item: Notification }) => (
     <TouchableOpacity 
       style={[styles.card, !item.is_read && styles.cardUnread]}
       onPress={() => !item.is_read && markAsRead(item.id)}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
         <View style={styles.titleRow}>
@@ -76,16 +75,20 @@ export default function NotificationsTab() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <Text style={styles.preTitle}>UPDATES</Text>
+        <Text style={styles.headerTitle}>Inbox</Text>
       </View>
       
       {notifications.length === 0 && !loading ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>📭</Text>
-          <Text style={styles.emptyTitle}>You're all caught up!</Text>
-          <Text style={styles.emptyText}>When your photos finish processing, you'll see a notification here.</Text>
+          <View style={styles.emptyIconWrap}>
+            <Text style={styles.emptyEmoji}>🔔</Text>
+            <View style={styles.emptyGlow} />
+          </View>
+          <Text style={styles.emptyTitle}>All caught up</Text>
+          <Text style={styles.emptyText}>When your photos finish processing, we'll notify you here.</Text>
         </View>
       ) : (
         <FlatList
@@ -93,53 +96,51 @@ export default function NotificationsTab() {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.amber} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         />
       )}
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgBase,
-  },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 16,
-    backgroundColor: colors.bgBase,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingTop: 20,
+    marginBottom: 32,
+  },
+  preTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 2,
+    marginBottom: 4,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textBase,
-    letterSpacing: -0.5,
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -1,
   },
   listContainer: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 120,
+    gap: 16,
   },
   card: {
     backgroundColor: colors.bgCard,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: 20,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
   },
   cardUnread: {
-    backgroundColor: colors.bgCardElevated,
-    borderColor: colors.amber + '40', // slightly visible border
+    borderColor: colors.primaryGlow,
+    backgroundColor: colors.bgElevated,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   titleRow: {
     flexDirection: 'row',
@@ -147,53 +148,69 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.amber,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
     marginRight: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textBase,
+    color: colors.textPrimary,
     flex: 1,
   },
   titleUnread: {
-    fontWeight: '700',
-    color: colors.textBase,
+    fontWeight: '800',
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textMuted,
     marginLeft: 8,
+    fontWeight: '600',
   },
   message: {
     fontSize: 14,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     lineHeight: 20,
-    paddingLeft: 16, // align with title if there was a dot
+    fontWeight: '400',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingBottom: 100,
+  },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 40,
+    zIndex: 2,
+  },
+  emptyGlow: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primaryGlow,
+    zIndex: 1,
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: colors.textBase,
+    fontWeight: '800',
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 15,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     textAlign: 'center',
+    paddingHorizontal: 40,
     lineHeight: 22,
   },
 });

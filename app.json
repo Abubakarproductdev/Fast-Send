@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "1439c37b-6903-40e0-a607-7481b870e480"
+      }
+    },
+    "android": {
+      "package": "com.muhammad_abubakar1122.fastsend"
+    }
+  }
+}

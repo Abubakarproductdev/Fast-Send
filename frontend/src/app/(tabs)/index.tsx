@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { ScreenShell } from '../../components/ScreenShell';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
@@ -16,236 +17,305 @@ export default function HomeScreen() {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, bounciness: 6, speed: 10, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, bounciness: 4, speed: 10, useNativeDriver: true }),
     ]).start();
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell>
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-
-        {/* Top bar */}
-        <View style={styles.topBar}>
+        
+        {/* Top Navigation / Branding */}
+        <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Dashboard</Text>
-            <Text style={styles.greetingSub}>
-              {activeTripId ? 'A trip is live right now' : 'Ready to start a new trip?'}
-            </Text>
+            <Text style={styles.welcomeText}>GOOD DAY</Text>
+            <Text style={styles.dashboardTitle}>Dashboard</Text>
           </View>
-          <View style={styles.logoMark}>
-            <Text style={{ fontSize: 22 }}>📷</Text>
-          </View>
+          <TouchableOpacity style={styles.profileBtn} activeOpacity={0.7}>
+            <Text style={styles.profileEmoji}>👤</Text>
+          </TouchableOpacity>
         </View>
 
         {activeTripId ? (
-          /* === ACTIVE TRIP STATE === */
-          <>
-            {/* Live banner */}
-            <View style={styles.liveBanner}>
-              <View style={styles.liveBannerLeft}>
-                <View style={styles.liveDot} />
-                <View>
-                  <Text style={styles.liveBannerTitle}>Trip is Live</Text>
-                  <Text style={styles.liveBannerSub}>Guests can scan & register now</Text>
+          /* ACTIVE TRIP VIEW */
+          <View style={styles.activeContainer}>
+            <View style={styles.statusCard}>
+              <View style={styles.statusHeader}>
+                <View style={styles.liveIndicator}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>LIVE SESSION</Text>
+                </View>
+                <Text style={styles.tripId}>ID: {activeTripId.slice(-6).toUpperCase()}</Text>
+              </View>
+              
+              <Text style={styles.statusTitle}>Capture in Progress</Text>
+              <Text style={styles.statusSub}>Your trip is active. Guests can join and receive photos instantly.</Text>
+              
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statVal}>24</Text>
+                  <Text style={styles.statLabel}>Guests</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statVal}>156</Text>
+                  <Text style={styles.statLabel}>Photos</Text>
                 </View>
               </View>
-              <TouchableOpacity
-                style={styles.viewBtn}
-                onPress={() => router.push('/active-trip')}
-              >
-                <Text style={styles.viewBtnText}>View →</Text>
-              </TouchableOpacity>
-            </View>
 
-            {/* Quick action */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Quick Actions</Text>
               <PrimaryButton
-                title="Push New Photos"
+                title="Manage Live Trip"
                 onPress={() => router.push('/active-trip')}
-              />
-              <PrimaryButton
-                title="View Trip Details"
-                type="secondary"
-                onPress={() => router.push('/active-trip')}
+                style={styles.actionBtn}
               />
             </View>
-          </>
+          </View>
         ) : (
-          /* === IDLE STATE === */
-          <>
-            {/* Hero card */}
+          /* IDLE / NO TRIP VIEW */
+          <View style={styles.idleContainer}>
             <View style={styles.heroCard}>
-              <Text style={styles.heroEmoji}>📷</Text>
-              <Text style={styles.heroTitle}>No active trip</Text>
-              <Text style={styles.heroSub}>
-                Create a trip to start sharing photos with your guests in real-time.
-              </Text>
+              <View style={styles.heroIconWrap}>
+                <Text style={styles.heroIcon}>✨</Text>
+                <View style={styles.heroGlow} />
+              </View>
+              <Text style={styles.heroTitle}>Start Your Journey</Text>
+              <Text style={styles.heroSub}>Create a new trip to share memories with your guests automatically.</Text>
+              
               <PrimaryButton
-                title="Start New Trip"
+                title="Create New Trip"
                 onPress={() => router.push('/create-trip')}
+                style={styles.heroBtn}
               />
             </View>
 
-            {/* Feature hints */}
-            <View style={styles.hintsRow}>
+            <Text style={styles.sectionTitle}>PREMIUM FEATURES</Text>
+            <View style={styles.featuresGrid}>
               {[
-                { icon: '🤖', label: 'AI Face Match' },
-                { icon: '📲', label: 'Instant Delivery' },
-                { icon: '🔒', label: 'Private & Secure' },
-              ].map(h => (
-                <View key={h.label} style={styles.hintChip}>
-                  <Text style={styles.hintIcon}>{h.icon}</Text>
-                  <Text style={styles.hintLabel}>{h.label}</Text>
+                { icon: '🤖', title: 'AI Matching', desc: 'Face recognition delivery' },
+                { icon: '🔒', title: 'Private', desc: 'Secure guest galleries' },
+              ].map((f, i) => (
+                <View key={i} style={styles.featureCard}>
+                  <Text style={styles.featureIcon}>{f.icon}</Text>
+                  <Text style={styles.featureTitle}>{f.title}</Text>
+                  <Text style={styles.featureDesc}>{f.desc}</Text>
                 </View>
               ))}
             </View>
-          </>
+          </View>
         )}
       </Animated.View>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
   inner: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: 20,
   },
-  topBar: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: 40,
   },
-  greeting: {
-    fontSize: typography.size.xxl,
+  welcomeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  dashboardTitle: {
+    fontSize: 32,
     fontWeight: '800',
     color: colors.textPrimary,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
   },
-  greetingSub: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  logoMark: {
+  profileBtn: {
     width: 48,
     height: 48,
-    borderRadius: 14,
-    backgroundColor: colors.amberGlow,
-    borderWidth: 1,
-    borderColor: colors.amber + '40',
+    borderRadius: 24,
+    backgroundColor: colors.bgElevated,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Live state
-  liveBanner: {
-    backgroundColor: colors.successLight,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.success + '30',
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
+  profileEmoji: {
+    fontSize: 20,
   },
-  liveBannerLeft: {
+  // Active State
+  activeContainer: {
+    flex: 1,
+  },
+  statusCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: 24,
+    borderWidth: 1.5,
+    borderColor: colors.primaryGlow,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  statusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 6,
   },
   liveDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: colors.success,
   },
-  liveBannerTitle: {
-    fontSize: typography.size.base,
-    fontWeight: '700',
+  liveText: {
+    fontSize: 10,
+    fontWeight: '900',
     color: colors.success,
+    letterSpacing: 1,
   },
-  liveBannerSub: {
-    fontSize: typography.size.xs,
-    color: colors.success + 'AA',
-    marginTop: 1,
-  },
-  viewBtn: {
-    backgroundColor: colors.success,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-  },
-  viewBtnText: {
-    fontSize: typography.size.sm,
+  tripId: {
+    fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textMuted,
+    letterSpacing: 1,
   },
-  card: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
-  },
-  cardTitle: {
-    fontSize: typography.size.base,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  // Idle state
-  heroCard: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  heroEmoji: { fontSize: 56, marginBottom: spacing.sm },
-  heroTitle: {
-    fontSize: typography.size.xl,
+  statusTitle: {
+    fontSize: 24,
     fontWeight: '800',
     color: colors.textPrimary,
-    letterSpacing: -0.3,
+    marginBottom: 8,
+  },
+  statusSub: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: 16,
+    marginBottom: 24,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statVal: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: colors.border,
+  },
+  actionBtn: {
+    marginBottom: 0,
+  },
+  // Idle State
+  idleContainer: {
+    flex: 1,
+  },
+  heroCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: 32,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    marginBottom: 40,
+  },
+  heroIconWrap: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  heroIcon: {
+    fontSize: 40,
+    zIndex: 2,
+  },
+  heroGlow: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primaryGlow,
+    zIndex: 1,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: 12,
   },
   heroSub: {
-    fontSize: typography.size.base,
+    fontSize: 15,
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: spacing.sm,
+    marginBottom: 32,
   },
-  hintsRow: {
+  heroBtn: {
+    marginBottom: 0,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: colors.textGold,
+    letterSpacing: 2,
+    marginBottom: 16,
+  },
+  featuresGrid: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    justifyContent: 'center',
+    gap: 16,
   },
-  hintChip: {
+  featureCard: {
     flex: 1,
     backgroundColor: colors.bgCard,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
-    alignItems: 'center',
-    gap: 4,
+    padding: 20,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
   },
-  hintIcon: { fontSize: 20 },
-  hintLabel: {
-    fontSize: typography.size.xs,
-    color: colors.textSecondary,
-    fontWeight: '600',
-    textAlign: 'center',
+  featureIcon: {
+    fontSize: 24,
+    marginBottom: 12,
+  },
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  featureDesc: {
+    fontSize: 11,
+    color: colors.textMuted,
+    lineHeight: 14,
   },
 });

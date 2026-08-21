@@ -3,17 +3,18 @@ import { fetchWithTimeout } from '../../utils/fetchWithTimeout';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, Animated, SafeAreaView,
+  RefreshControl, Animated,
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
+import { ScreenShell } from '../../components/ScreenShell';
 
 const formatDate = (dateStr: string) => {
   try {
     return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
+      month: 'long', day: 'numeric', year: 'numeric',
     });
   } catch {
     return 'Unknown date';
@@ -30,12 +31,12 @@ export default function TripsScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
   }, []);
 
   const loadTrips = async () => {
     if (!organizerId) {
-      setError('Not logged in. Please sign in again.');
+      setError('Session expired. Please sign in.');
       setLoading(false);
       setRefreshing(false);
       return;
@@ -51,18 +52,11 @@ export default function TripsScreen() {
         setTrips([]);
         return;
       }
-      if (!response.ok) {
-        throw new Error(`Server error (${response.status}). Pull to refresh.`);
-      }
+      if (!response.ok) throw new Error('Failed to fetch archive');
       const data = await response.json();
-      if (!Array.isArray(data)) throw new Error('Unexpected response from server.');
-      setTrips(data);
+      setTrips(Array.isArray(data) ? data : []);
     } catch (e: any) {
-      if (e.name === 'AbortError') {
-        setError('Request timed out. Check your network and pull to refresh.');
-      } else {
-        setError(e.message || 'Failed to load trips. Pull to refresh.');
-      }
+      setError(e.message || 'Connection error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -74,240 +68,225 @@ export default function TripsScreen() {
   const onRefresh = () => { setRefreshing(true); loadTrips(); };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenShell>
       <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
+        
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.heading}>Trip Archive</Text>
-            <Text style={styles.subheading}>
-              {loading ? 'Loading...' : `${trips.length} trip${trips.length !== 1 ? 's' : ''} total`}
-            </Text>
+            <Text style={styles.preTitle}>HISTORY</Text>
+            <Text style={styles.title}>Archive</Text>
           </View>
-          <View style={styles.countBadge}>
-            <Text style={styles.countBadgeText}>{trips.length}</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{trips.length}</Text>
           </View>
         </View>
 
-        {/* Content */}
+        {/* List */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={colors.amber}
-              colors={[colors.amber]}
+              tintColor={colors.primary}
             />
           }
         >
           {error ? (
-            <View style={styles.errorState}>
-              <Text style={styles.errorIcon}>⚠️</Text>
-              <Text style={styles.errorTitle}>Something went wrong</Text>
-              <Text style={styles.errorSub}>{error}</Text>
+            <View style={styles.stateContainer}>
+              <Text style={styles.stateTitle}>Archive unavailable</Text>
+              <Text style={styles.stateSub}>{error}</Text>
               <TouchableOpacity onPress={loadTrips} style={styles.retryBtn}>
-                <Text style={styles.retryBtnText}>Retry</Text>
+                <Text style={styles.retryText}>Try Again</Text>
               </TouchableOpacity>
             </View>
           ) : loading ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>Loading trips...</Text>
+            <View style={styles.stateContainer}>
+              <Text style={styles.stateSub}>Accessing vault...</Text>
             </View>
           ) : trips.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📁</Text>
-              <Text style={styles.emptyTitle}>No trips yet</Text>
-              <Text style={styles.emptySub}>Trips you create will appear here after they end</Text>
+            <View style={styles.stateContainer}>
+              <Text style={styles.stateIcon}>📁</Text>
+              <Text style={styles.stateTitle}>No history yet</Text>
+              <Text style={styles.stateSub}>Your completed journeys will be archived here.</Text>
             </View>
           ) : (
-            trips.map((trip, index) => (
-              <View key={trip.id} style={styles.tripCard}>
-                {/* Status row */}
-                <View style={styles.tripHeader}>
+            trips.map((trip) => (
+              <TouchableOpacity 
+                key={trip.id} 
+                style={styles.card}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardHeader}>
                   <View style={[
                     styles.statusPill,
-                    { backgroundColor: trip.is_active ? colors.successLight : colors.bgElevated },
+                    { backgroundColor: trip.is_active ? 'rgba(46, 204, 113, 0.1)' : colors.bgElevated }
                   ]}>
-                    <View style={[
-                      styles.statusDot,
-                      { backgroundColor: trip.is_active ? colors.success : colors.textMuted },
-                    ]} />
                     <Text style={[
                       styles.statusText,
-                      { color: trip.is_active ? colors.success : colors.textMuted },
+                      { color: trip.is_active ? colors.success : colors.textMuted }
                     ]}>
-                      {trip.is_active ? 'Live' : 'Ended'}
+                      {trip.is_active ? 'ACTIVE' : 'ARCHIVED'}
                     </Text>
                   </View>
-                  <Text style={styles.tripDate}>{formatDate(trip.created_at)}</Text>
+                  <Text style={styles.dateText}>{formatDate(trip.created_at)}</Text>
                 </View>
 
-                {/* Code */}
                 <Text style={styles.tripCode}>{trip.invite_code}</Text>
-
-                {/* Meta row */}
-                <View style={styles.tripMeta}>
-                  <Text style={styles.tripMetaItem}>👥 {trip.attendee_count ?? '—'} guests</Text>
-                  <Text style={styles.tripMetaDot}>·</Text>
-                  <Text style={styles.tripMetaItem}>📸 {trip.media_count ?? '—'} photos</Text>
+                
+                <View style={styles.cardFooter}>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaIcon}>👥</Text>
+                    <Text style={styles.metaVal}>{trip.attendee_count ?? 0}</Text>
+                    <Text style={styles.metaLabel}>Guests</Text>
+                  </View>
+                  <View style={styles.metaDivider} />
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaIcon}>📸</Text>
+                    <Text style={styles.metaVal}>{trip.media_count ?? 0}</Text>
+                    <Text style={styles.metaLabel}>Photos</Text>
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
       </Animated.View>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  inner: { flex: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  inner: { flex: 1, paddingTop: 20 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
+    alignItems: 'flex-end',
+    marginBottom: 32,
   },
-  heading: {
-    fontSize: typography.size.xxl,
+  preTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 32,
     fontWeight: '800',
     color: colors.textPrimary,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
   },
-  subheading: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  countBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.amberGlow,
+  badge: {
+    backgroundColor: colors.bgElevated,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.amber + '40',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: colors.borderStrong,
   },
-  countBadgeText: {
-    fontSize: typography.size.md,
-    fontWeight: '800',
-    color: colors.amber,
+  badgeText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.textPrimary,
   },
-  listContainer: {
-    paddingBottom: spacing.xxl,
-    gap: spacing.md,
+  list: {
+    paddingBottom: 120,
+    gap: 20,
   },
-  tripCard: {
+  card: {
     backgroundColor: colors.bgCard,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    borderRadius: radius.lg,
+    padding: 24,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
   },
-  tripHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
   statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    gap: 6,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
   },
   statusText: {
-    fontSize: typography.size.xs,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
-  tripDate: {
-    fontSize: typography.size.xs,
+  dateText: {
+    fontSize: 12,
     color: colors.textMuted,
+    fontWeight: '500',
   },
   tripCode: {
-    fontSize: typography.size.xl,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     color: colors.textPrimary,
     letterSpacing: 4,
-    fontFamily: 'monospace',
+    marginBottom: 24,
   },
-  tripMeta: {
+  cardFooter: {
+    flexDirection: 'row',
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: 12,
+  },
+  metaItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
   },
-  tripMetaItem: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
+  metaIcon: { fontSize: 14 },
+  metaVal: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
-  tripMetaDot: {
+  metaLabel: {
+    fontSize: 12,
     color: colors.textMuted,
   },
-  // States
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: spacing.xxxl,
-    gap: spacing.sm,
+  metaDivider: {
+    width: 1,
+    backgroundColor: colors.border,
   },
-  emptyIcon: { fontSize: 48 },
-  emptyTitle: {
-    fontSize: typography.size.xl,
-    fontWeight: '700',
+  stateContainer: {
+    alignItems: 'center',
+    paddingTop: 80,
+    gap: 12,
+  },
+  stateIcon: { fontSize: 48, marginBottom: 12 },
+  stateTitle: {
+    fontSize: 20,
+    fontWeight: '800',
     color: colors.textPrimary,
   },
-  emptySub: {
-    fontSize: typography.size.base,
+  stateSub: {
+    fontSize: 15,
     color: colors.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  emptyText: {
-    color: colors.textSecondary,
-    fontSize: typography.size.base,
-    marginTop: spacing.xxl,
-    textAlign: 'center',
-  },
-  errorState: {
-    alignItems: 'center',
-    paddingTop: spacing.xxxl,
-    gap: spacing.sm,
-  },
-  errorIcon: { fontSize: 40 },
-  errorTitle: {
-    fontSize: typography.size.xl,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  errorSub: {
-    fontSize: typography.size.base,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: 40,
+    lineHeight: 22,
   },
   retryBtn: {
-    marginTop: spacing.sm,
+    marginTop: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
     backgroundColor: colors.bgElevated,
-    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    borderColor: colors.borderStrong,
   },
-  retryBtnText: {
-    color: colors.amber,
+  retryText: {
+    color: colors.primary,
     fontWeight: '700',
-    fontSize: typography.size.base,
   },
 });

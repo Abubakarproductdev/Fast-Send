@@ -1,10 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
   ActivityIndicator,
   Animated,
+  ViewStyle,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -17,6 +18,7 @@ interface PrimaryButtonProps {
   loading?: boolean;
   disabled?: boolean;
   type?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  style?: ViewStyle;
 }
 
 export const PrimaryButton = ({
@@ -26,14 +28,15 @@ export const PrimaryButton = ({
   loading = false,
   disabled = false,
   type = 'primary',
+  style,
 }: PrimaryButtonProps) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.96,
+      toValue: 0.98,
       useNativeDriver: true,
-      speed: 40,
+      speed: 50,
       bounciness: 4,
     }).start();
   };
@@ -42,12 +45,12 @@ export const PrimaryButton = ({
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
-      speed: 40,
+      speed: 50,
       bounciness: 4,
     }).start();
   };
 
-  const getStyle = () => {
+  const getButtonStyle = () => {
     if (disabled) return styles.disabled;
     switch (type) {
       case 'secondary': return styles.secondary;
@@ -62,7 +65,7 @@ export const PrimaryButton = ({
     switch (type) {
       case 'secondary': return styles.textSecondary;
       case 'danger':    return styles.textWhite;
-      case 'ghost':     return styles.textAmber;
+      case 'ghost':     return styles.textPrimaryColor;
       default:          return styles.textDark;
     }
   };
@@ -73,10 +76,11 @@ export const PrimaryButton = ({
         fullWidth && styles.fullWidth,
         { transform: [{ scale: scaleAnim }] },
         styles.wrapper,
+        style,
       ]}
     >
       <TouchableOpacity
-        style={[styles.button, getStyle()]}
+        style={[styles.button, getButtonStyle()]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -85,7 +89,7 @@ export const PrimaryButton = ({
       >
         {loading ? (
           <ActivityIndicator
-            color={type === 'primary' ? colors.bg : colors.amber}
+            color={type === 'primary' ? colors.bg : colors.primary}
             size="small"
           />
         ) : (
@@ -104,25 +108,25 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   button: {
-    height: 56,
-    borderRadius: radius.full,
+    height: 58,
+    borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
   },
-  // variants
+  // Variants
   primary: {
-    backgroundColor: colors.amber,
-    shadowColor: colors.amber,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   secondary: {
     backgroundColor: colors.bgElevated,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
   },
   danger: {
     backgroundColor: colors.error,
@@ -132,18 +136,18 @@ const styles = StyleSheet.create({
   },
   disabled: {
     backgroundColor: colors.bgElevated,
-    borderWidth: 1,
-    borderColor: colors.border,
+    opacity: 0.5,
   },
-  // text
+  // Text
   text: {
-    fontSize: typography.size.md,
+    fontSize: typography.size.base,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  textDark:     { color: colors.bg },
+  textDark: { color: colors.bg },
   textSecondary: { color: colors.textPrimary },
-  textWhite:    { color: '#FFFFFF' },
-  textAmber:    { color: colors.amber },
-  textDisabled: { color: colors.textDisabled },
+  textWhite: { color: '#FFFFFF' },
+  textPrimaryColor: { color: colors.primary },
+  textDisabled: { color: colors.textMuted },
 });

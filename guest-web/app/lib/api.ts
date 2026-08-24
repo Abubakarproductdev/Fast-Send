@@ -1,10 +1,11 @@
 /**
  * Centralized API configuration.
  *
- * NEXT_PUBLIC_API_URL is baked in at build time by Next.js.
- * The hardcoded fallback uses the production HTTPS URL so the app
- * works on ALL devices (desktop + mobile) even if the env var is
- * missing during the Vercel build.
+ * We now use an empty string "" so that all fetch() calls go to the SAME domain
+ * (e.g. fast-send-three.vercel.app/api/v1/...).
+ * Next.js (Vercel) will intercept these /api/ requests and proxy them securely
+ * to the Azure backend, completely bypassing any mobile DNS blocking.
  */
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://20.244.11.161.nip.io";
+export const API_BASE_URL = process.env.NODE_ENV === "development" 
+  ? "http://192.168.10.4:8000" 
+  : "";

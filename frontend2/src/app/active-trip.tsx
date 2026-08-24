@@ -483,7 +483,13 @@ export default function ActiveTripScreen() {
     }
   };
 
-  const qrValue = inviteCode ? `${GUEST_WEBAPP_URL}/?trip=${inviteCode}` : 'loading';
+  // Build the QR URL with URL instead of concatenating slashes.  The configured
+  // deployment URL may already end in `/`; a doubled slash makes Vercel issue a
+  // redirect before the guest app loads and is especially fragile in mobile QR
+  // scanners/webviews.
+  const qrValue = inviteCode
+    ? new URL(`?trip=${encodeURIComponent(inviteCode)}`, GUEST_WEBAPP_URL).toString()
+    : 'loading';
   const uploadLabel = uploading
     ? `Uploading ${uploadProgress} / ${totalToUpload}...`
     : 'Push Photos Now';

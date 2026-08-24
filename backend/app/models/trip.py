@@ -30,6 +30,7 @@ class Trip(Document):
     invite_code: str
     is_active: bool = True
     settings: TripSettings = Field(default_factory=TripSettings)
+    last_reminder_at: datetime | None = None
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
     )

@@ -1,292 +1,38 @@
 import { API_BASE_URL } from '../../config/api';
 import { fetchWithTimeout } from '../../utils/fetchWithTimeout';
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing, radius } from '../../theme/spacing';
+import { radius } from '../../theme/spacing';
 import { ScreenShell } from '../../components/ScreenShell';
+import { useTheme } from '../../context/ThemeContext';
 
-const formatDate = (dateStr: string) => {
-  try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'long', day: 'numeric', year: 'numeric',
-    });
-  } catch {
-    return 'Unknown date';
-  }
-};
+const formatDate = (dateStr: string) => { try { return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return 'Unknown date'; } };
 
 export default function TripsScreen() {
-  const { organizerId } = useAuth();
-  const [trips, setTrips] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
-  }, []);
-
+  const { organizerId } = useAuth(); const [trips, setTrips] = useState<any[]>([]); const [loading, setLoading] = useState(true); const [refreshing, setRefreshing] = useState(false); const [error, setError] = useState<string | null>(null); const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  useEffect(() => { Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start(); }, []);
   const loadTrips = async () => {
-    if (!organizerId) {
-      setError('Session expired. Please sign in.');
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
-    setError(null);
-    try {
-      const response = await fetchWithTimeout(
-        `${API_BASE_URL}/api/v1/trips/organizer/${organizerId}`,
-        {},
-        10000
-      );
-      if (response.status === 404) {
-        setTrips([]);
-        return;
-      }
-      if (!response.ok) throw new Error('Failed to fetch archive');
-      const data = await response.json();
-      setTrips(Array.isArray(data) ? data : []);
-    } catch (e: any) {
-      setError(e.message || 'Connection error');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    if (!organizerId) { setError('Session expired. Please sign in.'); setLoading(false); setRefreshing(false); return; }
+    setError(null); try { const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/organizer/${organizerId}`, {}, 10000); if (response.status === 404) { setTrips([]); return; } if (!response.ok) throw new Error('Failed to fetch archive'); const data = await response.json(); setTrips(Array.isArray(data) ? data : []); } catch (e: any) { setError(e.message || 'Connection error'); } finally { setLoading(false); setRefreshing(false); }
   };
-
   useEffect(() => { loadTrips(); }, [organizerId]);
-
-  const onRefresh = () => { setRefreshing(true); loadTrips(); };
-
   return (
     <ScreenShell>
       <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.preTitle}>HISTORY</Text>
-            <Text style={styles.title}>Archive</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{trips.length}</Text>
-          </View>
-        </View>
-
-        {/* List */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.primary}
-            />
-          }
-        >
-          {error ? (
-            <View style={styles.stateContainer}>
-              <Text style={styles.stateTitle}>Archive unavailable</Text>
-              <Text style={styles.stateSub}>{error}</Text>
-              <TouchableOpacity onPress={loadTrips} style={styles.retryBtn}>
-                <Text style={styles.retryText}>Try Again</Text>
-              </TouchableOpacity>
-            </View>
-          ) : loading ? (
-            <View style={styles.stateContainer}>
-              <Text style={styles.stateSub}>Accessing vault...</Text>
-            </View>
-          ) : trips.length === 0 ? (
-            <View style={styles.stateContainer}>
-              <Text style={styles.stateIcon}>📁</Text>
-              <Text style={styles.stateTitle}>No history yet</Text>
-              <Text style={styles.stateSub}>Your completed journeys will be archived here.</Text>
-            </View>
-          ) : (
-            trips.map((trip) => (
-              <TouchableOpacity 
-                key={trip.id} 
-                style={styles.card}
-                activeOpacity={0.8}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={[
-                    styles.statusPill,
-                    { backgroundColor: trip.is_active ? 'rgba(46, 204, 113, 0.1)' : colors.bgElevated }
-                  ]}>
-                    <Text style={[
-                      styles.statusText,
-                      { color: trip.is_active ? colors.success : colors.textMuted }
-                    ]}>
-                      {trip.is_active ? 'ACTIVE' : 'ARCHIVED'}
-                    </Text>
-                  </View>
-                  <Text style={styles.dateText}>{formatDate(trip.created_at)}</Text>
-                </View>
-
-                <Text style={styles.tripCode}>{trip.invite_code}</Text>
-                
-                <View style={styles.cardFooter}>
-                  <View style={styles.metaItem}>
-                    <Text style={styles.metaIcon}>👥</Text>
-                    <Text style={styles.metaVal}>{trip.attendee_count ?? 0}</Text>
-                    <Text style={styles.metaLabel}>Guests</Text>
-                  </View>
-                  <View style={styles.metaDivider} />
-                  <View style={styles.metaItem}>
-                    <Text style={styles.metaIcon}>📸</Text>
-                    <Text style={styles.metaVal}>{trip.media_count ?? 0}</Text>
-                    <Text style={styles.metaLabel}>Photos</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
+        <View style={styles.header}><View><Text style={styles.eyebrow}>YOUR JOURNEYS</Text><Text style={styles.title}>Archive</Text></View><View style={styles.count}><Text style={styles.countText}>{trips.length}</Text><Text style={styles.countLabel}>TRIPS</Text></View></View>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadTrips(); }} tintColor={colors.primary} />}>
+          {error ? <View style={styles.state}><Ionicons name="cloud-offline-outline" size={32} color={colors.primaryDark} /><Text style={styles.stateTitle}>Archive unavailable</Text><Text style={styles.stateSub}>{error}</Text><TouchableOpacity onPress={loadTrips} style={styles.retry}><Text style={styles.retryText}>Try again</Text></TouchableOpacity></View> : loading ? <View style={styles.state}><Ionicons name="hourglass-outline" size={26} color={colors.primaryDark} /><Text style={styles.stateSub}>Opening your archive…</Text></View> : trips.length === 0 ? <View style={styles.state}><View style={styles.emptyIcon}><Ionicons name="albums-outline" size={30} color={colors.sageDark} /></View><Text style={styles.stateTitle}>No history yet</Text><Text style={styles.stateSub}>Your completed journeys will be collected here.</Text></View> : trips.map((trip) => <TouchableOpacity key={trip.id} style={styles.card} activeOpacity={0.86}><View style={styles.cardHeader}><View style={[styles.statusPill, { backgroundColor: trip.is_active ? colors.successLight : colors.bgElevated }]}><View style={[styles.statusDot, { backgroundColor: trip.is_active ? colors.success : colors.textMuted }]} /><Text style={[styles.statusText, { color: trip.is_active ? colors.success : colors.textMuted }]}>{trip.is_active ? 'ACTIVE' : 'ARCHIVED'}</Text></View><Text style={styles.dateText}>{formatDate(trip.created_at)}</Text></View><View style={styles.cardTitleRow}><View><Text style={styles.cardEyebrow}>INVITE CODE</Text><Text style={styles.tripCode}>{trip.invite_code}</Text></View><Ionicons name="arrow-up-right-box" size={20} color={colors.primaryDark} /></View><View style={styles.cardFooter}><View style={styles.metaItem}><Ionicons name="people-outline" size={16} color={colors.primaryDark} /><Text style={styles.metaVal}>{trip.attendee_count ?? 0}</Text><Text style={styles.metaLabel}>Guests</Text></View><View style={styles.metaDivider} /><View style={styles.metaItem}><Ionicons name="images-outline" size={16} color={colors.primaryDark} /><Text style={styles.metaVal}>{trip.media_count ?? 0}</Text><Text style={styles.metaLabel}>Photos</Text></View></View></TouchableOpacity>)}
         </ScrollView>
       </Animated.View>
     </ScreenShell>
   );
 }
 
-const styles = StyleSheet.create({
-  inner: { flex: 1, paddingTop: 20 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 32,
-  },
-  preTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.primary,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: -1,
-  },
-  badge: {
-    backgroundColor: colors.bgElevated,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  badgeText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: colors.textPrimary,
-  },
-  list: {
-    paddingBottom: 120,
-    gap: 20,
-  },
-  card: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.lg,
-    padding: 24,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  statusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  dateText: {
-    fontSize: 12,
-    color: colors.textMuted,
-    fontWeight: '500',
-  },
-  tripCode: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: colors.textPrimary,
-    letterSpacing: 4,
-    marginBottom: 24,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    backgroundColor: colors.bgElevated,
-    borderRadius: radius.md,
-    padding: 12,
-  },
-  metaItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  metaIcon: { fontSize: 14 },
-  metaVal: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.textPrimary,
-  },
-  metaLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  metaDivider: {
-    width: 1,
-    backgroundColor: colors.border,
-  },
-  stateContainer: {
-    alignItems: 'center',
-    paddingTop: 80,
-    gap: 12,
-  },
-  stateIcon: { fontSize: 48, marginBottom: 12 },
-  stateTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.textPrimary,
-  },
-  stateSub: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-    lineHeight: 22,
-  },
-  retryBtn: {
-    marginTop: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: colors.bgElevated,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  retryText: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
+const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  inner: { flex: 1, paddingTop: 14 }, header: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 26 }, eyebrow: { color: colors.primaryDark, fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginBottom: 8 }, title: { color: colors.textPrimary, fontSize: 34, fontWeight: '800', letterSpacing: -0.9 }, count: { alignItems: 'flex-end' }, countText: { color: colors.primaryDark, fontSize: 26, fontWeight: '800' }, countLabel: { color: colors.textMuted, fontSize: 9, fontWeight: '900', letterSpacing: 1.4 }, list: { paddingBottom: 116, gap: 14 }, card: { backgroundColor: colors.paper, borderRadius: radius.xl, padding: 18, borderWidth: 1, borderColor: colors.border }, cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }, statusPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 9, paddingVertical: 6, borderRadius: radius.full }, statusDot: { width: 6, height: 6, borderRadius: 3 }, statusText: { fontSize: 9, fontWeight: '900', letterSpacing: 1 }, dateText: { color: colors.textMuted, fontSize: 11, fontWeight: '600' }, cardTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }, cardEyebrow: { color: colors.textMuted, fontSize: 9, fontWeight: '900', letterSpacing: 1.3, marginBottom: 5 }, tripCode: { color: colors.textPrimary, fontSize: 28, fontWeight: '900', letterSpacing: 3 }, cardFooter: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: radius.md, paddingVertical: 12 }, metaItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }, metaVal: { color: colors.textPrimary, fontSize: 14, fontWeight: '800' }, metaLabel: { color: colors.textMuted, fontSize: 12 }, metaDivider: { width: 1, height: 20, backgroundColor: colors.border }, state: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 35, gap: 10 }, emptyIcon: { width: 66, height: 66, borderRadius: 24, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }, stateTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: '800' }, stateSub: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, textAlign: 'center' }, retry: { marginTop: 8, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 18, paddingVertical: 10, borderRadius: radius.full }, retryText: { color: colors.primaryDark, fontSize: 13, fontWeight: '800' },
 });

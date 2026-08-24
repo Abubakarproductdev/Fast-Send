@@ -1,263 +1,92 @@
-import React, { useRef, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, Animated,
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Animated, Switch } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { signOut } from 'firebase/auth';
+import { sendPasswordResetEmail, signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { useAuth } from '../../context/AuthContext';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing, radius } from '../../theme/spacing';
+import { useTheme } from '../../context/ThemeContext';
+import { radius } from '../../theme/spacing';
 import { ScreenShell } from '../../components/ScreenShell';
+import { getOrganizerSettings, OrganizerSettings, SYNC_INTERVAL_OPTIONS, updateOrganizerSettings, UploadMode } from '../../services/OrganizerSettingsService';
+import { scheduleUploadReminders } from '../../services/NotificationService';
 
-const SettingRow = ({
-  label, value, onPress, danger, disabled,
-}: {
-  label: string; value?: string; onPress?: () => void;
-  danger?: boolean; disabled?: boolean;
-}) => (
-  <TouchableOpacity
-    style={[styles.row, disabled && styles.rowDisabled]}
-    onPress={onPress}
-    disabled={disabled || !onPress}
-    activeOpacity={0.7}
-  >
-    <Text style={[styles.rowLabel, danger && styles.dangerText, disabled && styles.rowLabelDisabled]}>
-      {label}
-    </Text>
-    {value && <Text style={styles.rowValue}>{value}</Text>}
-    {!value && onPress && <Text style={styles.rowChevron}>→</Text>}
-  </TouchableOpacity>
-);
+type SettingRowProps = { label: string; value?: string; onPress?: () => void; danger?: boolean; disabled?: boolean; icon: React.ComponentProps<typeof Ionicons>['name']; control?: React.ReactNode };
+
+function SettingRow({ label, value, onPress, danger, disabled, icon, control }: SettingRowProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  return <TouchableOpacity style={[styles.row, disabled && styles.rowDisabled]} onPress={onPress} disabled={disabled || (!onPress && !control)} activeOpacity={0.7}>
+    <View style={[styles.rowIcon, danger && styles.rowIconDanger]}><Ionicons name={icon} size={17} color={danger ? colors.error : colors.textSecondary} /></View>
+    <Text style={[styles.rowLabel, danger && styles.dangerText, disabled && styles.rowLabelDisabled]}>{label}</Text>
+    {control || (value ? <Text style={styles.rowValue}>{value}</Text> : onPress ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null)}
+  </TouchableOpacity>;
+}
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, setOrganizerId, setActiveTripId, setTripStartTime } = useAuth();
-
+  const { colors, isDark, toggleTheme } = useTheme();
+  const { user, organizerId, activeTripId, setOrganizerId, setActiveTripId, setTripStartTime } = useAuth();
+  const styles = makeStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [settings, setSettings] = useState<OrganizerSettings>({ sync_interval_hours: 2, upload_mode: 'wifi_only' });
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
-  }, []);
+  useEffect(() => { Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start(); }, []);
+  useEffect(() => { if (organizerId) getOrganizerSettings(organizerId).then(setSettings).catch(() => {}); }, [organizerId]);
+
+  const saveSettings = async (patch: Partial<OrganizerSettings>) => {
+    if (!organizerId) return;
+    setSaving(true);
+    try {
+      const next = await updateOrganizerSettings(organizerId, patch);
+      setSettings(next);
+      if (patch.sync_interval_hours && activeTripId) scheduleUploadReminders(next.sync_interval_hours).catch(() => {});
+    } catch (error: any) { Alert.alert('Could not save', error.message || 'Please try again.'); }
+    finally { setSaving(false); }
+  };
+  const chooseSyncInterval = () => Alert.alert('Sync interval', 'How often should FastSend remind you to push photos?', [
+    ...SYNC_INTERVAL_OPTIONS.map((hours) => ({ text: `${hours} hour${hours === 1 ? '' : 's'}`, onPress: () => saveSettings({ sync_interval_hours: hours }) })),
+    { text: 'Cancel', style: 'cancel' as const },
+  ]);
+  const chooseUploadMode = () => Alert.alert('Upload mode', 'Choose which network FastSend may use for photo uploads.', [
+    { text: 'Wi-Fi only', onPress: () => saveSettings({ upload_mode: 'wifi_only' as UploadMode }) },
+    { text: 'Wi-Fi + cellular', onPress: () => saveSettings({ upload_mode: 'wifi_and_cellular' as UploadMode }) },
+    { text: 'Cancel', style: 'cancel' as const },
+  ]);
+  const handleUpdatePassword = async () => {
+    if (!user?.email) { Alert.alert('No email found', 'Please sign in again before changing your password.'); return; }
+    try { await sendPasswordResetEmail(auth, user.email); Alert.alert('Check your inbox', `A password reset link was sent to ${user.email}.`); }
+    catch { Alert.alert('Could not send email', 'Please try again in a moment.'); }
+  };
+  const handleSignOut = () => Alert.alert('Sign out', 'Are you sure you want to end your session?', [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'Sign out', style: 'destructive', onPress: async () => { try { await signOut(auth); setOrganizerId(null); await setActiveTripId(null); await setTripStartTime(null); router.replace('/login'); } catch { Alert.alert('Error', 'Sign out failed'); } } },
+  ]);
 
   const displayName = user?.displayName || 'Organizer';
   const email = user?.email || 'No email';
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  const uploadLabel = settings.upload_mode === 'wifi_and_cellular' ? 'Wi-Fi + cellular' : 'Wi-Fi only';
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to end your session?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              setOrganizerId(null);
-              await setActiveTripId(null);
-              await setTripStartTime(null);
-              router.replace('/login');
-            } catch (e: any) {
-              Alert.alert('Error', 'Sign out failed');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  return (
-    <ScreenShell>
-      <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.preTitle}>PREFERENCES</Text>
-            <Text style={styles.title}>Profile</Text>
-          </View>
-
-          {/* Profile Card */}
-          <View style={styles.profileCard}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
-              <View style={styles.avatarGlow} />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.displayName}>{displayName}</Text>
-              <Text style={styles.emailText}>{email}</Text>
-            </View>
-          </View>
-
-          {/* Sections */}
-          <Text style={styles.sectionTitle}>Preferences</Text>
-          <View style={styles.section}>
-            <SettingRow label="Sync Interval" value="2 Hours" />
-            <SettingRow label="Upload Mode" value="Wi-Fi Only" />
-            <SettingRow label="Image Quality" value="High (1080p)" />
-          </View>
-
-          <Text style={styles.sectionTitle}>Security</Text>
-          <View style={styles.section}>
-            <SettingRow label="Display Name" value={displayName} />
-            <SettingRow label="Update Password" onPress={() => {}} />
-          </View>
-
-          <Text style={styles.sectionTitle}>Legal</Text>
-          <View style={styles.section}>
-            <SettingRow label="Terms of Service" onPress={() => {}} />
-            <SettingRow label="Privacy Policy" onPress={() => {}} />
-            <SettingRow label="App Version" value="1.0.0" />
-          </View>
-
-          <View style={styles.signOutWrapper}>
-            <TouchableOpacity 
-              onPress={handleSignOut} 
-              style={styles.signOutBtn}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.signOutText}>Sign Out Session</Text>
-            </TouchableOpacity>
-          </View>
-
-        </ScrollView>
-      </Animated.View>
-    </ScreenShell>
-  );
+  return <ScreenShell><Animated.View style={[styles.inner, { opacity: fadeAnim }]}><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+    <View style={styles.header}><Text style={styles.eyebrow}>YOUR SPACE</Text><Text style={styles.title}>Profile</Text></View>
+    <View style={styles.profileCard}><View style={styles.avatar}><Text style={styles.avatarText}>{initials}</Text></View><View style={styles.profileInfo}><Text style={styles.displayName}>{displayName}</Text><Text style={styles.emailText}>{email}</Text><View style={styles.memberPill}><Ionicons name="sparkles-outline" size={12} color={colors.primaryDark} /><Text style={styles.memberText}>ORGANIZER ACCOUNT</Text></View></View></View>
+    <Text style={styles.sectionTitle}>WORKFLOW</Text><View style={styles.section}>
+      <SettingRow icon="time-outline" label="Sync interval" value={saving ? 'Saving…' : `${settings.sync_interval_hours} hour${settings.sync_interval_hours === 1 ? '' : 's'}`} onPress={chooseSyncInterval} />
+      <SettingRow icon="wifi-outline" label="Upload mode" value={uploadLabel} onPress={chooseUploadMode} />
+      <SettingRow icon="image-outline" label="Image quality" value="High (1080p)" />
+    </View>
+    <Text style={styles.sectionTitle}>ACCOUNT & SECURITY</Text><View style={styles.section}>
+      <SettingRow icon="person-outline" label="Display name" value={displayName} />
+      <SettingRow icon="key-outline" label="Update password" onPress={handleUpdatePassword} />
+      <SettingRow icon={isDark ? 'moon' : 'sunny-outline'} label="Dark mode" control={<Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: colors.borderStrong, true: colors.primary }} thumbColor={colors.paper} />} />
+    </View>
+    <Text style={styles.sectionTitle}>ABOUT</Text><View style={styles.section}><SettingRow icon="document-text-outline" label="Terms of service" onPress={() => {}} /><SettingRow icon="shield-checkmark-outline" label="Privacy policy" onPress={() => {}} /><SettingRow icon="information-circle-outline" label="App version" value="1.0.0" /></View>
+    <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn} activeOpacity={0.8}><Ionicons name="log-out-outline" size={18} color={colors.error} /><Text style={styles.signOutText}>Sign out session</Text></TouchableOpacity>
+  </ScrollView></Animated.View></ScreenShell>;
 }
 
-const styles = StyleSheet.create({
-  inner: { flex: 1, paddingTop: 20 },
-  scroll: { paddingBottom: 120 },
-  header: {
-    marginBottom: 32,
-  },
-  preTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.primary,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: -1,
-  },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.lg,
-    padding: 24,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    marginBottom: 40,
-    gap: 20,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.bgElevated,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: colors.primary,
-    zIndex: 2,
-  },
-  avatarGlow: {
-    position: 'absolute',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primaryGlow,
-    zIndex: 1,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  displayName: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    marginBottom: 2,
-  },
-  emailText: {
-    fontSize: 14,
-    color: colors.textMuted,
-    fontWeight: '500',
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: colors.textGold,
-    letterSpacing: 2,
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  section: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    overflow: 'hidden',
-    marginBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowDisabled: { opacity: 0.5 },
-  rowLabel: {
-    fontSize: 15,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  rowLabelDisabled: { color: colors.textMuted },
-  rowValue: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  rowChevron: {
-    fontSize: 18,
-    color: colors.textMuted,
-    fontWeight: '700',
-  },
-  dangerText: { color: colors.error },
-  signOutWrapper: {
-    marginTop: 16,
-  },
-  signOutBtn: {
-    backgroundColor: 'rgba(231, 76, 60, 0.1)',
-    borderRadius: radius.md,
-    paddingVertical: 18,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(231, 76, 60, 0.2)',
-  },
-  signOutText: {
-    color: colors.error,
-    fontWeight: '800',
-    fontSize: 15,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
+const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  inner: { flex: 1, paddingTop: 14 }, scroll: { paddingBottom: 118 }, header: { marginBottom: 24 }, eyebrow: { color: colors.primaryDark, fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginBottom: 8 }, title: { color: colors.textPrimary, fontSize: 34, fontWeight: '800', letterSpacing: -0.9 }, profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.sageDark, borderRadius: radius.xl, padding: 20, marginBottom: 32, gap: 16 }, avatar: { width: 62, height: 62, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-6deg' }] }, avatarText: { color: colors.paper, fontSize: 20, fontWeight: '900', transform: [{ rotate: '6deg' }] }, profileInfo: { flex: 1 }, displayName: { color: colors.paper, fontSize: 20, fontWeight: '800', marginBottom: 4 }, emailText: { color: 'rgba(255,253,248,0.65)', fontSize: 12, marginBottom: 9 }, memberPill: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: colors.paper, paddingHorizontal: 8, paddingVertical: 5, borderRadius: radius.full }, memberText: { color: colors.primaryDark, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 }, sectionTitle: { color: colors.textPrimary, fontSize: 10, fontWeight: '900', letterSpacing: 1.4, marginBottom: 10, marginTop: 5 }, section: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 23 }, row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 15, borderBottomWidth: 1, borderBottomColor: colors.divider, gap: 11 }, rowDisabled: { opacity: 0.5 }, rowIcon: { width: 32, height: 32, borderRadius: 11, backgroundColor: colors.bgElevated, justifyContent: 'center', alignItems: 'center' }, rowIconDanger: { backgroundColor: colors.errorLight }, rowLabel: { flex: 1, color: colors.textPrimary, fontSize: 14, fontWeight: '700' }, rowLabelDisabled: { color: colors.textMuted }, rowValue: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' }, dangerText: { color: colors.error }, signOutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.errorLight, borderRadius: radius.md, paddingVertical: 16, borderWidth: 1, borderColor: colors.errorLight }, signOutText: { color: colors.error, fontSize: 13, fontWeight: '900', letterSpacing: 0.8, textTransform: 'uppercase' },
 });

@@ -31,7 +31,7 @@ export class SyncService {
    * Call this when a trip starts to initialize the sync engine.
    * Schedules a recurring local notification every 2 hours.
    */
-  static async startTripSync() {
+  static async startTripSync(intervalHours = 2) {
     // 1. Record the current time as the starting point for photo scanning
     await AsyncStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
 
@@ -45,7 +45,7 @@ export class SyncService {
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 2 * 60 * 60, // 2 hours
+        seconds: intervalHours * 60 * 60,
         repeats: true,
       },
     });

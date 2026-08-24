@@ -73,8 +73,11 @@ def notify_batch_complete_task(results, batch_id: str, trip_id: str):
     async def _create_notification():
         await init_db()
         from app.models.notification import Notification
+        from app.models.trip import Trip
+        trip = await Trip.get(PydanticObjectId(trip_id))
         notif = Notification(
             trip_id=trip_id,
+            organizer_id=str(trip.organizer_id) if trip else None,
             title="Photos Ready! 🎉",
             message="Your photos are ready for your guests!",
         )
@@ -109,27 +112,40 @@ def send_trip_reminders_task():
     async def _send_reminders():
         await init_db()
         from app.models.trip import Trip
+        from app.models.organizer import Organizer
         from app.models.media_asset import MediaAsset
         from app.models.notification import Notification
 
-        two_hours_ago = datetime.now(timezone.utc) - timedelta(hours=2)
-        active_trips = await Trip.find(Trip.is_active == True, Trip.created_at < two_hours_ago).to_list()
+        now = datetime.now(timezone.utc)
+        active_trips = await Trip.find(Trip.is_active == True).to_list()
         
         for trip in active_trips:
+            organizer = await Organizer.get(trip.organizer_id)
+            interval_hours = organizer.sync_interval_hours if organizer else 2
+            reference = trip.last_reminder_at or trip.created_at
+            if reference and reference.tzinfo is None:
+                reference = reference.replace(tzinfo=timezone.utc)
+            if reference and now - reference < timedelta(hours=interval_hours):
+                continue
+            interval_start = now - timedelta(hours=interval_hours)
             recent_media_count = await MediaAsset.find(
                 MediaAsset.trip_id == trip.id, 
-                MediaAsset.created_at >= two_hours_ago
+                MediaAsset.created_at >= interval_start
             ).count()
 
             if recent_media_count == 0:
                 logger.info(f"Sending reminder for trip {trip.id}")
                 notif = Notification(
                     trip_id=str(trip.id),
+                    organizer_id=str(trip.organizer_id),
                     type="reminder",
                     title="Action Required",
-                    message="Reminder: Push your photos"
+                    message=f"Reminder: Push your photos (every {interval_hours} hours)"
                 )
                 await notif.insert()
+            trip.last_reminder_at = now
+            trip.updated_at = now
+            await trip.save()
 
     global worker_loop
     if worker_loop is None:

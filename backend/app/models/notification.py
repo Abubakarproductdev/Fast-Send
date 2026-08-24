@@ -9,6 +9,7 @@ class Notification(Document):
     """A notification shown to the user in the frontend Notification Tab."""
     
     trip_id: Optional[str] = None
+    organizer_id: Optional[str] = None
     type: Optional[str] = None
     title: str
     message: str

@@ -1,13 +1,8 @@
 import React, { useRef } from 'react';
 import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  Animated,
-  ViewStyle,
+  TouchableOpacity, Text, StyleSheet, ActivityIndicator, Animated, ViewStyle,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { typography } from '../theme/typography';
 import { radius, spacing } from '../theme/spacing';
 
@@ -22,132 +17,62 @@ interface PrimaryButtonProps {
 }
 
 export const PrimaryButton = ({
-  title,
-  onPress,
-  fullWidth = true,
-  loading = false,
-  disabled = false,
-  type = 'primary',
-  style,
+  title, onPress, fullWidth = true, loading = false, disabled = false, type = 'primary', style,
 }: PrimaryButtonProps) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const press = (toValue: number) => Animated.spring(scaleAnim, {
+    toValue, useNativeDriver: true, speed: 40, bounciness: 4,
+  }).start();
 
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
-
-  const getButtonStyle = () => {
-    if (disabled) return styles.disabled;
-    switch (type) {
-      case 'secondary': return styles.secondary;
-      case 'danger':    return styles.danger;
-      case 'ghost':     return styles.ghost;
-      default:          return styles.primary;
-    }
-  };
-
-  const getTextStyle = () => {
-    if (disabled) return styles.textDisabled;
-    switch (type) {
-      case 'secondary': return styles.textSecondary;
-      case 'danger':    return styles.textWhite;
-      case 'ghost':     return styles.textPrimaryColor;
-      default:          return styles.textDark;
-    }
-  };
+  const buttonStyle = disabled ? styles.disabled : styles[type];
+  const textStyle = disabled ? styles.textDisabled : styles[`${type}Text` as keyof typeof styles];
 
   return (
-    <Animated.View
-      style={[
-        fullWidth && styles.fullWidth,
-        { transform: [{ scale: scaleAnim }] },
-        styles.wrapper,
-        style,
-      ]}
-    >
+    <Animated.View style={[fullWidth && styles.fullWidth, styles.wrapper, { transform: [{ scale: scaleAnim }] }, style]}>
       <TouchableOpacity
-        style={[styles.button, getButtonStyle()]}
+        style={[styles.button, buttonStyle]}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={() => press(0.975)}
+        onPressOut={() => press(1)}
         disabled={disabled || loading}
-        activeOpacity={1}
+        activeOpacity={0.9}
       >
-        {loading ? (
-          <ActivityIndicator
-            color={type === 'primary' ? colors.bg : colors.primary}
-            size="small"
-          />
-        ) : (
-          <Text style={[styles.text, getTextStyle()]}>{title}</Text>
+        {loading ? <ActivityIndicator color={type === 'primary' ? colors.paper : colors.primary} size="small" /> : (
+          <Text style={[styles.text, textStyle]}>{title}</Text>
         )}
       </TouchableOpacity>
     </Animated.View>
   );
 };
 
-const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: spacing.md,
-  },
-  fullWidth: {
-    width: '100%',
-  },
+const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  wrapper: { marginBottom: spacing.md },
+  fullWidth: { width: '100%' },
   button: {
-    height: 58,
+    minHeight: 56,
     borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
   },
-  // Variants
   primary: {
     backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 4,
   },
-  secondary: {
-    backgroundColor: colors.bgElevated,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-  },
-  danger: {
-    backgroundColor: colors.error,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  disabled: {
-    backgroundColor: colors.bgElevated,
-    opacity: 0.5,
-  },
-  // Text
-  text: {
-    fontSize: typography.size.base,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  textDark: { color: colors.bg },
-  textSecondary: { color: colors.textPrimary },
-  textWhite: { color: '#FFFFFF' },
-  textPrimaryColor: { color: colors.primary },
+  secondary: { backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.borderStrong },
+  danger: { backgroundColor: colors.error },
+  ghost: { backgroundColor: 'transparent' },
+  disabled: { backgroundColor: colors.bgElevated, opacity: 0.55 },
+  text: { fontSize: typography.size.sm, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase' },
+  primaryText: { color: colors.paper },
+  secondaryText: { color: colors.textPrimary },
+  dangerText: { color: '#FFFFFF' },
+  ghostText: { color: colors.primaryDark },
   textDisabled: { color: colors.textMuted },
 });

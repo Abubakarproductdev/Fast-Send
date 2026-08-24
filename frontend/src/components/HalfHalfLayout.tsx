@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { radius } from '../theme/spacing';
 
 const { height } = Dimensions.get('window');
@@ -16,6 +16,8 @@ interface HalfHalfLayoutProps {
  * Bottom half contains interactive elements on a white rounded card.
  */
 export const HalfHalfLayout = ({ yellowContent, whiteContent }: HalfHalfLayoutProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.container}>
       {/* 45% Yellow Zone */}
@@ -35,7 +37,7 @@ export const HalfHalfLayout = ({ yellowContent, whiteContent }: HalfHalfLayoutPr
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.yellow,

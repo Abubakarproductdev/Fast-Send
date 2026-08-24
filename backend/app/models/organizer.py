@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 from beanie import Document
 from pydantic import Field
+from typing import Literal
 from pymongo import IndexModel
 
 
@@ -18,6 +19,8 @@ class Organizer(Document):
     firebase_uid: str
     email: str
     name: str
+    sync_interval_hours: int = Field(default=2, ge=1, le=24)
+    upload_mode: Literal['wifi_only', 'wifi_and_cellular'] = 'wifi_only'
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
     )

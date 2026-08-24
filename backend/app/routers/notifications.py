@@ -9,6 +9,7 @@ def _notif_to_response(n: Notification) -> NotificationResponse:
     return NotificationResponse(
         id=str(n.id),
         trip_id=n.trip_id,
+        organizer_id=n.organizer_id,
         type=n.type,
         title=n.title,
         message=n.message,
@@ -21,9 +22,10 @@ def _notif_to_response(n: Notification) -> NotificationResponse:
     response_model=list[NotificationResponse],
     summary="List all notifications",
 )
-async def list_notifications():
+async def list_notifications(organizer_id: str | None = None):
     """Fetch all notifications, ordered by newest first."""
-    notifs = await Notification.find().sort("-created_at").to_list()
+    query = Notification.find(Notification.organizer_id == organizer_id) if organizer_id else Notification.find()
+    notifs = await query.sort("-created_at").to_list()
     return [_notif_to_response(n) for n in notifs]
 
 @router.patch(

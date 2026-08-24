@@ -1,119 +1,61 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function SplashScreen() {
   const router = useRouter();
   const { isLoading, user, organizerId } = useAuth();
-
-  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const logoScale = useRef(new Animated.Value(0.82)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.sequence([
       Animated.parallel([
-        Animated.spring(logoScale, {
-          toValue: 1,
-          useNativeDriver: true,
-          bounciness: 8,
-          speed: 4,
-        }),
-        Animated.timing(logoOpacity, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
+        Animated.spring(logoScale, { toValue: 1, useNativeDriver: true, bounciness: 8, speed: 4 }),
+        Animated.timing(logoOpacity, { toValue: 1, duration: 650, useNativeDriver: true }),
       ]),
-      Animated.timing(textOpacity, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
+      Animated.timing(textOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
     ]).start();
   }, []);
 
   useEffect(() => {
     if (!isLoading) {
       const timeout = setTimeout(() => {
-        if (user && organizerId) {
-          router.replace('/(tabs)');
-        } else {
-          router.replace('/onboarding');
-        }
-      }, 2000);
+        router.replace(user && organizerId ? '/(tabs)' : '/onboarding');
+      }, 1500);
       return () => clearTimeout(timeout);
     }
   }, [isLoading, user, organizerId]);
 
   return (
     <View style={styles.container}>
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          { transform: [{ scale: logoScale }], opacity: logoOpacity },
-        ]}
-      >
-        <Text style={styles.logoIcon}>✨</Text>
-        <View style={styles.logoGlow} />
+      <Animated.View style={[styles.logoContainer, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}>
+        <View style={styles.logoTile}><Ionicons name="aperture-outline" size={58} color={colors.paper} /></View>
+        <View style={styles.ring} />
       </Animated.View>
-      
       <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
         <Text style={styles.title}>FAST SEND</Text>
-        <View style={styles.divider} />
-        <Text style={styles.subtitle}>PREMIUM PHOTO DELIVERY</Text>
+        <Text style={styles.subtitle}>MEMORIES, DELIVERED</Text>
       </Animated.View>
+      <Text style={styles.version}>PHOTO DELIVERY / 01</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoContainer: {
-    width: 120,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoIcon: {
-    fontSize: 64,
-    zIndex: 2,
-  },
-  logoGlow: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primaryGlow,
-    zIndex: 1,
-  },
-  textContainer: {
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: colors.textPrimary,
-    letterSpacing: 8,
-  },
-  divider: {
-    width: 40,
-    height: 2,
-    backgroundColor: colors.primary,
-    marginVertical: 16,
-  },
-  subtitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.textGold,
-    letterSpacing: 3,
-  },
+const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
+  logoContainer: { width: 148, height: 148, justifyContent: 'center', alignItems: 'center', marginBottom: 32 },
+  logoTile: { width: 112, height: 112, borderRadius: 38, backgroundColor: colors.sageDark, justifyContent: 'center', alignItems: 'center', transform: [{ rotate: '-8deg' }], zIndex: 2 },
+  ring: { position: 'absolute', width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: colors.primaryLight },
+  textContainer: { alignItems: 'center' },
+  title: { fontSize: 24, fontWeight: '900', color: colors.textPrimary, letterSpacing: 5 },
+  subtitle: { marginTop: 11, color: colors.primaryDark, fontSize: 10, fontWeight: '900', letterSpacing: 2.2 },
+  version: { position: 'absolute', bottom: 34, color: colors.textMuted, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 },
 });

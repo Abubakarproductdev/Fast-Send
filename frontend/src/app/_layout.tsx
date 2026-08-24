@@ -1,12 +1,14 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../context/AuthContext';
-import { colors } from '../theme/colors';
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
 
-export default function RootLayout() {
+function AppStack() {
+  const { colors, isDark } = useTheme();
+
   return (
-    <AuthProvider>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -22,6 +24,10 @@ export default function RootLayout() {
         <Stack.Screen name="active-trip" />
         <Stack.Screen name="(tabs)" />
       </Stack>
-    </AuthProvider>
+    </>
   );
+}
+
+export default function RootLayout() {
+  return <ThemeProvider><AuthProvider><AppStack /></AuthProvider></ThemeProvider>;
 }

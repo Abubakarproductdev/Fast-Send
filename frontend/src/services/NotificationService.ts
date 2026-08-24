@@ -18,7 +18,6 @@ import { Platform } from 'react-native';
 // ── Constants ─────────────────────────────────────────────────────────
 
 const NOTIFICATION_IDS_KEY = 'scheduled_notification_ids';
-const REMINDER_INTERVAL_HOURS = 2;
 const REMINDER_COUNT = 12; // Schedule 12 reminders = 24 hours of coverage
 
 // ── Configuration ─────────────────────────────────────────────────────
@@ -70,7 +69,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * Call this right after a trip is created.
  * Cancels any previously scheduled reminders first.
  */
-export async function scheduleUploadReminders(): Promise<void> {
+export async function scheduleUploadReminders(intervalHours = 2): Promise<void> {
   try {
     // Cancel any existing reminders before scheduling new ones
     await cancelAllUploadReminders();
@@ -85,12 +84,12 @@ export async function scheduleUploadReminders(): Promise<void> {
     const now = Date.now();
 
     for (let i = 1; i <= REMINDER_COUNT; i++) {
-      const triggerMs = now + i * REMINDER_INTERVAL_HOURS * 60 * 60 * 1000;
+      const triggerMs = now + i * intervalHours * 60 * 60 * 1000;
 
       const id = await Notifications.scheduleNotificationAsync({
         content: {
           title: '📷 Time to push your photos!',
-          body: `Your guests are waiting. Tap to sync ${i * REMINDER_INTERVAL_HOURS > 12 ? 'the latest' : 'new'} photos from your trip.`,
+          body: `Your guests are waiting. Tap to sync ${i * intervalHours > 12 ? 'the latest' : 'new'} photos from your trip.`,
           data: { type: 'upload_reminder' },
           categoryIdentifier: 'upload_reminder',
         },

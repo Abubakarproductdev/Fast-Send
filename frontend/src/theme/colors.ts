@@ -1,46 +1,94 @@
 /**
- * LuxeRoam Inspired Premium Theme
- * Palette: Sophisticated Black, Deep Charcoal, and Golden Accents
+ * Fast Send — Atlas editorial palette.
+ *
+ * Warm paper surfaces and ink typography make the photo workflow feel calm and
+ * considered, while coral and sage accents keep live actions easy to spot.
  */
-export const colors = {
-  // Primary brand (Luxe Gold)
-  primary:       '#D4AF37',   // Metallic Gold
-  primaryLight:  '#F9E4A0',   // Champagne
-  primaryDark:   '#AA8831',   // Antique Gold
-  primaryGlow:   'rgba(212, 175, 55, 0.15)',
+export const lightColors = {
+  primary: '#E86F56',
+  primaryLight: '#F7B6A6',
+  primaryDark: '#B94D3D',
+  primaryGlow: 'rgba(232, 111, 86, 0.16)',
 
-  // Background layers (Deep Midnight)
-  bg:            '#050505',   // Absolute Black
-  bgCard:        '#0F0F0F',   // Deep Charcoal
-  bgElevated:    '#1A1A1A',   // Surface
-  bgStripe:      '#0A0A0A',   // Subtle distinction
+  bg: '#F4F1EB',
+  bgCard: '#FFFDF8',
+  bgElevated: '#ECE8E0',
+  bgStripe: '#E8E3DA',
 
-  // Text (High Contrast & Elegant)
-  textPrimary:   '#FFFFFF',
-  textSecondary: '#A0A0A0',   // Silver/Grey
-  textMuted:     '#666666',
-  textDisabled:  '#333333',
-  textGold:      '#D4AF37',
+  textPrimary: '#1F2926',
+  textSecondary: '#6D756F',
+  textMuted: '#99A09A',
+  textDisabled: '#C1C5BE',
+  textGold: '#C45D49',
 
-  // Borders / dividers
-  border:        '#222222',
-  borderStrong:  '#333333',
-  divider:       '#151515',
+  border: '#E5E0D7',
+  borderStrong: '#D7D1C6',
+  divider: '#EAE5DD',
 
-  // Semantic
-  success:       '#2ECC71',
-  successLight:  'rgba(46, 204, 113, 0.12)',
-  error:         '#E74C3C',
-  errorLight:    'rgba(231, 76, 60, 0.12)',
-  warning:       '#F1C40F',
-  warningLight:  'rgba(241, 196, 15, 0.12)',
+  success: '#5D927B',
+  successLight: 'rgba(93, 146, 123, 0.14)',
+  error: '#C6534C',
+  errorLight: 'rgba(198, 83, 76, 0.12)',
+  warning: '#C58A3A',
+  warningLight: 'rgba(197, 138, 58, 0.14)',
 
-  // Compatibility Aliases (preserving existing logic references)
-  amber:         '#D4AF37',
-  amberLight:    '#F9E4A0',
-  amberDark:     '#AA8831',
-  amberGlow:     'rgba(212, 175, 55, 0.15)',
-  danger:        '#E74C3C',
-  bgBase:        '#050505',
-  textBase:      '#FFFFFF',
-};
+  ink: '#1F2926',
+  paper: '#FFFDF8',
+  sage: '#DCE7DE',
+  sageDark: '#315B51',
+  coral: '#E86F56',
+
+  // Compatibility aliases used by older screens/components.
+  amber: '#E86F56',
+  amberLight: '#F7B6A6',
+  amberDark: '#B94D3D',
+  amberGlow: 'rgba(232, 111, 86, 0.16)',
+  danger: '#C6534C',
+  bgBase: '#F4F1EB',
+  textBase: '#1F2926',
+  yellow: '#E86F56',
+  offWhite: '#FFFDF8',
+} as const;
+
+export const darkColors = {
+  ...lightColors,
+  primary: '#F28B73',
+  primaryLight: '#8B4E43',
+  primaryDark: '#FFB19D',
+  primaryGlow: 'rgba(242, 139, 115, 0.20)',
+  bg: '#121917',
+  bgCard: '#1B2421',
+  bgElevated: '#26312D',
+  bgStripe: '#202A26',
+  textPrimary: '#F8F3EB',
+  textSecondary: '#B9C3BC',
+  textMuted: '#829089',
+  textDisabled: '#59655E',
+  textGold: '#FFB19D',
+  border: '#31403A',
+  borderStrong: '#435149',
+  divider: '#293630',
+  success: '#86C5A5',
+  successLight: 'rgba(134, 197, 165, 0.16)',
+  error: '#F28A7E',
+  errorLight: 'rgba(242, 138, 126, 0.16)',
+  warning: '#E6B66A',
+  warningLight: 'rgba(230, 182, 106, 0.16)',
+  ink: '#F8F3EB',
+  paper: '#1B2421',
+  sage: '#2E4940',
+  sageDark: '#8FC2AB',
+  coral: '#F28B73',
+  amber: '#F28B73',
+  amberLight: '#8B4E43',
+  amberDark: '#FFB19D',
+  amberGlow: 'rgba(242, 139, 115, 0.20)',
+  danger: '#F28A7E',
+  bgBase: '#121917',
+  textBase: '#F8F3EB',
+  yellow: '#F28B73',
+  offWhite: '#1B2421',
+} as const;
+
+export type ThemeColors = { [K in keyof typeof lightColors]: string };
+export const colors = lightColors;

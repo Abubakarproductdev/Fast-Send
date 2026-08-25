@@ -25,10 +25,11 @@ from app.schemas.trips import (
     TripDetail,
     TripResponse,
     MediaAssetResponse,
+    TripActionRequest,
 )
 from app.ml import FaceEngine, FaceProcessingError, get_face_engine
 from app.services import trip_service
-from app.services.storage_service import StorageError
+from app.services.storage_service import azure_blob_service, StorageError
 
 router = APIRouter(prefix="/api/v1/trips", tags=["Trips"])
 
@@ -41,6 +42,7 @@ def _trip_to_response(trip) -> TripResponse:
     return TripResponse(
         id=str(trip.id),
         organizer_id=str(trip.organizer_id),
+        name=trip.name,
         invite_code=trip.invite_code,
         is_active=trip.is_active,
         created_at=trip.created_at,
@@ -72,7 +74,7 @@ def _attendee_to_response(attendee) -> AttendeeResponse:
 )
 async def create_trip(body: TripCreate):
     """Create a trip and generate a unique invite code for QR sharing."""
-    trip = await trip_service.create_trip(PydanticObjectId(body.organizer_id))
+    trip = await trip_service.create_trip(PydanticObjectId(body.organizer_id), body.name)
     return _trip_to_response(trip)
 
 
@@ -166,20 +168,42 @@ async def end_trip(trip_id: PydanticObjectId):
     return _trip_to_response(trip)
 
 
+@router.post(
+    "/{trip_id}/relive",
+    response_model=TripResponse,
+    summary="Relive an archived trip",
+)
+async def relive_trip(trip_id: PydanticObjectId, body: TripActionRequest):
+    """Reopen an archived trip without deleting its existing gallery data."""
+    try:
+        trip = await trip_service.relive_trip(trip_id, body.organizer_id)
+    except trip_service.TripNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Trip {trip_id} not found")
+    except trip_service.TripOwnershipError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this trip")
+    except trip_service.TripAlreadyActiveError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This trip is already active")
+    return _trip_to_response(trip)
+
+
 @router.delete(
     "/{trip_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a trip and all its data",
 )
-async def delete_trip(trip_id: PydanticObjectId):
-    """Cascade-delete a trip, its attendees, and all media assets."""
+async def delete_trip(trip_id: PydanticObjectId, body: TripActionRequest):
+    """Delete scoped Azure blobs first, then cascade-delete trip records."""
     try:
-        await trip_service.delete_trip(trip_id)
+        await trip_service.delete_trip(trip_id, body.organizer_id)
     except trip_service.TripNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Trip {trip_id} not found",
         )
+    except trip_service.TripOwnershipError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this trip")
+    except StorageError as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e)) from e
 
 
 # ── Attendee endpoints ───────────────────────────────────────────────
@@ -251,8 +275,6 @@ async def list_attendees(trip_id: PydanticObjectId):
 
 # ── Media endpoints ───────────────────────────────────────────────────
 
-
-from app.services.storage_service import azure_blob_service, StorageError
 
 def _asset_to_response(asset: MediaAsset) -> MediaAssetResponse:
     """Map a MediaAsset document to the public API representation, with a signed SAS token."""

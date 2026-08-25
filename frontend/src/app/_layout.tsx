@@ -22,6 +22,7 @@ function AppStack() {
         <Stack.Screen name="register" />
         <Stack.Screen name="create-trip" />
         <Stack.Screen name="active-trip" />
+        <Stack.Screen name="trip-details" />
         <Stack.Screen name="(tabs)" />
       </Stack>
     </>

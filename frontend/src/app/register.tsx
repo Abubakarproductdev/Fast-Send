@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '../config/api';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +12,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenShell } from '../components/ScreenShell';
 import { BrandMark } from '../components/BrandMark';
 import { useTheme } from '../context/ThemeContext';
+import { api } from '../services/api';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -35,9 +35,9 @@ export default function RegisterScreen() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       await updateProfile(userCredential.user, { displayName: name.trim() });
-      const response = await fetch(API_BASE_URL + '/api/v1/auth/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firebase_uid: userCredential.user.uid, email: userCredential.user.email, name: name.trim() }) });
-      if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.detail || 'Sync failed'); }
-      const data = await response.json(); setOrganizerId(data.organizer_id); router.replace('/(tabs)');
+      const synced = await api.syncOrganizer(userCredential.user.uid, userCredential.user.email, name.trim());
+      await setOrganizerId(synced.organizer_id);
+      router.replace('/(tabs)');
     } catch (error: any) { if (error.code === 'auth/email-already-in-use') setErrors({ email: 'Email already in use.' }); else setErrors({ general: error.message }); }
     finally { setLoading(false); }
   };

@@ -6,6 +6,7 @@ const REQUEST_TIMEOUT_MS = 30000;
 export interface TripResponse {
   id: string;
   organizer_id: string;
+  name: string;
   invite_code: string;
   is_active: boolean;
   created_at: string;
@@ -76,11 +77,11 @@ export const api = {
     return handleResponse<SyncResponse>(response);
   },
 
-  async createTrip(organizerId: string): Promise<TripResponse> {
+  async createTrip(organizerId: string, name: string): Promise<TripResponse> {
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizer_id: organizerId }),
+      body: JSON.stringify({ organizer_id: organizerId, name }),
     });
     return handleResponse<TripResponse>(response);
   },
@@ -90,9 +91,9 @@ export const api = {
     return handleResponse<TripDetail>(response);
   },
 
-  async getOrganizerTrips(organizerId: string): Promise<TripResponse[]> {
+  async getOrganizerTrips(organizerId: string): Promise<TripDetail[]> {
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/organizer/${organizerId}`);
-    return handleResponse<TripResponse[]>(response);
+    return handleResponse<TripDetail[]>(response);
   },
 
   async endTrip(tripId: string): Promise<TripResponse> {
@@ -100,6 +101,24 @@ export const api = {
       method: 'POST',
     });
     return handleResponse<TripResponse>(response);
+  },
+
+  async reliveTrip(tripId: string, organizerId: string): Promise<TripResponse> {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/${tripId}/relive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ organizer_id: organizerId }),
+    });
+    return handleResponse<TripResponse>(response);
+  },
+
+  async deleteTrip(tripId: string, organizerId: string): Promise<void> {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/${tripId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ organizer_id: organizerId }),
+    });
+    await handleResponse(response);
   },
 
   async uploadMedia(

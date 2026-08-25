@@ -320,15 +320,23 @@ class AzureBlobService:
             content_type="image/jpeg",
         )
 
-    def delete_file(self, blob_url: str) -> None:
+    def delete_file(self, blob_url: str, expected_blob_prefix: str | tuple[str, ...] | None = None) -> None:
         """Delete a blob from storage. Silently succeeds if blob doesn't exist."""
-        if not blob_url or not self.blob_service_client:
+        if not blob_url:
             return
+        if not self._initialized or not self.blob_service_client:
+            raise StorageError("Storage service is not available.", code="STORAGE_NOT_INITIALIZED")
 
         try:
             from azure.storage.blob import BlobClient
 
             blob_client = BlobClient.from_blob_url(blob_url)
+            prefixes = (expected_blob_prefix,) if isinstance(expected_blob_prefix, str) else expected_blob_prefix
+            if prefixes and not any(blob_client.blob_name.startswith(prefix) for prefix in prefixes):
+                raise StorageError(
+                    "Refusing to delete a blob outside the requested trip prefix.",
+                    code="BLOB_SCOPE_MISMATCH",
+                )
             auth_client = self.blob_service_client.get_blob_client(
                 container=blob_client.container_name,
                 blob=blob_client.blob_name,

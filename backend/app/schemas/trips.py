@@ -9,6 +9,7 @@ Document models in ``app.models`` so that internal storage details
 from datetime import datetime
 
 from pydantic import BaseModel, Field
+from beanie import PydanticObjectId
 
 from app.models.attendee import GalleryPreference
 
@@ -25,6 +26,18 @@ class TripCreate(BaseModel):
         max_length=50,
         examples=["60f1c..."],
     )
+    name: str = Field(
+        default="Untitled trip",
+        min_length=1,
+        max_length=120,
+        examples=["Summer gala 2026"],
+    )
+
+
+class TripActionRequest(BaseModel):
+    """Organizer identity required for destructive/state-changing actions."""
+
+    organizer_id: PydanticObjectId
 
 
 class TripResponse(BaseModel):
@@ -32,6 +45,7 @@ class TripResponse(BaseModel):
 
     id: str
     organizer_id: str
+    name: str
     invite_code: str
     is_active: bool
     created_at: datetime

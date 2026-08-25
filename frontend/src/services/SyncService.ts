@@ -8,7 +8,6 @@ const LAST_SYNC_KEY = '@fastsend_last_sync_timestamp';
 // Configure notification behavior when app is foregrounded
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
     shouldShowBanner: true,

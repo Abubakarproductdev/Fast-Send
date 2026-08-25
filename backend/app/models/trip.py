@@ -27,10 +27,12 @@ class Trip(Document):
     """A trip/event created by an organizer."""
 
     organizer_id: PydanticObjectId
+    name: str = Field(default="Untitled trip", min_length=1, max_length=120)
     invite_code: str
     is_active: bool = True
     settings: TripSettings = Field(default_factory=TripSettings)
     last_reminder_at: datetime | None = None
+    relive_count: int = 0
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
     )

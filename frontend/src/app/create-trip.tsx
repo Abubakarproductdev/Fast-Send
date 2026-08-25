@@ -27,7 +27,7 @@ export default function CreateTripScreen() {
     if (!organizerId) { Alert.alert('Session Error', 'Please sign in again.'); router.replace('/login'); return; }
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/trips`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ organizer_id: organizerId }) });
+      const response = await fetch(`${API_BASE_URL}/api/v1/trips`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ organizer_id: organizerId, name: tripName.trim() }) });
       if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.detail || 'Failed to create trip'); }
       const trip = await response.json(); const deviceStartTime = new Date().toISOString();
       await setActiveTripId(trip.id); await setTripStartTime(deviceStartTime);

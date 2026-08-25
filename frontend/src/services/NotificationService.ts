@@ -25,7 +25,6 @@ const REMINDER_COUNT = 12; // Schedule 12 reminders = 24 hours of coverage
 // How notifications appear when the app is in the foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
     shouldShowBanner: true,

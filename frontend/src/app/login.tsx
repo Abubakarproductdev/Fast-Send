@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '../config/api';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +12,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenShell } from '../components/ScreenShell';
 import { BrandMark } from '../components/BrandMark';
 import { useTheme } from '../context/ThemeContext';
+import { api } from '../services/api';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -48,12 +48,9 @@ export default function LoginScreen() {
     setLoading(true); setErrors({});
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      let response;
-      try {
-        response = await fetch(API_BASE_URL + '/api/v1/auth/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firebase_uid: userCredential.user.uid, email: userCredential.user.email }) });
-      } catch (networkErr) { throw new Error('Cannot reach server. Check your network connection and try again.'); }
-      if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.detail || `Server error (${response.status}). Please try again.`); }
-      const data = await response.json(); setOrganizerId(data.organizer_id); router.replace('/(tabs)');
+      const synced = await api.syncOrganizer(userCredential.user.uid, userCredential.user.email);
+      await setOrganizerId(synced.organizer_id);
+      router.replace('/(tabs)');
     } catch (error: any) {
       const code = error.code || '';
       let message = error.message;

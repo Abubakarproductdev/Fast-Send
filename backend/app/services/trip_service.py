@@ -20,6 +20,10 @@ from pymongo.errors import DuplicateKeyError
 from app.models.attendee import Attendee, GalleryPreference
 from app.models.media_asset import MediaAsset
 from app.models.trip import Trip
+from app.models.guest_token import GuestToken
+from app.models.notification import Notification
+from app.models.trip_insights import TripInsights
+from app.services.storage_service import azure_blob_service, StorageError
 
 
 # ── Exceptions ────────────────────────────────────────────────────────
@@ -33,10 +37,18 @@ class TripInactiveError(Exception):
     """Raised when an operation requires an active trip but it has ended."""
 
 
+class TripAlreadyActiveError(Exception):
+    """Raised when an organizer tries to relive an already-live trip."""
+
+
+class TripOwnershipError(Exception):
+    """Raised when an action targets another organizer's trip."""
+
+
 # ── Trip operations ───────────────────────────────────────────────────
 
 
-async def create_trip(organizer_id: PydanticObjectId) -> Trip:
+async def create_trip(organizer_id: PydanticObjectId, name: str = "Untitled trip") -> Trip:
     """Create a new trip with a unique invite code.
 
     ``secrets.token_hex`` produces a clean uppercase hex string (only 0-9 A-F).
@@ -51,6 +63,7 @@ async def create_trip(organizer_id: PydanticObjectId) -> Trip:
         invite_code = secrets.token_hex(4).upper()
         trip = Trip(
             organizer_id=organizer_id,
+            name=name.strip() or "Untitled trip",
             invite_code=invite_code,
         )
         try:
@@ -101,7 +114,24 @@ async def end_trip(trip_id: PydanticObjectId) -> Trip:
     return trip
 
 
-async def delete_trip(trip_id: PydanticObjectId) -> None:
+async def relive_trip(trip_id: PydanticObjectId, organizer_id: PydanticObjectId) -> Trip:
+    """Reopen an archived trip while preserving its guests and existing media."""
+    trip = await get_trip(trip_id)
+    if trip.organizer_id != organizer_id:
+        raise TripOwnershipError(f"Organizer does not own trip {trip_id}")
+    if trip.is_active:
+        raise TripAlreadyActiveError(f"Trip {trip_id} is already active")
+
+    now = datetime.now(timezone.utc)
+    trip.is_active = True
+    trip.last_reminder_at = now
+    trip.relive_count += 1
+    trip.updated_at = now
+    await trip.save()
+    return trip
+
+
+async def delete_trip(trip_id: PydanticObjectId, organizer_id: PydanticObjectId) -> None:
     """Delete a trip and cascade-remove all related documents.
 
     MongoDB has no foreign keys, so cascade is manual.  Children are
@@ -115,8 +145,45 @@ async def delete_trip(trip_id: PydanticObjectId) -> None:
     and sequential deletes with no concurrent writers are safe for V1.
     """
     trip = await get_trip(trip_id)
+    if trip.organizer_id != organizer_id:
+        raise TripOwnershipError(f"Organizer does not own trip {trip_id}")
+
+    # Freeze the trip before touching cloud data. A failed deletion can then
+    # be retried safely without accepting new uploads during the retry window.
+    trip.is_active = False
+    trip.updated_at = datetime.now(timezone.utc)
+    await trip.save()
+
+    assets = await MediaAsset.find(MediaAsset.trip_id == trip.id).to_list()
+    attendees = await Attendee.find(Attendee.trip_id == trip.id).to_list()
+    expected_prefix = f"trip_{trip.id}/"
+    selfie_prefix = f"selfies/{trip.id}/"
+    blob_urls = {
+        url
+        for asset in assets
+        for url in (asset.original_blob_url, asset.thumbnail_blob_url)
+        if url
+    }
+    blob_urls.update(
+        attendee.selfie_s3_url
+        for attendee in attendees
+        if attendee.selfie_s3_url
+    )
+
+    # Cloud deletion is deliberately completed before Mongo deletion. If any
+    # Azure call fails, the parent and children remain for a safe retry.
+    for blob_url in blob_urls:
+        await asyncio.to_thread(
+            azure_blob_service.delete_file,
+            blob_url,
+            (expected_prefix, selfie_prefix),
+        )
+
+    await GuestToken.find(GuestToken.trip_id == trip.id).delete()
     await Attendee.find(Attendee.trip_id == trip.id).delete()
     await MediaAsset.find(MediaAsset.trip_id == trip.id).delete()
+    await TripInsights.find(TripInsights.trip_id == trip.id).delete()
+    await Notification.find(Notification.trip_id == str(trip.id)).delete()
     await trip.delete()
 
 
@@ -170,8 +237,6 @@ import logging
 import mimetypes
 from app.models.media_asset import AssetStatus, EmbeddedMatch
 from app.ml import FaceEngine, FaceProcessingError
-from app.services.storage_service import azure_blob_service, StorageError
-
 logger = logging.getLogger(__name__)
 
 async def upload_media(
@@ -339,4 +404,3 @@ async def process_media_asset(
             asset.status = AssetStatus.FAILED
             await asset.save()
         raise
-

@@ -25,7 +25,16 @@ def _notif_to_response(n: Notification) -> NotificationResponse:
 async def list_notifications(organizer_id: str | None = None):
     """Fetch all notifications, ordered by newest first."""
     query = Notification.find(Notification.organizer_id == organizer_id) if organizer_id else Notification.find()
-    notifs = await query.sort("-created_at").to_list()
+    notifs = await query.sort("-created_at").limit(20).to_list()
+    
+    # Prune old notifications for this organizer
+    if len(notifs) == 20 and organizer_id:
+        oldest_allowed = notifs[-1].created_at
+        await Notification.find(
+            Notification.organizer_id == organizer_id,
+            Notification.created_at < oldest_allowed
+        ).delete()
+        
     return [_notif_to_response(n) for n in notifs]
 
 @router.patch(

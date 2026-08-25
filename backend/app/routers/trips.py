@@ -104,9 +104,9 @@ async def join_trip(invite_code: str):
     response_model=list[TripDetail],
     summary="List all trips for an organizer",
 )
-async def list_organizer_trips(organizer_id: PydanticObjectId):
-    """Return every trip created by the given organizer, with attendee and media counts."""
-    trips = await trip_service.get_trips_by_organizer(organizer_id)
+async def list_organizer_trips(organizer_id: PydanticObjectId, limit: int = 6, skip: int = 0, search: str | None = None):
+    """Return trips created by the organizer, with pagination and search."""
+    trips = await trip_service.get_trips_by_organizer(organizer_id, limit=limit, skip=skip, search=search)
     
     result = []
     for trip in trips:

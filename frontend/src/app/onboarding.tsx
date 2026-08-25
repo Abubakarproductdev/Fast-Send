@@ -24,6 +24,8 @@ export default function OnboardingScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
+  const scrollX = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
@@ -36,28 +38,53 @@ export default function OnboardingScreen() {
   return (
     <ScreenShell noPadding>
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <View style={styles.header}><BrandMark /><Text style={styles.skip}>SKIP</Text></View>
-        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={handleScroll} style={styles.scrollView}>
-          {SLIDES.map((slide, index) => (
-            <View key={slide.eyebrow} style={styles.slide}>
-              <View style={styles.artCard}>
-                <View style={styles.artTopRow}>
-                  <Text style={styles.artEyebrow}>{slide.eyebrow}</Text>
-                  <Text style={styles.artNumber}>0{index + 1}</Text>
+        <View style={styles.header}>
+          <BrandMark />
+          <TouchableOpacity onPress={() => router.push('/register')}><Text style={styles.skip}>SKIP</Text></TouchableOpacity>
+        </View>
+        <Animated.ScrollView 
+          horizontal 
+          pagingEnabled 
+          showsHorizontalScrollIndicator={false} 
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
+          onMomentumScrollEnd={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.scrollView}
+        >
+          {SLIDES.map((slide, index) => {
+            const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
+            
+            const iconScale = scrollX.interpolate({ inputRange, outputRange: [0.6, 1, 0.6], extrapolate: 'clamp' });
+            const iconRotate = scrollX.interpolate({ inputRange, outputRange: ['15deg', '-8deg', '-30deg'], extrapolate: 'clamp' });
+            const orbTranslate = scrollX.interpolate({ inputRange, outputRange: [-100, 0, 100], extrapolate: 'clamp' });
+            const textTranslate = scrollX.interpolate({ inputRange, outputRange: [40, 0, -40], extrapolate: 'clamp' });
+            const textOpacity = scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' });
+
+            return (
+              <View key={slide.eyebrow} style={styles.slide}>
+                <View style={styles.artCard}>
+                  <View style={styles.artTopRow}>
+                    <Text style={styles.artEyebrow}>{slide.eyebrow}</Text>
+                    <Text style={styles.artNumber}>0{index + 1}</Text>
+                  </View>
+                  <View style={styles.artCenter}>
+                    <Animated.View style={[styles.artOrb, { transform: [{ translateX: orbTranslate }] }]} />
+                    <Animated.View style={[styles.iconTile, { transform: [{ scale: iconScale }, { rotate: iconRotate }] }]}>
+                      <Ionicons name={slide.icon} size={42} color={colors.paper} />
+                    </Animated.View>
+                    <View style={styles.artLineShort} /><View style={styles.artLineLong} />
+                  </View>
+                  <View style={styles.artFooter}><Text style={styles.artFooterText}>MEMORIES / IN MOTION</Text><Ionicons name="arrow-forward" size={16} color={colors.primaryLight} /></View>
                 </View>
-                <View style={styles.artCenter}>
-                  <View style={styles.artOrb} />
-                  <View style={styles.iconTile}><Ionicons name={slide.icon} size={42} color={colors.paper} /></View>
-                  <View style={styles.artLineShort} /><View style={styles.artLineLong} />
-                </View>
-                <View style={styles.artFooter}><Text style={styles.artFooterText}>MEMORIES / IN MOTION</Text><Ionicons name="arrow-forward" size={16} color={colors.primaryLight} /></View>
+                <Animated.View style={{ opacity: textOpacity, transform: [{ translateX: textTranslate }] }}>
+                  <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
+                  <Text style={styles.title}>{slide.title}</Text>
+                  <Text style={styles.subtitle}>{slide.subtitle}</Text>
+                </Animated.View>
               </View>
-              <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
-              <Text style={styles.title}>{slide.title}</Text>
-              <Text style={styles.subtitle}>{slide.subtitle}</Text>
-            </View>
-          ))}
-        </ScrollView>
+            );
+          })}
+        </Animated.ScrollView>
         <View style={styles.navArea}>
           <View style={styles.dotsContainer}>{SLIDES.map((slide, index) => <View key={slide.eyebrow} style={[styles.dot, activeIndex === index && styles.dotActive]} />)}</View>
           <PrimaryButton title="Get Started" onPress={() => router.push('/register')} />

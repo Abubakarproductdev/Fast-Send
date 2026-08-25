@@ -97,9 +97,13 @@ async def get_trip_by_invite_code(invite_code: str) -> Trip:
     return trip
 
 
-async def get_trips_by_organizer(organizer_id: PydanticObjectId) -> list[Trip]:
-    """Fetch all trips created by a specific organizer, sorted newest first."""
-    return await Trip.find(Trip.organizer_id == organizer_id).sort("-created_at").to_list()
+async def get_trips_by_organizer(organizer_id: PydanticObjectId, limit: int = 6, skip: int = 0, search: str | None = None) -> list[Trip]:
+    """Fetch trips created by a specific organizer, sorted newest first, with optional pagination and search."""
+    query = Trip.find(Trip.organizer_id == organizer_id)
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        query = query.find({"$or": [{"name": search_regex}, {"invite_code": search_regex}]})
+    return await query.sort("-created_at").skip(skip).limit(limit).to_list()
 
 
 async def end_trip(trip_id: PydanticObjectId) -> Trip:

@@ -64,7 +64,7 @@ export default function HomeScreen() {
 
 const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   inner: { flex: 1 },
-  scroll: { paddingTop: 14, paddingBottom: 116 },
+  scroll: { paddingTop: 8, paddingBottom: 116 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
   kicker: { fontSize: 10, fontWeight: '900', color: colors.primaryDark, letterSpacing: 1.5, marginBottom: 7 },
   title: { fontSize: 31, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.9 },
@@ -81,7 +81,7 @@ const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet
   sectionNote: { color: colors.textMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   methodList: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 17 },
   methodRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 17, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  methodIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: '#FCE5DD', alignItems: 'center', justifyContent: 'center', marginRight: 13 },
+  methodIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.bgElevated, alignItems: 'center', justifyContent: 'center', marginRight: 13 },
   methodCopy: { flex: 1 },
   methodTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '800', marginBottom: 3 },
   methodText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },

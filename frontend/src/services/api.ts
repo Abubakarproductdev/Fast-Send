@@ -91,8 +91,10 @@ export const api = {
     return handleResponse<TripDetail>(response);
   },
 
-  async getOrganizerTrips(organizerId: string): Promise<TripDetail[]> {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/organizer/${organizerId}`);
+  async getOrganizerTrips(organizerId: string, limit = 6, skip = 0, search = ''): Promise<TripDetail[]> {
+    const query = new URLSearchParams({ limit: String(limit), skip: String(skip) });
+    if (search) query.append('search', search);
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/organizer/${organizerId}?${query.toString()}`);
     return handleResponse<TripDetail[]>(response);
   },
 

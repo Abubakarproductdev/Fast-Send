@@ -5,7 +5,12 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from app.models.organizer import Organizer
-from app.schemas.settings import OrganizerSettingsResponse, OrganizerSettingsUpdate
+from app.schemas.settings import (
+    OrganizerProfileResponse,
+    OrganizerProfileUpdate,
+    OrganizerSettingsResponse,
+    OrganizerSettingsUpdate,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
@@ -13,6 +18,7 @@ class SyncRequest(BaseModel):
     firebase_uid: str
     email: str
     name: Optional[str] = ""
+    photo_url: Optional[str] = None
 
 class SyncResponse(BaseModel):
     organizer_id: str
@@ -36,14 +42,17 @@ async def sync_organizer(body: SyncRequest):
         # Update existing
         organizer.email = body.email
         if body.name:
-            organizer.name = body.name
+            organizer.name = body.name.strip()
+        if body.photo_url is not None:
+            organizer.photo_url = body.photo_url
         await organizer.save()
     else:
         # Create new
         organizer = Organizer(
             firebase_uid=body.firebase_uid,
             email=body.email,
-            name=body.name or "",
+            name=(body.name or "").strip(),
+            photo_url=body.photo_url,
         )
         await organizer.insert()
 
@@ -59,6 +68,45 @@ def _settings_response(organizer: Organizer) -> OrganizerSettingsResponse:
         sync_interval_hours=organizer.sync_interval_hours,
         upload_mode=organizer.upload_mode,
     )
+
+
+def _profile_response(organizer: Organizer) -> OrganizerProfileResponse:
+    return OrganizerProfileResponse(
+        organizer_id=str(organizer.id),
+        firebase_uid=organizer.firebase_uid,
+        email=organizer.email,
+        name=organizer.name,
+        photo_url=organizer.photo_url,
+        created_at=organizer.created_at,
+        updated_at=organizer.updated_at,
+    )
+
+
+@router.get('/profile/{organizer_id}', response_model=OrganizerProfileResponse)
+async def get_organizer_profile(organizer_id: PydanticObjectId):
+    organizer = await Organizer.get(organizer_id)
+    if not organizer:
+        raise HTTPException(status_code=404, detail='Organizer not found')
+    return _profile_response(organizer)
+
+
+@router.patch('/profile/{organizer_id}', response_model=OrganizerProfileResponse)
+async def update_organizer_profile(
+    organizer_id: PydanticObjectId,
+    body: OrganizerProfileUpdate,
+):
+    organizer = await Organizer.get(organizer_id)
+    if not organizer:
+        raise HTTPException(status_code=404, detail='Organizer not found')
+
+    organizer.name = body.name.strip()
+    if not organizer.name:
+        raise HTTPException(status_code=422, detail='Display name cannot be empty')
+    if body.photo_url is not None:
+        organizer.photo_url = body.photo_url
+    organizer.updated_at = datetime.now(timezone.utc)
+    await organizer.save()
+    return _profile_response(organizer)
 
 
 @router.get('/settings/{organizer_id}', response_model=OrganizerSettingsResponse)

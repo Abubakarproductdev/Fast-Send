@@ -2,14 +2,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Animated, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { sendPasswordResetEmail, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { radius } from '../../theme/spacing';
 import { ScreenShell } from '../../components/ScreenShell';
+import { UserAvatar } from '../../components/UserAvatar';
 import { getOrganizerSettings, OrganizerSettings, SYNC_INTERVAL_OPTIONS, updateOrganizerSettings, UploadMode } from '../../services/OrganizerSettingsService';
 import { scheduleUploadReminders } from '../../services/NotificationService';
+import { SettingsChoiceModal } from '../../components/SettingsChoiceModal';
 
 type SettingRowProps = { label: string; value?: string; onPress?: () => void; danger?: boolean; disabled?: boolean; icon: React.ComponentProps<typeof Ionicons>['name']; control?: React.ReactNode };
 
@@ -31,6 +33,7 @@ export default function SettingsScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [settings, setSettings] = useState<OrganizerSettings>({ sync_interval_hours: 2, upload_mode: 'wifi_only' });
   const [saving, setSaving] = useState(false);
+  const [choiceModal, setChoiceModal] = useState<'sync' | 'upload' | null>(null);
 
   useEffect(() => { Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start(); }, []);
   useEffect(() => { if (organizerId) getOrganizerSettings(organizerId).then(setSettings).catch(() => {}); }, [organizerId]);
@@ -45,19 +48,12 @@ export default function SettingsScreen() {
     } catch (error: any) { Alert.alert('Could not save', error.message || 'Please try again.'); }
     finally { setSaving(false); }
   };
-  const chooseSyncInterval = () => Alert.alert('Sync interval', 'How often should FastSend remind you to push photos?', [
-    ...SYNC_INTERVAL_OPTIONS.map((hours) => ({ text: `${hours} hour${hours === 1 ? '' : 's'}`, onPress: () => saveSettings({ sync_interval_hours: hours }) })),
-    { text: 'Cancel', style: 'cancel' as const },
-  ]);
-  const chooseUploadMode = () => Alert.alert('Upload mode', 'Choose which network FastSend may use for photo uploads.', [
-    { text: 'Wi-Fi only', onPress: () => saveSettings({ upload_mode: 'wifi_only' as UploadMode }) },
-    { text: 'Wi-Fi + cellular', onPress: () => saveSettings({ upload_mode: 'wifi_and_cellular' as UploadMode }) },
-    { text: 'Cancel', style: 'cancel' as const },
-  ]);
-  const handleUpdatePassword = async () => {
-    if (!user?.email) { Alert.alert('No email found', 'Please sign in again before changing your password.'); return; }
-    try { await sendPasswordResetEmail(auth, user.email); Alert.alert('Check your inbox', `A password reset link was sent to ${user.email}.`); }
-    catch { Alert.alert('Could not send email', 'Please try again in a moment.'); }
+  const chooseSyncInterval = () => setChoiceModal('sync');
+  const chooseUploadMode = () => setChoiceModal('upload');
+  const selectChoice = (value: string) => {
+    setChoiceModal(null);
+    if (choiceModal === 'sync') saveSettings({ sync_interval_hours: Number(value) });
+    if (choiceModal === 'upload') saveSettings({ upload_mode: value as UploadMode });
   };
   const handleSignOut = () => Alert.alert('Sign out', 'Are you sure you want to end your session?', [
     { text: 'Cancel', style: 'cancel' },
@@ -66,25 +62,42 @@ export default function SettingsScreen() {
 
   const displayName = user?.displayName || 'Organizer';
   const email = user?.email || 'No email';
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   const uploadLabel = settings.upload_mode === 'wifi_and_cellular' ? 'Wi-Fi + cellular' : 'Wi-Fi only';
+
+  const syncChoices = SYNC_INTERVAL_OPTIONS.map((hours) => ({ value: String(hours), title: `${hours} hour${hours === 1 ? '' : 's'}`, description: hours === 1 ? 'A gentle nudge every hour while you are capturing.' : `A calm reminder every ${hours} hours while your trip is live.`, icon: 'time-outline' as const }));
+  const uploadChoices = [
+    { value: 'wifi_only', title: 'Wi-Fi only', description: 'Save mobile data and sync when a Wi-Fi connection is available.', icon: 'wifi-outline' as const },
+    { value: 'wifi_and_cellular', title: 'Wi-Fi + cellular', description: 'Keep photos moving even when Wi-Fi is not available.', icon: 'swap-horizontal-outline' as const },
+  ];
 
   return <ScreenShell><Animated.View style={[styles.inner, { opacity: fadeAnim }]}><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
     <View style={styles.header}><Text style={styles.eyebrow}>YOUR SPACE</Text><Text style={styles.title}>Profile</Text></View>
-    <View style={styles.profileCard}><View style={styles.avatar}><Text style={styles.avatarText}>{initials}</Text></View><View style={styles.profileInfo}><Text style={styles.displayName}>{displayName}</Text><Text style={styles.emailText}>{email}</Text><View style={styles.memberPill}><Ionicons name="sparkles-outline" size={12} color={colors.primaryDark} /><Text style={styles.memberText}>ORGANIZER ACCOUNT</Text></View></View></View>
+    <TouchableOpacity style={styles.profileCard} onPress={() => router.push('/profile')} activeOpacity={0.85}><UserAvatar name={displayName} imageUrl={user?.photoURL} size={62} /><View style={styles.profileInfo}><Text style={styles.displayName}>{displayName}</Text><Text style={styles.emailText}>{email}</Text><View style={styles.memberPill}><Ionicons name="sparkles-outline" size={12} color={colors.primaryDark} /><Text style={styles.memberText}>ORGANIZER ACCOUNT</Text></View></View><Ionicons name="chevron-forward" size={18} color="rgba(255,253,248,0.7)" /></TouchableOpacity>
     <Text style={styles.sectionTitle}>WORKFLOW</Text><View style={styles.section}>
       <SettingRow icon="time-outline" label="Sync interval" value={saving ? 'Saving…' : `${settings.sync_interval_hours} hour${settings.sync_interval_hours === 1 ? '' : 's'}`} onPress={chooseSyncInterval} />
       <SettingRow icon="wifi-outline" label="Upload mode" value={uploadLabel} onPress={chooseUploadMode} />
       <SettingRow icon="image-outline" label="Image quality" value="High (1080p)" />
     </View>
     <Text style={styles.sectionTitle}>ACCOUNT & SECURITY</Text><View style={styles.section}>
-      <SettingRow icon="person-outline" label="Display name" value={displayName} />
-      <SettingRow icon="key-outline" label="Update password" onPress={handleUpdatePassword} />
+      <SettingRow icon="person-outline" label="Display name" value={displayName} onPress={() => router.push('/profile')} />
+      <SettingRow icon="key-outline" label="Update password" onPress={() => router.push('/profile')} />
       <SettingRow icon={isDark ? 'moon' : 'sunny-outline'} label="Dark mode" control={<Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: colors.borderStrong, true: colors.primary }} thumbColor={colors.paper} />} />
     </View>
     <Text style={styles.sectionTitle}>ABOUT</Text><View style={styles.section}><SettingRow icon="document-text-outline" label="Terms of service" onPress={() => {}} /><SettingRow icon="shield-checkmark-outline" label="Privacy policy" onPress={() => {}} /><SettingRow icon="information-circle-outline" label="App version" value="1.0.0" /></View>
     <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn} activeOpacity={0.8}><Ionicons name="log-out-outline" size={18} color={colors.error} /><Text style={styles.signOutText}>Sign out session</Text></TouchableOpacity>
-  </ScrollView></Animated.View></ScreenShell>;
+  </ScrollView></Animated.View>
+    <SettingsChoiceModal
+      visible={choiceModal !== null}
+      eyebrow={choiceModal === 'sync' ? 'PHOTO RHYTHM' : 'SMART UPLOADS'}
+      title={choiceModal === 'sync' ? 'Choose your reminder rhythm' : 'Choose your connection'}
+      description={choiceModal === 'sync' ? 'FastSend will gently remind you to push new photos while a trip is active.' : 'FastSend uses this preference before it starts sending photos from your device.'}
+      choices={choiceModal === 'sync' ? syncChoices : uploadChoices}
+      selectedValue={choiceModal === 'sync' ? String(settings.sync_interval_hours) : settings.upload_mode}
+      onSelect={selectChoice}
+      onClose={() => setChoiceModal(null)}
+      saving={saving}
+    />
+  </ScreenShell>;
 }
 
 const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({

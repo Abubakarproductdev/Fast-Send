@@ -23,6 +23,8 @@ function AppStack() {
         <Stack.Screen name="create-trip" />
         <Stack.Screen name="active-trip" />
         <Stack.Screen name="trip-details" />
+        <Stack.Screen name="trip-settings" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="(tabs)" />
       </Stack>
     </>

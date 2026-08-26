@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '../config/api';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +11,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenShell } from '../components/ScreenShell';
 import { useTheme } from '../context/ThemeContext';
 import { getOrganizerSettings } from '../services/OrganizerSettingsService';
+import { api } from '../services/api';
 
 export default function CreateTripScreen() {
   const router = useRouter();
@@ -27,9 +27,7 @@ export default function CreateTripScreen() {
     if (!organizerId) { Alert.alert('Session Error', 'Please sign in again.'); router.replace('/login'); return; }
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/trips`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ organizer_id: organizerId, name: tripName.trim() }) });
-      if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.detail || 'Failed to create trip'); }
-      const trip = await response.json(); const deviceStartTime = new Date().toISOString();
+      const trip = await api.createTrip(organizerId, tripName.trim()); const deviceStartTime = new Date().toISOString();
       await setActiveTripId(trip.id); await setTripStartTime(deviceStartTime);
       getOrganizerSettings(organizerId).then((settings) => scheduleUploadReminders(settings.sync_interval_hours)).catch(() => scheduleUploadReminders());
       router.replace('/active-trip');

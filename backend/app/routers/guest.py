@@ -2,7 +2,7 @@ import asyncio
 import base64
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -39,12 +39,68 @@ class RegisterRequest(BaseModel):
     name: str
     selfie_base64: str
 
+
+# Older clients may still send the legacy values. They are normalized below and
+# can never expand the organizer's server-side permission.
+GuestFilter = Literal["mine", "mine_plus_group", "all", "mine_only", "group", "nature"]
+
+
+def _settings_value(settings, name: str, default):
+    """Read a setting safely from both new and older Trip documents."""
+    return getattr(settings, name, default)
+
+
+def _effective_download_permission(trip: Trip) -> str:
+    """Return the one supported permission, including legacy all-download trips."""
+    if _settings_value(trip.settings, "allow_guest_download_all", False):
+        return "all"
+    permission = _settings_value(trip.settings, "download_permission", "mine")
+    return permission if permission in {"mine", "mine_plus_group", "all"} else "mine"
+
+
+def _build_guest_photo_query(
+    trip: Trip,
+    attendee: Attendee,
+    permission: str,
+    requested_filter: GuestFilter = "all",
+) -> dict | None:
+    """Build the server-enforced photo scope for one guest.
+
+    The request's old filter query parameter is intentionally ignored. The
+    organizer's one download permission controls both displayed photos and
+    downloads, so a guest cannot broaden access by changing the URL.
+    """
+    if requested_filter in {"mine", "mine_only", "nature"}:
+        effective_filter = "mine"
+    elif requested_filter in {"mine_plus_group", "group"}:
+        effective_filter = "mine_plus_group" if permission in {"mine_plus_group", "all"} else "mine"
+    else:
+        # The default/all request means the broadest scope the organizer has
+        # granted. It is never broader than the stored permission.
+        effective_filter = permission
+
+    clauses: list[dict] = []
+
+    if effective_filter == "mine":
+        clauses.extend([
+            {"matches.attendee_id": attendee.id},
+            {"$expr": {"$eq": [{"$size": "$matches"}, 1]}},
+        ])
+    elif effective_filter == "mine_plus_group":
+        clauses.append({"matches.attendee_id": attendee.id})
+    elif effective_filter != "all":
+        return None
+
+    query = {"trip_id": attendee.trip_id, "status": AssetStatus.PROCESSED}
+    if clauses:
+        query["$and"] = clauses
+    return query
+
 @router.post("/register")
 async def register_guest(req: RegisterRequest):
     trip = await Trip.find_one(Trip.invite_code == req.trip_invite_code.upper())
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
-        
     # Save selfie
     try:
         header, encoded = req.selfie_base64.split(",", 1) if "," in req.selfie_base64 else ("", req.selfie_base64)
@@ -87,6 +143,10 @@ async def register_guest(req: RegisterRequest):
 
 @router.get("/me")
 async def get_me(attendee: Attendee = Depends(get_current_guest)):
+    trip = await Trip.get(attendee.trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    settings = trip.settings
     insights = await TripInsights.find_one(TripInsights.trip_id == attendee.trip_id)
     
     matched_assets = await MediaAsset.find({
@@ -151,38 +211,21 @@ async def get_me(attendee: Attendee = Depends(get_current_guest)):
         "selfie_status": attendee.selfie_status,
         # True when photos are still queued for ML processing
         "has_pending_photos": pending_count > 0,
+        "download_permission": _effective_download_permission(trip),
     }
 
 @router.get("/photos")
 async def get_photos(
-    filter: str = Query("all"),
+    filter: GuestFilter = Query("all"),
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=100),
     attendee: Attendee = Depends(get_current_guest)
 ):
     trip = await Trip.get(attendee.trip_id)
-    settings = trip.settings if trip else None
-    
-    query = {"trip_id": attendee.trip_id, "status": AssetStatus.PROCESSED}
-    
-    if filter == "mine_only":
-        query["matches.attendee_id"] = attendee.id
-    elif filter == "group":
-        query["$expr"] = {"$gte": [{"$size": "$matches"}, 2]}
-        # If other guests' faces are hidden, restrict to groups the current guest is actually in
-        if settings and not settings.show_other_guests_faces:
-            query["matches.attendee_id"] = attendee.id
-    elif filter == "nature":
-        if not settings or not settings.allow_nature_photos:
-            return []
-        query["is_nature"] = True
-    elif filter == "all":
-        # Enforce face visibility: hide other guests if disabled
-        if settings and not settings.show_other_guests_faces:
-            query["matches.attendee_id"] = attendee.id
-        elif settings and not settings.allow_nature_photos:
-            # Exclude nature shots (0 faces) even in "all" view
-            query["$expr"] = {"$gt": [{"$size": "$matches"}, 0]}
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    permission = _effective_download_permission(trip)
+    query = _build_guest_photo_query(trip, attendee, permission, filter)
         
     skip = (page - 1) * per_page
     assets = await MediaAsset.find(query).sort("-created_at").skip(skip).limit(per_page).to_list()
@@ -196,7 +239,8 @@ async def get_photos(
             "proxy_url": azure_blob_service.get_signed_url(
                 a.thumbnail_blob_url if a.thumbnail_blob_url else a.original_blob_url
             ) if (a.thumbnail_blob_url or a.original_blob_url) else "",
-            "original_url": azure_blob_service.get_signed_url(a.original_blob_url) if a.original_blob_url else "",
+            "original_url": azure_blob_service.get_signed_url(a.original_blob_url)
+            if a.original_blob_url else "",
             "media_type": a.media_type,
             "created_at": a.created_at,
             "face_count": len(a.matches),
@@ -206,25 +250,22 @@ async def get_photos(
 
 @router.get("/download")
 async def download_photos(
-    filter: str = Query("all"),
+    filter: GuestFilter = Query("all"),
     photo_ids: Optional[str] = None,
     attendee: Attendee = Depends(get_current_guest)
 ):
     trip = await Trip.get(attendee.trip_id)
-    settings = trip.settings if trip else None
-    
-    query = {"trip_id": attendee.trip_id, "status": AssetStatus.PROCESSED}
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    effective_policy = _effective_download_permission(trip)
+    query = _build_guest_photo_query(trip, attendee, effective_policy, filter)
     
     if photo_ids:
-        ids = [PydanticObjectId(id.strip()) for id in photo_ids.split(",") if id.strip()]
+        try:
+            ids = [PydanticObjectId(id.strip()) for id in photo_ids.split(",") if id.strip()]
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="One or more photo IDs are invalid")
         query["_id"] = {"$in": ids}
-
-    # Security: ALWAYS enforce download restrictions, even when specific photo_ids are provided.
-    # A user cannot bypass allow_guest_download_all by cherry-picking photo IDs.
-    if settings and not settings.allow_guest_download_all:
-        query["matches.attendee_id"] = attendee.id
-    elif not photo_ids and filter == "mine_only":
-        query["matches.attendee_id"] = attendee.id
     
     assets = await MediaAsset.find(query).to_list()
     if not assets:
@@ -279,5 +320,3 @@ async def download_photos(
     except Exception as e:
         cleanup()
         raise HTTPException(status_code=500, detail=f"Failed to generate zip: {str(e)}")
-
-

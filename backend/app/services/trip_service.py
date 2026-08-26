@@ -19,7 +19,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.models.attendee import Attendee, GalleryPreference
 from app.models.media_asset import MediaAsset
-from app.models.trip import Trip
+from app.models.trip import Trip, TripSettings
 from app.models.guest_token import GuestToken
 from app.models.notification import Notification
 from app.models.trip_insights import TripInsights
@@ -48,7 +48,11 @@ class TripOwnershipError(Exception):
 # ── Trip operations ───────────────────────────────────────────────────
 
 
-async def create_trip(organizer_id: PydanticObjectId, name: str = "Untitled trip") -> Trip:
+async def create_trip(
+    organizer_id: PydanticObjectId,
+    name: str = "Untitled trip",
+    settings: TripSettings | None = None,
+) -> Trip:
     """Create a new trip with a unique invite code.
 
     ``secrets.token_hex`` produces a clean uppercase hex string (only 0-9 A-F).
@@ -65,6 +69,7 @@ async def create_trip(organizer_id: PydanticObjectId, name: str = "Untitled trip
             organizer_id=organizer_id,
             name=name.strip() or "Untitled trip",
             invite_code=invite_code,
+            settings=settings or TripSettings(),
         )
         try:
             await trip.insert()
@@ -113,6 +118,29 @@ async def end_trip(trip_id: PydanticObjectId) -> Trip:
     """
     trip = await get_trip(trip_id)
     trip.is_active = False
+    trip.updated_at = datetime.now(timezone.utc)
+    await trip.save()
+    return trip
+
+
+async def update_trip_settings(
+    trip_id: PydanticObjectId,
+    organizer_id: PydanticObjectId,
+    patch: dict,
+) -> Trip:
+    """Update organizer-controlled guest privacy settings for one trip."""
+    trip = await get_trip(trip_id)
+    if trip.organizer_id != organizer_id:
+        raise TripOwnershipError(f"Organizer does not own trip {trip_id}")
+
+    for key, value in patch.items():
+        if hasattr(trip.settings, key):
+            setattr(trip.settings, key, value)
+
+    # Preserve compatibility with the older boolean field.
+    if "download_permission" in patch:
+        trip.settings.allow_guest_download_all = patch["download_permission"] == "all"
+
     trip.updated_at = datetime.now(timezone.utc)
     await trip.save()
     return trip

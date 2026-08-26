@@ -26,6 +26,7 @@ interface AuthContextType {
   activeTripId: string | null;
   tripStartTime: string | null;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
   setOrganizerId: (id: string | null) => Promise<void>;
   setActiveTripId: (id: string | null) => Promise<void>;
   setTripStartTime: (time: string | null) => Promise<void>;
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   activeTripId: null,
   tripStartTime: null,
   isLoading: true,
+  refreshUser: async () => {},
   setOrganizerId: async () => {},
   setActiveTripId: async () => {},
   setTripStartTime: async () => {},
@@ -83,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Idempotently refresh the Mongo organizer link for the restored
       // Firebase user. This prevents stale organizer IDs after account changes.
       try {
-        const synced = await api.syncOrganizer(firebaseUser.uid, firebaseUser.email, firebaseUser.displayName || undefined);
+        const synced = await api.syncOrganizer(firebaseUser.uid, firebaseUser.email, firebaseUser.displayName || undefined, firebaseUser.photoURL);
         if (mounted) setOrganizerIdState(synced.organizer_id);
         await storeOrganizerId(synced.organizer_id);
       } catch (error) {
@@ -103,6 +105,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try { await storeOrganizerId(id); } catch (error) { console.error('Failed to persist organizer session', error); }
   };
 
+  const refreshUser = async () => {
+    if (!auth.currentUser) return;
+    await auth.currentUser.reload();
+    setUser(auth.currentUser);
+  };
+
   const setActiveTripId = async (id: string | null) => {
     try {
       if (id) await AsyncStorage.setItem('activeTripId', id);
@@ -119,7 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) { console.error('Failed to save trip start time', error); }
   };
 
-  return <AuthContext.Provider value={{ user, organizerId, activeTripId, tripStartTime, isLoading, setOrganizerId, setActiveTripId, setTripStartTime }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, organizerId, activeTripId, tripStartTime, isLoading, refreshUser, setOrganizerId, setActiveTripId, setTripStartTime }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

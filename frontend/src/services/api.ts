@@ -11,6 +11,7 @@ export interface TripResponse {
   is_active: boolean;
   created_at: string;
   registration_url: string;
+  settings: TripSettings;
 }
 
 export interface TripDetail extends TripResponse {
@@ -22,6 +23,24 @@ export interface SyncResponse {
   organizer_id: string;
   message: string;
 }
+
+export interface OrganizerProfile {
+  organizer_id: string;
+  firebase_uid: string;
+  email: string;
+  name: string;
+  photo_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DownloadPermission = 'mine' | 'mine_plus_group' | 'all';
+
+export interface TripSettings {
+  download_permission: DownloadPermission;
+}
+
+export type TripSettingsPatch = Partial<TripSettings>;
 
 async function fetchWithTimeout(
   url: string,
@@ -64,7 +83,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
-  async syncOrganizer(firebaseUid: string, email: string | null, name?: string): Promise<SyncResponse> {
+  async syncOrganizer(firebaseUid: string, email: string | null, name?: string, photoUrl?: string | null): Promise<SyncResponse> {
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/auth/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -72,16 +91,31 @@ export const api = {
         firebase_uid: firebaseUid,
         email: email || '',
         name: name || '',
+        photo_url: photoUrl || null,
       }),
     });
     return handleResponse<SyncResponse>(response);
   },
 
-  async createTrip(organizerId: string, name: string): Promise<TripResponse> {
+  async getOrganizerProfile(organizerId: string): Promise<OrganizerProfile> {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/auth/profile/${organizerId}`);
+    return handleResponse<OrganizerProfile>(response);
+  },
+
+  async updateOrganizerProfile(organizerId: string, name: string, photoUrl?: string | null): Promise<OrganizerProfile> {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/auth/profile/${organizerId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, photo_url: photoUrl || null }),
+    });
+    return handleResponse<OrganizerProfile>(response);
+  },
+
+  async createTrip(organizerId: string, name: string, settings?: TripSettings): Promise<TripResponse> {
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizer_id: organizerId, name }),
+      body: JSON.stringify({ organizer_id: organizerId, name, settings }),
     });
     return handleResponse<TripResponse>(response);
   },
@@ -101,6 +135,15 @@ export const api = {
   async endTrip(tripId: string): Promise<TripResponse> {
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/${tripId}/end`, {
       method: 'POST',
+    });
+    return handleResponse<TripResponse>(response);
+  },
+
+  async updateTripSettings(tripId: string, organizerId: string, settings: TripSettingsPatch): Promise<TripResponse> {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/trips/${tripId}/settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ organizer_id: organizerId, settings }),
     });
     return handleResponse<TripResponse>(response);
   },

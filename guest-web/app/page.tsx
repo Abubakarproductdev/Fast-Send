@@ -1,35 +1,77 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE_URL } from "./lib/api";
 import Webcam from "react-webcam";
-import { Camera, Loader2, Image as ImageIcon, ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
+import { ArrowRight, Camera, Image as ImageIcon, Loader2, ShieldCheck } from "lucide-react";
+import { API_BASE_URL } from "./lib/api";
 
 type Step = "landing" | "details" | "method" | "camera" | "uploading";
 
+const REQUEST_TIMEOUT_MS = 45000;
+
+function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => window.clearTimeout(timeoutId));
+}
+
+async function resizeSelfie(source: Blob | string): Promise<string> {
+  const imageUrl = typeof source === "string" ? source : URL.createObjectURL(source);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new window.Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("This image format could not be read by your browser."));
+      element.src = imageUrl;
+    });
+
+    const maxDimension = 640;
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Your browser could not prepare this image.");
+    context.drawImage(image, 0, 0, width, height);
+
+    const compressed = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
+    if (!compressed) return canvas.toDataURL("image/jpeg", 0.82);
+
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Your browser could not prepare this image."));
+      reader.readAsDataURL(compressed);
+    });
+  } finally {
+    if (typeof source !== "string") URL.revokeObjectURL(imageUrl);
+  }
+}
+
 export default function Home() {
   const router = useRouter();
+  const webcamRef = useRef<Webcam>(null);
   const [step, setStep] = useState<Step>("landing");
   const [name, setName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
-  const [selfie, setSelfie] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const webcamRef = useRef<Webcam>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("trip");
-    if (code) setInviteCode(code);
+    const code = new URLSearchParams(window.location.search).get("trip");
+    if (code) setInviteCode(code.toUpperCase());
   }, []);
 
-  const handleNext = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
-    console.log("handleNext triggered, current step:", step);
+  const handleNext = () => {
     setError("");
     if (step === "landing") {
       setStep("details");
-    } else if (step === "details") {
+      return;
+    }
+    if (step === "details") {
       if (!name.trim() || !inviteCode.trim()) {
         setError("Please enter your name and invite code.");
         return;
@@ -38,319 +80,139 @@ export default function Home() {
     }
   };
 
-  // Resize the selfie to max 640px before sending to the API.
-  // A mobile gallery photo can be 8-16MB (21MB as base64) which causes mobile browsers
-  // to time out. InsightFace works perfectly at 640px — this is its native resolution.
-  const resizeSelfie = (dataUrl: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const MAX = 640;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) {
-            height = Math.round((height * MAX) / width);
-            width = MAX;
-          } else {
-            width = Math.round((width * MAX) / height);
-            height = MAX;
-          }
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
-      };
-      img.src = dataUrl;
-    });
-  };
-
-  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const resized = await resizeSelfie(reader.result as string);
-        setSelfie(resized);
-        submitRegistration(resized);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const requestCameraPermission = async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
-      setStep("camera");
-    } catch (err) {
-      setError("Camera permission denied. Please allow camera access or use the gallery option.");
-    }
-  };
-
-  const captureCamera = useCallback(async () => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc) {
-        // Webcam screenshots are already small but resize for consistency
-        const resized = await resizeSelfie(imageSrc);
-        setSelfie(resized);
-        submitRegistration(resized);
-      }
-    }
-  }, [webcamRef]);
-
   const submitRegistration = async (base64Image: string) => {
     setStep("uploading");
     setError("");
-
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/guest/register`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/guest/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trip_invite_code: inviteCode,
-          name: name,
-          selfie_base64: base64Image,
-        }),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ trip_invite_code: inviteCode.trim().toUpperCase(), name: name.trim(), selfie_base64: base64Image }),
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Registration failed");
-
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "We could not join this trip. Please try again.");
       localStorage.setItem("guestToken", data.token);
-      router.push("/gallery");
-    } catch (err: any) {
-      // Run a full diagnostic to find the EXACT failure reason
-      const diag: string[] = [];
-      diag.push(`Error: ${err.message}`);
-      if (err.cause) diag.push(`Cause: ${JSON.stringify(err.cause)}`);
-      diag.push(`Online: ${navigator.onLine}`);
-      diag.push(`API Target: ${API_BASE_URL}`);
-
-      // Test 1: Can the browser reach the API server at all?
-      try {
-        const healthCheck = await fetch(`${API_BASE_URL}/`, { method: "GET", signal: AbortSignal.timeout(5000) });
-        diag.push(`Health check: ${healthCheck.status} ${healthCheck.statusText}`);
-      } catch (healthErr: any) {
-        diag.push(`Health check FAILED: ${healthErr.message}`);
-      }
-
-      // Test 2: Can the browser reach google.com? (proves internet works)
-      try {
-        const googleCheck = await fetch("https://www.google.com/generate_204", { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) });
-        diag.push(`Internet: OK (${googleCheck.type})`);
-      } catch (googleErr: any) {
-        diag.push(`Internet FAILED: ${googleErr.message}`);
-      }
-
-      setError(diag.join(" | "));
+      router.replace("/gallery");
+    } catch (err: unknown) {
+      const message = err instanceof Error && err.name === "AbortError"
+        ? "The connection is taking too long. Please check your signal and try again."
+        : err instanceof Error ? err.message : "We could not upload your photo. Please try again.";
+      setError(message);
       setStep("method");
     }
   };
 
+  const handleGalleryUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setError("");
+    try {
+      const resized = await resizeSelfie(file);
+      await submitRegistration(resized);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "This photo could not be prepared. Please choose a clear JPEG or PNG photo.");
+      setStep("method");
+    }
+  };
+
+  const requestCameraPermission = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Camera access is unavailable in this browser. Please choose a photo from your gallery.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach((track) => track.stop());
+      setError("");
+      setStep("camera");
+    } catch {
+      setError("Camera access was not granted. You can still choose a photo from your gallery.");
+    }
+  };
+
+  const captureCamera = async () => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (!imageSrc) {
+      setError("The camera is not ready yet. Please try again.");
+      return;
+    }
+    try {
+      await submitRegistration(await resizeSelfie(imageSrc));
+    } catch {
+      setError("The camera photo could not be prepared. Please try again or choose a gallery photo.");
+      setStep("method");
+    }
+  };
+
+  const progressStep = step === "details" ? 1 : step === "method" || step === "camera" ? 2 : 3;
+
   return (
-    <main className="flex-1 flex flex-col items-center justify-center p-4 min-h-screen">
-      <div className="w-full max-w-md bg-bg-card border border-border rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-        
-        {/* Progress indicator */}
+    <main className="guest-page">
+      <div className="guest-card">
+        <div className="guest-brand"><span className="guest-brand-mark"><Camera size={20} /></span><span>FASTSEND</span></div>
         {step !== "landing" && step !== "uploading" && (
-          <div className="flex gap-2 mb-8">
-            <div className={`h-1 flex-1 rounded-full ${step === "details" || step === "method" || step === "camera" ? "bg-amber" : "bg-border"}`} />
-            <div className={`h-1 flex-1 rounded-full ${step === "method" || step === "camera" ? "bg-amber" : "bg-border"}`} />
-            <div className={`h-1 flex-1 rounded-full ${step === "camera" ? "bg-amber" : "bg-border"}`} />
+          <div className="step-progress" aria-label={`Step ${progressStep} of 3`}>
+            {[1, 2, 3].map((item) => <span key={item} className={item <= progressStep ? "step-bar step-bar-active" : "step-bar"} />)}
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl mb-6 text-sm flex items-center gap-2">
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <div className="guest-alert" role="alert"><span>!</span><p>{error}</p></div>}
 
-        {/* STEP 1: LANDING */}
         {step === "landing" && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="w-16 h-16 bg-amber/10 rounded-2xl flex items-center justify-center mb-6 mx-auto border border-amber/20">
-              <Camera className="w-8 h-8 text-amber" />
+          <section className="guest-screen guest-screen-landing">
+            <div className="hero-mark"><Camera size={31} /></div>
+            <p className="eyebrow">YOUR MOMENTS, DELIVERED</p>
+            <h1>Find yourself in the moment.</h1>
+            <p className="lead">FastSend uses one quick selfie to bring your trip photos together.</p>
+            <div className="feature-list">
+              {["Share a quick face photo", "Let FastSend find your moments", "Keep your personal collection"].map((label, index) => (
+                <div className="feature-row" key={label}><span className="number-chip">{index + 1}</span><span>{label}</span></div>
+              ))}
             </div>
-            <h1 className="text-3xl font-bold text-center mb-2">Trip Gallery</h1>
-            <p className="text-text-secondary text-center mb-8">Find all your photos instantly using AI.</p>
-            
-            <div className="space-y-6 mb-8">
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-bg-elevated border border-border flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-amber font-semibold text-sm">1</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-text-primary">Provide a Photo</h3>
-                  <p className="text-sm text-text-secondary mt-1">Take a quick selfie or upload a photo of your face.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-bg-elevated border border-border flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-amber font-semibold text-sm">2</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-text-primary">AI Matching</h3>
-                  <p className="text-sm text-text-secondary mt-1">We securely scan the trip album to find every photo you're in.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-bg-elevated border border-border flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-amber font-semibold text-sm">3</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-text-primary">Download Collection</h3>
-                  <p className="text-sm text-text-secondary mt-1">Get your personalized, high-quality photo gallery instantly.</p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleNext()}
-              className="w-full bg-amber hover:bg-amber-hover text-black font-semibold py-3.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer relative z-10"
-            >
-              Get Started <ArrowRight className="w-5 h-5" />
-            </button>
-
-            <div className="mt-8 text-xs text-gray-500 text-center">
-              App Version: 2.1 <br/>
-              Target API: {API_BASE_URL}
-            </div>
-          </div>
+            <button type="button" onClick={handleNext} className="primary-button touch-target">Get Started <ArrowRight size={18} /></button>
+            <p className="quiet-note"><ShieldCheck size={15} /> Your photo is used only to match you to this trip.</p>
+          </section>
         )}
 
-        {/* STEP 2: DETAILS */}
         {step === "details" && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-2xl font-bold mb-1">Your Details</h2>
-            <p className="text-text-secondary mb-6">Let's get you connected to the trip.</p>
-
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">Invite Code</label>
-                <input
-                  type="text"
-                  className="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-amber uppercase transition-colors"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. 3A8F2B"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">Your Name</label>
-                <input
-                  type="text"
-                  className="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-amber transition-colors"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={!name.trim() || !inviteCode.trim()}
-                className="w-full bg-amber hover:bg-amber-hover text-black font-semibold py-3.5 px-4 rounded-xl transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
+          <section className="guest-screen">
+            <p className="eyebrow">STEP 01 / JOIN THE TRIP</p>
+            <h2>Let&apos;s get you connected.</h2>
+            <p className="lead">Enter the invite code shared by your organizer.</p>
+            <div className="form-stack">
+              <label>Invite code<input value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} placeholder="e.g. 3A8F2B" autoCapitalize="characters" autoComplete="off" /></label>
+              <label>Your name<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Enter your name" autoComplete="name" /></label>
+              <button type="button" onClick={handleNext} disabled={!name.trim() || !inviteCode.trim()} className="primary-button touch-target">Continue <ArrowRight size={18} /></button>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* STEP 3: METHOD SELECTION */}
         {step === "method" && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-2xl font-bold mb-1">Face Recognition</h2>
-            <p className="text-text-secondary mb-6 text-sm">How would you like to provide your reference photo?</p>
-
-            <div className="space-y-4">
-              <button
-                onClick={requestCameraPermission}
-                className="w-full bg-bg-elevated hover:bg-border border border-border p-5 rounded-2xl transition-all flex flex-col items-center justify-center gap-3 group"
-              >
-                <div className="w-12 h-12 rounded-full bg-amber/10 text-amber flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Camera className="w-6 h-6" />
-                </div>
-                <div className="text-center">
-                  <h3 className="font-semibold text-text-primary">Take a Selfie</h3>
-                  <p className="text-xs text-text-secondary mt-1">Use your camera right now</p>
-                </div>
-              </button>
-
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleGalleryUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div className="w-full bg-bg-elevated hover:bg-border border border-border p-5 rounded-2xl transition-all flex flex-col items-center justify-center gap-3 group">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <ImageIcon className="w-6 h-6" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-text-primary">Choose from Gallery</h3>
-                    <p className="text-xs text-text-secondary mt-1">Upload an existing photo</p>
-                  </div>
-                </div>
-              </div>
+          <section className="guest-screen">
+            <p className="eyebrow">STEP 02 / YOUR REFERENCE PHOTO</p>
+            <h2>Show us your face.</h2>
+            <p className="lead">Choose the easiest way to help FastSend recognize your photos.</p>
+            <div className="method-list">
+              <button type="button" onClick={requestCameraPermission} className="method-card touch-target"><span className="method-icon coral"><Camera size={21} /></span><span><strong>Take a selfie</strong><small>Use your camera right now</small></span><ArrowRight size={17} /></button>
+              <label className="method-card touch-target"><input type="file" accept="image/*" onChange={handleGalleryUpload} /><span className="method-icon blue"><ImageIcon size={21} /></span><span><strong>Choose a photo</strong><small>Use a clear photo from your gallery</small></span><ArrowRight size={17} /></label>
             </div>
-
-            <div className="mt-6 flex items-center justify-center gap-2 text-xs text-text-secondary">
-              <ShieldCheck className="w-4 h-4 text-green-500" />
-              <span>Your photo is encrypted and used only for matching.</span>
-            </div>
-          </div>
+            <p className="quiet-note"><ShieldCheck size={15} /> A clear, well-lit photo works best.</p>
+          </section>
         )}
 
-        {/* STEP 4: CAMERA CAPTURE */}
         {step === "camera" && (
-          <div className="animate-in fade-in zoom-in-95 duration-300">
-            <h2 className="text-xl font-bold mb-4 text-center">Position your face</h2>
-            <div className="relative rounded-2xl overflow-hidden bg-black aspect-[3/4] border border-border shadow-inner">
-              <Webcam
-                audio={false}
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-                videoConstraints={{ facingMode: "user" }}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 pointer-events-none border-[4px] border-amber/20 rounded-2xl m-4"></div>
-              
-              <button
-                type="button"
-                onClick={captureCamera}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-amber hover:bg-amber-hover text-black p-4 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
-              >
-                <Camera className="w-7 h-7" />
-              </button>
-            </div>
-            <button
-              onClick={() => setStep("method")}
-              className="w-full mt-4 py-2 text-text-secondary hover:text-text-primary text-sm transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+          <section className="guest-screen">
+            <p className="eyebrow">STEP 02 / SELFIE</p>
+            <h2>Center your face.</h2>
+            <div className="camera-frame"><Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" videoConstraints={{ facingMode: "user" }} className="camera-video" /><div className="camera-guide" /><button type="button" onClick={captureCamera} className="capture-button touch-target" aria-label="Take selfie"><Camera size={25} /></button></div>
+            <button type="button" onClick={() => setStep("method")} className="text-button touch-target">Choose another way</button>
+          </section>
         )}
 
-        {/* STEP 5: UPLOADING */}
         {step === "uploading" && (
-          <div className="py-12 flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-amber/20 rounded-full blur-xl animate-pulse"></div>
-              <Loader2 className="w-16 h-16 text-amber animate-spin relative z-10" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Analyzing...</h2>
-            <p className="text-text-secondary">Finding you in the trip photos.</p>
-          </div>
+          <section className="guest-screen upload-state"><div className="upload-orbit"><Loader2 size={42} /></div><p className="eyebrow">ONE MOMENT</p><h2>Finding your moments.</h2><p className="lead">Your photo is being matched securely to the trip.</p></section>
         )}
-
       </div>
     </main>
   );

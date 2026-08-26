@@ -1,378 +1,199 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, ChevronRight, Database, Download, Image as ImageIcon, Images, Loader2, LockKeyhole, UserRound, Users, X } from "lucide-react";
 import { API_BASE_URL } from "../lib/api";
-import { Download, Loader2, Image as ImageIcon, Users, Clock, Database, Check } from "lucide-react";
+
+type DownloadPermission = "mine" | "mine_plus_group" | "all";
+type GalleryFilter = "mine" | "mine_plus_group" | "all";
 
 type MeData = {
   name: string;
-  trip_id: string;
   matched_photo_count: number;
   total_trip_photos: number;
   total_size_bytes: number;
   my_photos_size_bytes: number;
   my_group_count: number;
   my_solo_count: number;
-  most_frequent_partner_name: string | null;
-  portrait_count: number;
-  group_count: number;
-  nature_count: number;
-  peak_hour: number | null;
-  gallery_preference: string;
   selfie_status: "pending" | "ok" | "no_face_detected" | "multiple_faces_detected";
   has_pending_photos: boolean;
+  download_permission?: DownloadPermission;
 };
 
 type Photo = {
   id: string;
   proxy_url: string;
+  original_url?: string;
   media_type: string;
   created_at: string;
   face_count: number;
 };
 
-type UnknownFace = {
-  id: string;
-  asset_id: string;
-  thumbnail_url: string;
+const FILTER_LABELS: Record<GalleryFilter, string> = {
+  mine: "Mine Photos",
+  mine_plus_group: "Mine + Group",
+  all: "All Photos",
 };
+
+async function downloadUrl(url: string, filename: string) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Photo download failed");
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
 
 export default function GalleryPage() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [me, setMe] = useState<MeData | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [unknownFaces, setUnknownFaces] = useState<UnknownFace[]>([]);
+  const [activeFilter, setActiveFilter] = useState<GalleryFilter>("mine");
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"mine_only" | "group" | "nature" | "all">("all");
-  const [claiming, setClaiming] = useState<string | null>(null);
+  const [pageError, setPageError] = useState("");
+  const [photoError, setPhotoError] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
 
   useEffect(() => {
-    const t = localStorage.getItem("guestToken");
-    if (!t) {
-      router.push("/");
+    const storedToken = localStorage.getItem("guestToken");
+    if (!storedToken) {
+      router.replace("/");
       return;
     }
-    setToken(t);
+    setToken(storedToken);
   }, [router]);
 
   useEffect(() => {
     if (!token) return;
-
     const fetchMe = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/guest/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) {
+        const response = await fetch(`${API_BASE_URL}/api/v1/guest/me`, { headers: { Authorization: `Bearer ${token}` } });
+        if (response.status === 401) {
           localStorage.removeItem("guestToken");
-          router.push("/");
+          router.replace("/");
           return;
         }
-        setMe(await res.json());
-      } catch (e) {
-        console.error(e);
+        if (!response.ok) throw new Error("Your guest session could not be loaded.");
+        setMe(await response.json());
+        setPageError("");
+      } catch (error: unknown) {
+        setPageError(error instanceof Error ? error.message : "Your guest session could not be loaded.");
       }
     };
     fetchMe();
-  }, [token, router]);
+  }, [router, token]);
 
-  useEffect(() => {
+  const fetchPhotos = useCallback(async () => {
     if (!token) return;
-
-    const fetchPhotos = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/guest/photos?filter=${activeTab}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          setPhotos(await res.json());
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
     setLoading(true);
-    fetchPhotos();
-  }, [token, activeTab]);
+    setPhotoError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest/photos?filter=${activeFilter}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) {
+        localStorage.removeItem("guestToken");
+        router.replace("/");
+        return;
+      }
+      if (!response.ok) throw new Error("Your photos could not be loaded right now.");
+      setPhotos(await response.json());
+    } catch (error: unknown) {
+      setPhotoError(error instanceof Error ? error.message : "Your photos could not be loaded right now.");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeFilter, router, token]);
+
+  useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
+
+  const permission = me?.download_permission || "mine";
+  const filterOptions = useMemo(() => {
+    const options: GalleryFilter[] = ["mine"];
+    if (permission === "mine_plus_group" || permission === "all") options.push("mine_plus_group");
+    if (permission === "all") options.push("all");
+    return options;
+  }, [permission]);
 
   useEffect(() => {
-    if (!token) return;
-    const fetchUnknowns = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/guest/unknown-faces`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          setUnknownFaces(await res.json());
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    fetchUnknowns();
-  }, [token]);
+    if (!filterOptions.includes(activeFilter)) setActiveFilter("mine");
+  }, [activeFilter, filterOptions]);
 
   const handleDownload = async () => {
     if (!token || isDownloading) return;
     setIsDownloading(true);
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/v1/guest/download?filter=${activeTab}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!res.ok) throw new Error("Download failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `fastsend-photos-${activeTab}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error("Download error:", e);
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest/download?filter=${activeFilter}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error("Download failed");
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `fastsend-${activeFilter}.zip`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch (error: unknown) {
+      setPhotoError(error instanceof Error ? error.message : "Download failed. Please try again.");
     } finally {
       setIsDownloading(false);
     }
   };
 
-  const handleClaim = async (faceId: string) => {
-    setClaiming(faceId);
-    try {
-      await fetch(`${API_BASE_URL}/api/v1/guest/claim/${faceId}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUnknownFaces((prev) => prev.filter((f) => f.id !== faceId));
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setClaiming(null);
-    }
+  const formatSize = (bytes: number) => {
+    if (!bytes) return "0 MB";
+    const megabytes = bytes / (1024 * 1024);
+    return megabytes >= 1024 ? `${(megabytes / 1024).toFixed(1)} GB` : `${Math.max(1, megabytes).toFixed(0)} MB`;
   };
 
   if (!me) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
+    return <main className="gallery-page"><div className="loading-state"><Loader2 size={30} className="animate-spin" /></div>{pageError && <div className="empty-gallery"><strong>We could not open this collection.</strong><p>{pageError}</p><button className="primary-button" onClick={() => router.replace("/")}>Return to join</button></div>}</main>;
   }
 
-  const formatSize = (bytes: number) => {
-    const gb = bytes / (1024 * 1024 * 1024);
-    return gb > 1 ? `${gb.toFixed(1)} GB` : `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
-  };
-
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-gray-950/80 backdrop-blur-md border-b border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">Trip Gallery</h1>
-            <p className="text-sm text-gray-400">Welcome, {me.name}</p>
-          </div>
-          <button
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isDownloading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4" />
-            )}
-            <span className="hidden sm:inline">
-              {isDownloading ? "Preparing ZIP..." : "Download Collection"}
-            </span>
-          </button>
-        </div>
-      </header>
+    <main className="gallery-page">
+      <div className="gallery-shell">
+        <header className="gallery-header">
+          <div><div className="gallery-brand"><span className="gallery-brand-mark"><CameraIcon /></span><span>FASTSEND</span></div><p className="gallery-welcome">Welcome, {me.name}</p></div>
+          <button type="button" onClick={handleDownload} disabled={isDownloading} className="download-button">{isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}<span>{isDownloading ? "Preparing..." : `Download ${FILTER_LABELS[activeFilter]}`}</span></button>
+        </header>
 
-      <main className="max-w-6xl mx-auto px-4 mt-8 space-y-12">
-        {/* Selfie Error Banner */}
-        {me.selfie_status === "no_face_detected" && (
-          <div className="bg-red-900/40 border border-red-500/40 rounded-2xl p-4 text-center">
-            <p className="text-red-300 font-medium">⚠️ We couldn&apos;t detect a face in your selfie.</p>
-            <p className="text-red-400/70 text-sm mt-1">Please go back and re-register with a clearer, well-lit photo of your face.</p>
-          </div>
-        )}
-        {me.selfie_status === "multiple_faces_detected" && (
-          <div className="bg-yellow-900/40 border border-yellow-500/40 rounded-2xl p-4 text-center">
-            <p className="text-yellow-300 font-medium">⚠️ Multiple faces detected in your selfie.</p>
-            <p className="text-yellow-400/70 text-sm mt-1">Please re-register with a selfie showing only your face.</p>
-          </div>
-        )}
-        {/* Processing banner: shown while Celery is still working on photos */}
-        {me.has_pending_photos && (
-          <div className="bg-blue-900/40 border border-blue-500/40 rounded-2xl p-4 flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-blue-400 animate-spin shrink-0" />
-            <div>
-              <p className="text-blue-300 font-medium">⏳ Some photos are still being processed.</p>
-              <p className="text-blue-400/70 text-sm mt-0.5">Check back in a few minutes — more of your photos may appear soon!</p>
-            </div>
-          </div>
-        )}
-        {/* AI Summary Card */}
-        <section className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-500/20 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Database className="w-5 h-5 text-blue-400" /> AI Summary
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            <div>
-              <p className="text-gray-400 text-sm mb-1">Your Photos</p>
-              <p className="text-2xl font-bold">{me.matched_photo_count} <span className="text-sm font-normal text-gray-500">({formatSize(me.my_photos_size_bytes || 0)})</span></p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">Photo Types</p>
-              <p className="text-2xl font-bold">{me.my_group_count} <span className="text-sm font-normal text-gray-500">Group</span> / {me.my_solo_count} <span className="text-sm font-normal text-gray-500">Solo</span></p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">Most seen with</p>
-              <p className="text-lg font-bold truncate" title={me.most_frequent_partner_name || "N/A"}>
-                {me.most_frequent_partner_name || "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">Peak Activity</p>
-              <p className="text-2xl font-bold flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-500" />
-                {me.peak_hour !== null ? `${me.peak_hour}:00` : "--"}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">Total Trip Album</p>
-              <p className="text-lg font-bold">{me.total_trip_photos} photos ({formatSize(me.total_size_bytes)})</p>
-            </div>
-          </div>
-        </section>
+        <div className="gallery-main">
+          {me.selfie_status === "no_face_detected" && <div className="gallery-banner alert"><ImageIcon size={18} /><p><strong>We could not detect a face.</strong>Please return to the join page and choose a clearer, well-lit photo.</p></div>}
+          {me.selfie_status === "multiple_faces_detected" && <div className="gallery-banner alert"><Users size={18} /><p><strong>Multiple faces were detected.</strong>Please register again with a selfie showing only you.</p></div>}
+          {me.has_pending_photos && <div className="gallery-banner"><Loader2 size={18} className="animate-spin" /><p><strong>Your collection is still growing.</strong>Some trip photos are being processed and may appear shortly.</p></div>}
 
-        {/* Gallery */}
-        <section>
-          {/* Tabs */}
-          <div className="flex overflow-x-auto gap-2 pb-4 mb-4 hide-scrollbar">
-            {[
-              { id: "mine_only", label: "My Photos", icon: ImageIcon },
-              { id: "group", label: "Group", icon: Users },
-              { id: "nature", label: "Nature", icon: ImageIcon },
-              { id: "all", label: "All Photos", icon: Database },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-white text-black"
-                      : "bg-gray-900 text-gray-400 hover:bg-gray-800"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+          <section className="summary-card"><div className="summary-heading"><Database size={15} /> YOUR COLLECTION AT A GLANCE</div><div className="summary-grid"><div className="summary-item"><small>Matched photos</small><strong>{me.matched_photo_count}</strong><span>{formatSize(me.my_photos_size_bytes)}</span></div><div className="summary-item"><small>Solo moments</small><strong>{me.my_solo_count}</strong><span>just you</span></div><div className="summary-item"><small>Group moments</small><strong>{me.my_group_count}</strong><span>with others</span></div><div className="summary-item"><small>Trip album</small><strong>{me.total_trip_photos}</strong><span>{formatSize(me.total_size_bytes)}</span></div></div></section>
 
-          {loading ? (
-            <div className="py-20 flex justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-            </div>
-          ) : photos.length === 0 ? (
-            <div className="text-center py-20 text-gray-500">
-              No photos found for this category.
-            </div>
-          ) : (
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-              {photos.map((photo) => (
-                <div
-                  key={photo.id}
-                  className="relative group rounded-xl overflow-hidden bg-gray-900 break-inside-avoid"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.proxy_url}
-                    alt="Trip photo"
-                    loading="lazy"
-                    className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                    <div className="flex items-end justify-between">
-                      <div className="text-xs font-medium text-white/90">
-                        {photo.face_count > 0 ? `${photo.face_count} faces` : "Nature"}
-                      </div>
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const r = await fetch(photo.proxy_url);
-                            const blob = await r.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `fastsend-${photo.id}.jpg`;
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                          } catch (err) {
-                            window.open(photo.proxy_url, '_blank');
-                          }
-                        }}
-                        className="p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-md transition-colors"
-                        title="Download Original"
-                      >
-                        <Download className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+          <section className="permission-card"><strong><LockKeyhole size={14} /> Organizer sharing setting</strong><p>{permission === "all" ? "You can explore the complete trip collection." : permission === "mine_plus_group" ? "You can explore your photos and group moments you are in." : "You can explore your personal solo photos."}</p></section>
 
-        {/* Claim Faces */}
-        {unknownFaces.length > 0 && (
-          <section className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-            <h2 className="text-lg font-semibold mb-4">Is this you?</h2>
-            <p className="text-sm text-gray-400 mb-6">
-              Claim these faces to have them added to your personal gallery.
-            </p>
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              {unknownFaces.map((face) => (
-                <div key={face.id} className="shrink-0 w-24">
-                  <div className="aspect-square rounded-lg overflow-hidden bg-gray-800 mb-2 relative group">
-                    {face.thumbnail_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={face.thumbnail_url} alt="Unknown face" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">?</div>
-                    )}
-                    <button
-                      onClick={() => handleClaim(face.id)}
-                      disabled={claiming === face.id}
-                      className="absolute inset-0 bg-blue-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100"
-                    >
-                      {claiming === face.id ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Check className="w-6 h-6" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
+          <section>
+            <div className="gallery-nav" role="tablist" aria-label="Photo collection views">
+              {filterOptions.map((filter) => <button type="button" role="tab" aria-selected={activeFilter === filter} key={filter} className={`gallery-tab ${activeFilter === filter ? "active" : ""}`} onClick={() => setActiveFilter(filter)}>{filter === "mine" ? <UserRound size={15} /> : filter === "mine_plus_group" ? <Users size={15} /> : <Images size={15} />}{FILTER_LABELS[filter]}</button>)}
+              <span className="gallery-count">{photos.length} shown</span>
             </div>
+
+            {photoError ? <div className="empty-gallery"><strong>We could not load these photos.</strong><p>{photoError}</p><button type="button" className="primary-button" onClick={fetchPhotos}>Try again <ChevronRight size={16} /></button></div> : loading ? <div className="loading-state"><Loader2 size={30} className="animate-spin" /></div> : photos.length === 0 ? <div className="empty-gallery"><CheckCircle2 size={24} color="#5D927B" /><strong>No photos here yet.</strong><p>Keep this page open while the trip collection is being processed.</p></div> : <div className="photo-grid">{photos.map((photo) => <button type="button" className="photo-tile" key={photo.id} onClick={() => setLightboxPhoto(photo)} aria-label="Open photo"><img src={photo.proxy_url} alt="Trip moment" loading="lazy" /><span className="photo-overlay"><span>{photo.face_count > 1 ? `${photo.face_count} people` : "Personal moment"}</span><span className="photo-download" onClick={(event) => { event.stopPropagation(); void downloadUrl(photo.original_url || photo.proxy_url, `fastsend-${photo.id}.jpg`); }} aria-label="Download photo"><Download size={15} /></span></span></button>)}</div>}
           </section>
-        )}
-      </main>
-    </div>
+        </div>
+      </div>
+
+      {lightboxPhoto && <div className="lightbox" role="dialog" aria-modal="true" aria-label="Photo preview" onClick={() => setLightboxPhoto(null)}><div className="lightbox-content" onClick={(event) => event.stopPropagation()}><button type="button" className="lightbox-close" onClick={() => setLightboxPhoto(null)} aria-label="Close photo"><X size={19} /></button><img src={lightboxPhoto.original_url || lightboxPhoto.proxy_url} alt="Trip moment preview" /><div className="lightbox-actions"><button type="button" className="download-button" onClick={() => void downloadUrl(lightboxPhoto.original_url || lightboxPhoto.proxy_url, `fastsend-${lightboxPhoto.id}.jpg`)}><Download size={16} /> Download photo</button></div></div></div>}
+    </main>
   );
+}
+
+function CameraIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.5 4h-5L8 7H4.5A2.5 2.5 0 0 0 2 9.5v7A2.5 2.5 0 0 0 4.5 19h15a2.5 2.5 0 0 0 2.5-2.5v-7A2.5 2.5 0 0 0 19.5 7H16z" /><circle cx="12" cy="13" r="3.5" /></svg>;
 }

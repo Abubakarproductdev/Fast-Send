@@ -45,10 +45,10 @@ export async function requestNotificationPermission(): Promise<boolean> {
     const channel = await Notifications.getNotificationChannelAsync('fastsend-reminders');
     if (!channel) {
       await Notifications.setNotificationChannelAsync('fastsend-reminders', {
-        name: 'Photo Upload Reminders',
+        name: 'FastSend photo reminders',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#F59E0B',
+        lightColor: '#E86F56',
         sound: null,
       });
     }
@@ -87,14 +87,16 @@ export async function scheduleUploadReminders(intervalHours = 2): Promise<void> 
 
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: '📷 Time to push your photos!',
-          body: `Your guests are waiting. Tap to sync ${i * intervalHours > 12 ? 'the latest' : 'new'} photos from your trip.`,
+          title: 'FastSend • Keep the moment moving',
+          body: `Your guests are ready for ${i * intervalHours > 12 ? 'the latest' : 'new'} photos. Open FastSend to sync them.`,
+          color: '#E86F56',
           data: { type: 'upload_reminder' },
           categoryIdentifier: 'upload_reminder',
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: new Date(triggerMs),
+          channelId: 'fastsend-reminders',
         },
       });
 
@@ -145,8 +147,9 @@ export async function notifyUploadComplete(count: number): Promise<void> {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `✅ ${count} photo${count !== 1 ? 's' : ''} uploaded!`,
-        body: 'Your guests can now see the latest photos from the trip.',
+        title: `FastSend • ${count} photo${count !== 1 ? 's' : ''} ready`,
+        body: 'Your guests can now see the latest moments from this trip.',
+        color: '#E86F56',
         data: { type: 'upload_complete' },
       },
       trigger: null, // Fire immediately
@@ -166,8 +169,9 @@ export async function notifyTripEnded(): Promise<void> {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '🎉 Trip ended!',
-        body: 'Guests will receive their personal photo galleries automatically.',
+        title: 'FastSend • Collection saved',
+        body: 'Your trip is wrapped. Guest photo access is ready.',
+        color: '#E86F56',
         data: { type: 'trip_ended' },
       },
       trigger: null,

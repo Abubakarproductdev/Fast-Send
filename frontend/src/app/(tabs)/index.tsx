@@ -6,13 +6,14 @@ import { useAuth } from '../../context/AuthContext';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ScreenShell } from '../../components/ScreenShell';
 import { BrandMark } from '../../components/BrandMark';
+import { UserAvatar } from '../../components/UserAvatar';
 import { colors } from '../../theme/colors';
 import { radius, spacing } from '../../theme/spacing';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { activeTripId } = useAuth();
+  const { activeTripId, user } = useAuth();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -29,7 +30,7 @@ export default function HomeScreen() {
     <ScreenShell>
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-          <View style={styles.header}><View><Text style={styles.kicker}>YOUR MEMORY STUDIO</Text><Text style={styles.title}>Good morning.</Text></View><TouchableOpacity style={styles.profileBtn}><Ionicons name="person-outline" size={19} color={colors.sageDark} /></TouchableOpacity></View>
+          <View style={styles.header}><View><Text style={styles.kicker}>YOUR MEMORY STUDIO</Text><Text style={styles.title}>Good morning.</Text></View><TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/profile')} activeOpacity={0.8}><UserAvatar name={user?.displayName || user?.email} imageUrl={user?.photoURL} size={44} /></TouchableOpacity></View>
 
           {activeTripId ? (
             <View style={styles.activeCard}>

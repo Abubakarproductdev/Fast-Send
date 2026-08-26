@@ -48,7 +48,7 @@ export default function LoginScreen() {
     setLoading(true); setErrors({});
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const synced = await api.syncOrganizer(userCredential.user.uid, userCredential.user.email);
+      const synced = await api.syncOrganizer(userCredential.user.uid, userCredential.user.email, userCredential.user.displayName || undefined, userCredential.user.photoURL);
       await setOrganizerId(synced.organizer_id);
       router.replace('/(tabs)');
     } catch (error: any) {

@@ -7,6 +7,7 @@ Document models in ``app.models`` so that internal storage details
 """
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from beanie import PydanticObjectId
@@ -15,6 +16,17 @@ from app.models.attendee import GalleryPreference
 
 
 # ── Trip ──────────────────────────────────────────────────────────────
+
+
+DownloadPermission = Literal['mine', 'mine_plus_group', 'all']
+
+
+class TripSettingsPayload(BaseModel):
+    download_permission: DownloadPermission = 'mine'
+
+
+class TripSettingsPatch(BaseModel):
+    download_permission: DownloadPermission | None = None
 
 
 class TripCreate(BaseModel):
@@ -32,12 +44,18 @@ class TripCreate(BaseModel):
         max_length=120,
         examples=["Summer gala 2026"],
     )
+    settings: TripSettingsPayload = Field(default_factory=TripSettingsPayload)
 
 
 class TripActionRequest(BaseModel):
     """Organizer identity required for destructive/state-changing actions."""
 
     organizer_id: PydanticObjectId
+
+
+class TripSettingsUpdateRequest(BaseModel):
+    organizer_id: PydanticObjectId
+    settings: TripSettingsPatch
 
 
 class TripResponse(BaseModel):
@@ -50,6 +68,7 @@ class TripResponse(BaseModel):
     is_active: bool
     created_at: datetime
     registration_url: str
+    settings: TripSettingsPayload
 
 
 class TripDetail(TripResponse):

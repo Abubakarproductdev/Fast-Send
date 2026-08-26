@@ -26,6 +26,8 @@ from app.schemas.trips import (
     TripResponse,
     MediaAssetResponse,
     TripActionRequest,
+    TripSettingsPayload,
+    TripSettingsUpdateRequest,
 )
 from app.ml import FaceEngine, FaceProcessingError, get_face_engine
 from app.services import trip_service
@@ -47,6 +49,7 @@ def _trip_to_response(trip) -> TripResponse:
         is_active=trip.is_active,
         created_at=trip.created_at,
         registration_url=f"/api/v1/trips/join/{trip.invite_code}",
+        settings=TripSettingsPayload.model_validate(trip.settings.model_dump()),
     )
 
 
@@ -74,7 +77,12 @@ def _attendee_to_response(attendee) -> AttendeeResponse:
 )
 async def create_trip(body: TripCreate):
     """Create a trip and generate a unique invite code for QR sharing."""
-    trip = await trip_service.create_trip(PydanticObjectId(body.organizer_id), body.name)
+    from app.models.trip import TripSettings
+    trip = await trip_service.create_trip(
+        PydanticObjectId(body.organizer_id),
+        body.name,
+        TripSettings.model_validate(body.settings.model_dump()),
+    )
     return _trip_to_response(trip)
 
 
@@ -165,6 +173,26 @@ async def end_trip(trip_id: PydanticObjectId):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Trip {trip_id} not found",
         )
+    return _trip_to_response(trip)
+
+
+@router.patch(
+    "/{trip_id}/settings",
+    response_model=TripResponse,
+    summary="Update guest privacy settings",
+)
+async def update_trip_settings(trip_id: PydanticObjectId, body: TripSettingsUpdateRequest):
+    """Update guest visibility/download policy for an organizer-owned trip."""
+    try:
+        trip = await trip_service.update_trip_settings(
+            trip_id,
+            body.organizer_id,
+            body.settings.model_dump(exclude_unset=True),
+        )
+    except trip_service.TripNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Trip {trip_id} not found")
+    except trip_service.TripOwnershipError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this trip")
     return _trip_to_response(trip)
 
 

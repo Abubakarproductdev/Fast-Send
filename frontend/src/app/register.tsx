@@ -35,7 +35,7 @@ export default function RegisterScreen() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       await updateProfile(userCredential.user, { displayName: name.trim() });
-      const synced = await api.syncOrganizer(userCredential.user.uid, userCredential.user.email, name.trim());
+      const synced = await api.syncOrganizer(userCredential.user.uid, userCredential.user.email, name.trim(), userCredential.user.photoURL);
       await setOrganizerId(synced.organizer_id);
       router.replace('/(tabs)');
     } catch (error: any) { if (error.code === 'auth/email-already-in-use') setErrors({ email: 'Email already in use.' }); else setErrors({ general: error.message }); }

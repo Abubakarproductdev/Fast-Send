@@ -7,6 +7,7 @@ the service layer retries generation on the rare collision.
 """
 
 from datetime import datetime, timezone
+from typing import Literal
 
 from beanie import Document, PydanticObjectId
 from pydantic import BaseModel, Field
@@ -14,6 +15,9 @@ from pymongo import IndexModel
 
 
 class TripSettings(BaseModel):
+    # One policy controls both the guest app's visible photos and downloads.
+    download_permission: Literal['mine', 'mine_plus_group', 'all'] = 'mine'
+    # Legacy fields are retained so older Mongo documents remain readable.
     allow_guest_download_all: bool = False
     allow_nature_photos: bool = True
     require_selfie: bool = True

@@ -7,6 +7,7 @@ from celery.signals import worker_process_init
 from app.celery_app import celery_app
 from app.config import get_settings
 from app.models import ALL_MODELS
+from app.models.media_asset import get_detected_face_count
 from app.ml.face_engine import FaceEngine
 from app.services import trip_service
 
@@ -267,7 +268,7 @@ def build_trip_insights_task(trip_id: str):
             total_size_bytes += a.file_size_bytes
             
             # 2. Total Faces Calculation
-            total_faces = len(a.detected_faces)
+            total_faces = get_detected_face_count(a)
             
             if total_faces == 0:
                 nature_count += 1

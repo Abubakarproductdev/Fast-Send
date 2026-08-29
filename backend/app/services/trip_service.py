@@ -357,7 +357,11 @@ async def process_media_asset(
             await asset.save()
             return
 
-        if not face_data["faces"]:
+        raw_face_count = int(face_data.get("face_count", len(face_data["faces"])))
+        asset.detected_face_count = raw_face_count
+        asset.is_nature = raw_face_count == 0
+
+        if raw_face_count == 0:
             # Valid image, just no faces (e.g. landscape)
             asset.is_nature = True
             asset.status = AssetStatus.PROCESSED

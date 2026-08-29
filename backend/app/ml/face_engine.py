@@ -133,6 +133,10 @@ class FaceEngine:
         
         return {
             "brightness": brightness,
+            # Preserve the raw detector count separately from the confident
+            # embeddings used for matching. This keeps group classification
+            # correct when a secondary face is low-confidence.
+            "face_count": len(faces),
             "faces": [
                 {
                     "embedding": f.embedding.tolist(),

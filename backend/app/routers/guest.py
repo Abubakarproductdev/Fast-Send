@@ -14,7 +14,7 @@ from app.models.attendee import Attendee
 from app.models.guest_token import GuestToken
 from app.models.trip import Trip
 from app.models.trip_insights import TripInsights
-from app.models.media_asset import MediaAsset, AssetStatus
+from app.models.media_asset import MediaAsset, AssetStatus, get_detected_face_count
 from app.services.storage_service import azure_blob_service
 from app.tasks import process_selfie_task, reprocess_asset_task
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -66,9 +66,9 @@ def _build_guest_photo_query(
 ) -> dict | None:
     """Build the server-enforced photo scope for one guest.
 
-    The request's old filter query parameter is intentionally ignored. The
-    organizer's one download permission controls both displayed photos and
-    downloads, so a guest cannot broaden access by changing the URL.
+    The requested filter is normalized to a subset of the organizer's
+    permission. It can narrow the view, but never broaden access by changing
+    the URL.
     """
     if requested_filter in {"mine", "mine_only", "nature"}:
         effective_filter = "mine"
@@ -84,7 +84,17 @@ def _build_guest_photo_query(
     if effective_filter == "mine":
         clauses.extend([
             {"matches.attendee_id": attendee.id},
-            {"$expr": {"$eq": [{"$size": "$matches"}, 1]}},
+            # ``matches`` only contains registered attendees. A group photo
+            # can therefore have one match (this guest) while containing
+            # several detected faces. Classification must use the raw face
+            # extraction result, not the number of recognized guests.
+            {"$expr": {"$eq": [
+                {"$ifNull": [
+                    "$detected_face_count",
+                    {"$size": {"$ifNull": ["$detected_faces", []]}},
+                ]},
+                1,
+            ]}},
         ])
     elif effective_filter == "mine_plus_group":
         clauses.append({"matches.attendee_id": attendee.id})
@@ -163,7 +173,7 @@ async def get_me(attendee: Attendee = Depends(get_current_guest)):
         
     for a in matched_assets:
         my_photos_size_bytes += (a.file_size_bytes or 0)
-        total_faces = len(a.detected_faces)
+        total_faces = get_detected_face_count(a)
         
         if total_faces >= 2:
             my_group_count += 1
@@ -243,7 +253,9 @@ async def get_photos(
             if a.original_blob_url else "",
             "media_type": a.media_type,
             "created_at": a.created_at,
-            "face_count": len(a.matches),
+            # Show the actual number of detected faces, including people
+            # who have not registered for this trip.
+            "face_count": get_detected_face_count(a),
         }
         for a in assets
     ]

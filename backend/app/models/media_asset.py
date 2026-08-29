@@ -58,6 +58,9 @@ class MediaAsset(Document):
     is_nature: bool = False
     status: AssetStatus = AssetStatus.PENDING_PROXY
     detected_faces: list[list[float]] = []
+    # Number of faces detected before confidence filtering. This is separate
+    # from detected_faces because the latter stores only usable embeddings.
+    detected_face_count: int = 0
     device_local_id: str | None = None
     batch_id: str | None = None
     matches: list[EmbeddedMatch] = Field(default_factory=list)
@@ -90,3 +93,9 @@ class MediaAsset(Document):
             # Compound index for fast timestamp queries by trip (e.g. for reminders)
             IndexModel([("trip_id", 1), ("created_at", -1)]),
         ]
+
+
+def get_detected_face_count(asset: MediaAsset) -> int:
+    """Return the raw detected-face count, with compatibility for old assets."""
+    count = getattr(asset, "detected_face_count", 0) or 0
+    return count if count > 0 else len(asset.detected_faces)

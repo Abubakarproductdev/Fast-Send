@@ -65,7 +65,7 @@ export default function HomeScreen() {
 
 const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   inner: { flex: 1 },
-  scroll: { paddingTop: 8, paddingBottom: 116 },
+  scroll: { paddingTop: 4, paddingBottom: 116 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
   kicker: { fontSize: 10, fontWeight: '900', color: colors.primaryDark, letterSpacing: 1.5, marginBottom: 7 },
   title: { fontSize: 31, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.9 },

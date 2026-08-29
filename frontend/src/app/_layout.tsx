@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function AppStack() {
   const { colors, isDark } = useTheme();
@@ -32,5 +33,5 @@ function AppStack() {
 }
 
 export default function RootLayout() {
-  return <ThemeProvider><AuthProvider><AppStack /></AuthProvider></ThemeProvider>;
+  return <SafeAreaProvider><ThemeProvider><AuthProvider><AppStack /></AuthProvider></ThemeProvider></SafeAreaProvider>;
 }

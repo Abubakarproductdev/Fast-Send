@@ -7,6 +7,7 @@ import { colors } from '../../theme/colors';
 import { API_BASE_URL } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TabIcon = ({
   name, focused, badge,
@@ -35,6 +36,7 @@ export default function TabLayout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { organizerId } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -64,8 +66,8 @@ export default function TabLayout() {
           backgroundColor: colors.paper,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 82,
-          paddingBottom: 18,
+          height: 64 + insets.bottom,
+          paddingBottom: 10 + insets.bottom,
           paddingTop: 10,
           position: 'absolute',
           bottom: 0,

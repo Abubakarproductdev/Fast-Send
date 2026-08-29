@@ -14,11 +14,13 @@ export const ScreenShell = ({ children, noPadding = false }: ScreenShellProps) =
     root: { flex: 1, backgroundColor: colors.bg },
     safe: { flex: 1 },
     container: { flex: 1 },
-    padding: { paddingHorizontal: 20, paddingTop: 22 },
+    // SafeAreaView supplies the device-specific inset for the status bar,
+    // notch, or Dynamic Island. Keep only a small design gap on top.
+    padding: { paddingHorizontal: 20, paddingTop: 4 },
   });
   return <View style={styles.root}>
     <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={[styles.container, !noPadding && styles.padding]}>{children}</View>
     </SafeAreaView>
   </View>;

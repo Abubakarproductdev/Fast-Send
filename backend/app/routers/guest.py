@@ -42,7 +42,7 @@ class RegisterRequest(BaseModel):
 
 # Older clients may still send the legacy values. They are normalized below and
 # can never expand the organizer's server-side permission.
-GuestFilter = Literal["mine", "mine_plus_group", "all", "mine_only", "group", "nature"]
+GuestFilter = Literal["mine", "mine_plus_group", "all", "mine_only", "photos", "group", "nature"]
 
 
 def _settings_value(settings, name: str, default):
@@ -58,6 +58,17 @@ def _effective_download_permission(trip: Trip) -> str:
     return permission if permission in {"mine", "mine_plus_group", "all"} else "mine"
 
 
+def _detected_face_count_expression() -> dict:
+    """Use the stored raw count, falling back to legacy face embeddings."""
+    return {
+        "$cond": [
+            {"$gt": [{"$ifNull": ["$detected_face_count", 0]}, 0]},
+            {"$ifNull": ["$detected_face_count", 0]},
+            {"$size": {"$ifNull": ["$detected_faces", []]}},
+        ]
+    }
+
+
 def _build_guest_photo_query(
     trip: Trip,
     attendee: Attendee,
@@ -70,10 +81,13 @@ def _build_guest_photo_query(
     permission. It can narrow the view, but never broaden access by changing
     the URL.
     """
-    if requested_filter in {"mine", "mine_only", "nature"}:
-        effective_filter = "mine"
-    elif requested_filter in {"mine_plus_group", "group"}:
-        effective_filter = "mine_plus_group" if permission in {"mine_plus_group", "all"} else "mine"
+    if requested_filter in {"mine", "mine_only", "photos", "nature"}:
+        effective_filter = "photos"
+    elif requested_filter == "group":
+        effective_filter = "group" if permission in {"mine_plus_group", "all"} else "photos"
+    elif requested_filter == "mine_plus_group":
+        # Keep the legacy combined filter available to older clients.
+        effective_filter = "mine_plus_group" if permission in {"mine_plus_group", "all"} else "photos"
     else:
         # The default/all request means the broadest scope the organizer has
         # granted. It is never broader than the stored permission.
@@ -81,20 +95,19 @@ def _build_guest_photo_query(
 
     clauses: list[dict] = []
 
-    if effective_filter == "mine":
+    if effective_filter == "photos":
         clauses.extend([
             {"matches.attendee_id": attendee.id},
             # ``matches`` only contains registered attendees. A group photo
             # can therefore have one match (this guest) while containing
             # several detected faces. Classification must use the raw face
             # extraction result, not the number of recognized guests.
-            {"$expr": {"$eq": [
-                {"$ifNull": [
-                    "$detected_face_count",
-                    {"$size": {"$ifNull": ["$detected_faces", []]}},
-                ]},
-                1,
-            ]}},
+            {"$expr": {"$eq": [_detected_face_count_expression(), 1]}},
+        ])
+    elif effective_filter == "group":
+        clauses.extend([
+            {"matches.attendee_id": attendee.id},
+            {"$expr": {"$gte": [_detected_face_count_expression(), 2]}},
         ])
     elif effective_filter == "mine_plus_group":
         clauses.append({"matches.attendee_id": attendee.id})

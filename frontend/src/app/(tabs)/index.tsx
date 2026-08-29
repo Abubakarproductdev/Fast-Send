@@ -11,10 +11,12 @@ import { useTheme } from '../../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const STEPS = [
-  { num: '1', icon: 'add-circle-outline' as const, title: 'Create your trip', text: 'Name the occasion and get a unique QR code in seconds.', bg: '#E86F56', light: '#FCE5DD', dark: '#39231F', darkAccent: '#6B3A30' },
-  { num: '2', icon: 'qr-code-outline' as const, title: 'Share the QR code', text: 'Guests scan it in their browser — there is no app to install.', bg: '#315B51', light: '#DCE7DE', dark: '#1D332B', darkAccent: '#315B51' },
-  { num: '3', icon: 'person-add-outline' as const, title: 'Guests join once', text: 'They add one clear selfie so Fast Send can find their photos.', bg: '#5D927B', light: 'rgba(93,146,123,0.14)', dark: '#1B3328', darkAccent: '#356B55' },
-  { num: '4', icon: 'camera-outline' as const, title: 'Take and send photos', text: 'Take photos normally. Fast Send sorts the allowed photos for each guest.', bg: '#C58A3A', light: 'rgba(197,138,58,0.14)', dark: '#3B2D1B', darkAccent: '#694A23' },
+  { num: '1', icon: 'add-circle-outline' as const, title: 'Create a new trip', text: 'Give your trip a name and start collecting moments.', bg: '#E86F56', light: '#FCE5DD', dark: '#39231F', darkAccent: '#6B3A30' },
+  { num: '2', icon: 'camera-outline' as const, title: 'Take your photos', text: 'Close the app and take all the photos you want, just as you normally do.', bg: '#315B51', light: '#DCE7DE', dark: '#1D332B', darkAccent: '#315B51' },
+  { num: '3', icon: 'cloud-upload-outline' as const, title: 'Push photos when you like', text: 'Push them after the trip, all at once, or every few hours. Pushed photos become available to share through the trip.', bg: '#5D927B', light: 'rgba(93,146,123,0.14)', dark: '#1B3328', darkAccent: '#356B55' },
+  { num: '4', icon: 'stop-circle-outline' as const, title: 'End the trip', text: 'When you do not want to share more photos, end the trip from the live-trip page.', bg: '#C58A3A', light: 'rgba(197,138,58,0.14)', dark: '#3B2D1B', darkAccent: '#694A23' },
+  { num: '5', icon: 'refresh-circle-outline' as const, title: 'Relive it anytime', text: 'Want to restart? Open the trip from Archive and choose Relive to continue with the same trip.', bg: '#7B668F', light: 'rgba(123,102,143,0.14)', dark: '#30263A', darkAccent: '#624F73' },
+  { num: '6', icon: 'options-outline' as const, title: 'Set photo permissions', text: 'Open Trip Settings to choose whether guests can download their photos, all photos, or their photos plus group photos.', bg: '#4B7893', light: 'rgba(75,120,147,0.14)', dark: '#1D303B', darkAccent: '#3E687F' },
 ];
 
 export default function HomeScreen() {
@@ -92,7 +94,7 @@ export default function HomeScreen() {
               {/* How it works */}
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>HOW IT WORKS</Text>
-                <Text style={styles.sectionNote}>4 SIMPLE STEPS</Text>
+                <Text style={styles.sectionNote}>6 SIMPLE STEPS</Text>
               </View>
 
               <View style={styles.journey}>

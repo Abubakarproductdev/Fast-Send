@@ -107,6 +107,13 @@ h2 { font-size: clamp(28px, 7vw, 35px); line-height: 1.08; }
 .gallery-tab { min-height: 42px; display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; color: #6D756F; background: transparent; border: 1px solid transparent; border-radius: 13px; white-space: nowrap; font-size: 12px; font-weight: 800; cursor: pointer; }
 .gallery-tab.active { color: #B94D3D; background: #FFFDF8; border-color: #E5E0D7; box-shadow: 0 5px 12px rgba(31,41,38,.06); }
 .gallery-count { margin-left: auto; color: #99A09A; font-size: 11px; white-space: nowrap; }
+.category-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; padding: 13px 14px 13px 16px; background: #FFFDF8; border: 1px solid #E5E0D7; border-radius: 17px; }
+.category-toolbar-copy { display: grid; gap: 3px; min-width: 0; }
+.category-toolbar-copy strong { color: #1F2926; font-size: 13px; }
+.category-toolbar-copy span { color: #6D756F; font-size: 11px; }
+.category-download-button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex-shrink: 0; padding: 0 13px; color: #315B51; background: #DCE7DE; border: 1px solid rgba(93,146,123,.23); border-radius: 12px; font-size: 11px; font-weight: 900; cursor: pointer; }
+.category-download-button:hover { background: #C7D9CB; }
+.category-download-button:disabled { opacity: .55; cursor: not-allowed; }
 .photo-grid { columns: 2; column-gap: 11px; }
 .photo-tile { position: relative; display: block; width: 100%; margin: 0 0 11px; overflow: hidden; break-inside: avoid; background: #ECE8E0; border: 0; border-radius: 16px; cursor: zoom-in; }
 .photo-tile img { display: block; width: 100%; height: auto; transition: transform .35s ease; }
@@ -132,9 +139,11 @@ h2 { font-size: clamp(28px, 7vw, 35px); line-height: 1.08; }
 @media (max-width: 520px) {
   .guest-card { padding: 22px 19px; border-radius: 24px; }
   .guest-screen-landing { padding-top: 34px; }
-  .gallery-header { align-items: flex-start; }
-  .gallery-header .download-button { padding: 0 12px; }
-  .gallery-header .download-button span { display: none; }
+  .gallery-header { align-items: flex-start; flex-wrap: wrap; }
+  .gallery-header .download-button { width: 100%; justify-content: center; padding: 0 12px; }
+  .gallery-header .download-button span { display: inline; }
   .summary-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px 10px; }
   .gallery-count { display: none; }
+  .category-toolbar { align-items: stretch; flex-direction: column; }
+  .category-download-button { width: 100%; }
 }

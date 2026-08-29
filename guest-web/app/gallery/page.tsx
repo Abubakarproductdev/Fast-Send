@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ChevronRight, Database, Download, Image as ImageIcon, Images, Loader2, LockKeyhole, UserRound, Users, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, Database, Download, Image as ImageIcon, Images, Loader2, LockKeyhole, Users, X } from "lucide-react";
 import { API_BASE_URL } from "../lib/api";
 
 type DownloadPermission = "mine" | "mine_plus_group" | "all";
-type GalleryFilter = "mine" | "mine_plus_group" | "all";
+type GalleryFilter = "photos" | "group" | "all";
 
 type MeData = {
   name: string;
@@ -31,8 +31,8 @@ type Photo = {
 };
 
 const FILTER_LABELS: Record<GalleryFilter, string> = {
-  mine: "Mine Photos",
-  mine_plus_group: "Mine + Group",
+  photos: "Photos",
+  group: "Group Photos",
   all: "All Photos",
 };
 
@@ -59,7 +59,7 @@ export default function GalleryPage() {
   const [token, setToken] = useState<string | null>(null);
   const [me, setMe] = useState<MeData | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [activeFilter, setActiveFilter] = useState<GalleryFilter>("mine");
+  const [activeFilter, setActiveFilter] = useState<GalleryFilter>("photos");
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState("");
   const [photoError, setPhotoError] = useState("");
@@ -119,27 +119,27 @@ export default function GalleryPage() {
 
   const permission = me?.download_permission || "mine";
   const filterOptions = useMemo(() => {
-    const options: GalleryFilter[] = ["mine"];
-    if (permission === "mine_plus_group" || permission === "all") options.push("mine_plus_group");
+    const options: GalleryFilter[] = ["photos"];
+    if (permission === "mine_plus_group" || permission === "all") options.push("group");
     if (permission === "all") options.push("all");
     return options;
   }, [permission]);
 
   useEffect(() => {
-    if (!filterOptions.includes(activeFilter)) setActiveFilter("mine");
+    if (!filterOptions.includes(activeFilter)) setActiveFilter("photos");
   }, [activeFilter, filterOptions]);
 
-  const handleDownload = async () => {
+  const handleDownload = async (filter: GalleryFilter) => {
     if (!token || isDownloading) return;
     setIsDownloading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/guest/download?filter=${activeFilter}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest/download?filter=${filter}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!response.ok) throw new Error("Download failed");
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = `fastsend-${activeFilter}.zip`;
+      anchor.download = `fastsend-${filter}.zip`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -166,7 +166,7 @@ export default function GalleryPage() {
       <div className="gallery-shell">
         <header className="gallery-header">
           <div><div className="gallery-brand"><span className="gallery-brand-mark"><CameraIcon /></span><span>FASTSEND</span></div><p className="gallery-welcome">Welcome, {me.name}</p></div>
-          <button type="button" onClick={handleDownload} disabled={isDownloading} className="download-button">{isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}<span>{isDownloading ? "Preparing..." : `Download ${FILTER_LABELS[activeFilter]}`}</span></button>
+          {permission === "all" && <button type="button" onClick={() => void handleDownload("all")} disabled={isDownloading} className="download-button">{isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}<span>{isDownloading ? "Preparing..." : "Download all photos"}</span></button>}
         </header>
 
         <div className="gallery-main">
@@ -176,12 +176,17 @@ export default function GalleryPage() {
 
           <section className="summary-card"><div className="summary-heading"><Database size={15} /> YOUR COLLECTION AT A GLANCE</div><div className="summary-grid"><div className="summary-item"><small>Matched photos</small><strong>{me.matched_photo_count}</strong><span>{formatSize(me.my_photos_size_bytes)}</span></div><div className="summary-item"><small>Solo moments</small><strong>{me.my_solo_count}</strong><span>just you</span></div><div className="summary-item"><small>Group moments</small><strong>{me.my_group_count}</strong><span>with others</span></div><div className="summary-item"><small>Trip album</small><strong>{me.total_trip_photos}</strong><span>{formatSize(me.total_size_bytes)}</span></div></div></section>
 
-          <section className="permission-card"><strong><LockKeyhole size={14} /> Organizer sharing setting</strong><p>{permission === "all" ? "You can explore the complete trip collection." : permission === "mine_plus_group" ? "You can explore your photos and group moments you are in." : "You can explore your personal solo photos."}</p></section>
+          <section className="permission-card"><strong><LockKeyhole size={14} /> Organizer sharing setting</strong><p>{permission === "all" ? "You can explore and download the complete trip collection." : permission === "mine_plus_group" ? "You can explore and download your personal and group photos you are in." : "You can explore and download your personal solo photos."}</p></section>
 
           <section>
             <div className="gallery-nav" role="tablist" aria-label="Photo collection views">
-              {filterOptions.map((filter) => <button type="button" role="tab" aria-selected={activeFilter === filter} key={filter} className={`gallery-tab ${activeFilter === filter ? "active" : ""}`} onClick={() => setActiveFilter(filter)}>{filter === "mine" ? <UserRound size={15} /> : filter === "mine_plus_group" ? <Users size={15} /> : <Images size={15} />}{FILTER_LABELS[filter]}</button>)}
+              {filterOptions.map((filter) => <button type="button" role="tab" aria-selected={activeFilter === filter} key={filter} className={`gallery-tab ${activeFilter === filter ? "active" : ""}`} onClick={() => setActiveFilter(filter)}>{filter === "photos" ? <ImageIcon size={15} /> : filter === "group" ? <Users size={15} /> : <Images size={15} />}{FILTER_LABELS[filter]}</button>)}
               <span className="gallery-count">{photos.length} shown</span>
+            </div>
+
+            <div className="category-toolbar">
+              <div className="category-toolbar-copy"><strong>{FILTER_LABELS[activeFilter]}</strong><span>Download this category as a ZIP file.</span></div>
+              <button type="button" className="category-download-button" onClick={() => void handleDownload(activeFilter)} disabled={isDownloading || loading || photos.length === 0}>{isDownloading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />} {isDownloading ? "Preparing..." : `Download ${FILTER_LABELS[activeFilter]}`}</button>
             </div>
 
             {photoError ? <div className="empty-gallery"><strong>We could not load these photos.</strong><p>{photoError}</p><button type="button" className="primary-button" onClick={fetchPhotos}>Try again <ChevronRight size={16} /></button></div> : loading ? <div className="loading-state"><Loader2 size={30} className="animate-spin" /></div> : photos.length === 0 ? <div className="empty-gallery"><CheckCircle2 size={24} color="#5D927B" /><strong>No photos here yet.</strong><p>Keep this page open while the trip collection is being processed.</p></div> : <div className="photo-grid">{photos.map((photo) => <button type="button" className="photo-tile" key={photo.id} onClick={() => setLightboxPhoto(photo)} aria-label="Open photo"><img src={photo.proxy_url} alt="Trip moment" loading="lazy" /><span className="photo-overlay"><span>{photo.face_count > 1 ? `${photo.face_count} people` : "Personal moment"}</span><span className="photo-download" onClick={(event) => { event.stopPropagation(); void downloadUrl(photo.original_url || photo.proxy_url, `fastsend-${photo.id}.jpg`); }} aria-label="Download photo"><Download size={15} /></span></span></button>)}</div>}

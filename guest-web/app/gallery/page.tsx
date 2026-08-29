@@ -36,6 +36,12 @@ const FILTER_LABELS: Record<GalleryFilter, string> = {
   all: "All Photos",
 };
 
+// The currently deployed API still exposes the legacy `mine` name. Keep that
+// wire value here while the guest UI uses the clearer `Photos` label.
+function backendFilterFor(filter: GalleryFilter): "mine" | "group" | "all" {
+  return filter === "photos" ? "mine" : filter;
+}
+
 async function downloadUrl(url: string, filename: string) {
   try {
     const response = await fetch(url);
@@ -100,14 +106,18 @@ export default function GalleryPage() {
     setLoading(true);
     setPhotoError("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/guest/photos?filter=${activeFilter}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest/photos?filter=${backendFilterFor(activeFilter)}`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.status === 401) {
         localStorage.removeItem("guestToken");
         router.replace("/");
         return;
       }
       if (!response.ok) throw new Error("Your photos could not be loaded right now.");
-      setPhotos(await response.json());
+      const loadedPhotos: Photo[] = await response.json();
+      // Older servers return all matched photos for `group`. The attendee
+      // scope is still enforced by the server; this second check keeps the
+      // visual category correct until that server is redeployed.
+      setPhotos(activeFilter === "group" ? loadedPhotos.filter((photo) => photo.face_count >= 2) : loadedPhotos);
     } catch (error: unknown) {
       setPhotoError(error instanceof Error ? error.message : "Your photos could not be loaded right now.");
     } finally {
@@ -133,7 +143,33 @@ export default function GalleryPage() {
     if (!token || isDownloading) return;
     setIsDownloading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/guest/download?filter=${filter}`, { headers: { Authorization: `Bearer ${token}` } });
+      const params = new URLSearchParams({ filter: backendFilterFor(filter) });
+
+      // The legacy API's `group` download scope is the combined matched scope.
+      // Restrict it with server-validated photo IDs so a Group Photos ZIP never
+      // includes a single-face photo, even before the API deployment is updated.
+      if (filter === "group") {
+        const groupIds: string[] = [];
+        let page = 1;
+        while (true) {
+          const photosResponse = await fetch(`${API_BASE_URL}/api/v1/guest/photos?filter=group&page=${page}&per_page=100`, { headers: { Authorization: `Bearer ${token}` } });
+          if (photosResponse.status === 401) {
+            localStorage.removeItem("guestToken");
+            router.replace("/");
+            return;
+          }
+          if (!photosResponse.ok) throw new Error("Group photos could not be prepared for download.");
+          const pagePhotos: Photo[] = await photosResponse.json();
+          groupIds.push(...pagePhotos.filter((photo) => photo.face_count >= 2).map((photo) => photo.id));
+          if (pagePhotos.length < 100) break;
+          page += 1;
+        }
+        const uniqueGroupIds = [...new Set(groupIds)];
+        if (uniqueGroupIds.length === 0) throw new Error("No group photos found.");
+        params.set("photo_ids", uniqueGroupIds.join(","));
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest/download?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!response.ok) throw new Error("Download failed");
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);

@@ -196,6 +196,13 @@ export default function ProfileScreen() {
             <InfoRow label="Profile photo" value={photoUrl ? 'Connected' : 'Initials fallback'} icon="image-outline" last />
           </View>
 
+          <Text style={styles.sectionTitle}>PRIVACY & TERMS</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardIntro}>FastSend is built for consent-led photo sharing. Review how trip photos, guest selfies, and account information are handled.</Text>
+            <LegalLink icon="shield-checkmark-outline" title="Privacy policy" subtitle="Data use, photo matching, sharing, and deletion" onPress={() => router.push('/legal?document=privacy')} />
+            <LegalLink icon="document-text-outline" title="Terms of service" subtitle="Your responsibilities when creating and sharing a trip" onPress={() => router.push('/legal?document=terms')} last />
+          </View>
+
           <Text style={styles.securityNote}><Ionicons name="lock-closed-outline" size={14} color={colors.textMuted} /> Your password is handled by Firebase and is never stored in FastSend or MongoDB.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -209,6 +216,12 @@ function InfoRow({ label, value, icon, last = false }: { label: string; value: s
   return <View style={[styles.infoRow, !last && styles.infoRowBorder]}><View style={styles.infoIcon}><Ionicons name={icon} size={17} color={colors.primaryDark} /></View><Text style={styles.infoLabel}>{label}</Text><Text style={styles.infoValue}>{value}</Text></View>;
 }
 
+function LegalLink({ icon, title, subtitle, onPress, last = false }: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string; subtitle: string; onPress: () => void; last?: boolean }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  return <TouchableOpacity onPress={onPress} activeOpacity={0.75} style={[styles.legalLink, !last && styles.legalLinkBorder]}><View style={styles.infoIcon}><Ionicons name={icon} size={17} color={colors.primaryDark} /></View><View style={styles.legalCopy}><Text style={styles.legalTitle}>{title}</Text><Text style={styles.legalSubtitle}>{subtitle}</Text></View><Ionicons name="chevron-forward" size={17} color={colors.textMuted} /></TouchableOpacity>;
+}
+
 const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   flex: { flex: 1 },
   scroll: { paddingTop: 8, paddingBottom: 48 },
@@ -217,7 +230,7 @@ const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet
   topBarTitle: { color: colors.textPrimary, fontSize: 16, fontWeight: '800' },
   topBarSpacer: { width: 42 },
   hero: { alignItems: 'center', backgroundColor: colors.sageDark, borderRadius: radius.xl, padding: 25, marginBottom: 31 },
-  heroName: { color: colors.paper, fontSize: 25, fontWeight: '800', marginTop: 14, marginBottom: 5 },
+  heroName: { color: '#FFFDF8', fontSize: 25, fontWeight: '800', marginTop: 14, marginBottom: 5 },
   heroEmail: { color: 'rgba(255,253,248,0.68)', fontSize: 13, marginBottom: 12 },
   accountPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.paper, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 6 },
   accountPillText: { color: colors.primaryDark, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
@@ -238,5 +251,10 @@ const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet
   infoIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: colors.bgElevated, alignItems: 'center', justifyContent: 'center' },
   infoLabel: { flex: 1, color: colors.textPrimary, fontSize: 13, fontWeight: '700' },
   infoValue: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  legalLink: { flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 65 },
+  legalLinkBorder: { borderBottomWidth: 1, borderBottomColor: colors.divider },
+  legalCopy: { flex: 1 },
+  legalTitle: { color: colors.textPrimary, fontSize: 13, fontWeight: '800', marginBottom: 3 },
+  legalSubtitle: { color: colors.textSecondary, fontSize: 11, lineHeight: 15 },
   securityNote: { color: colors.textMuted, fontSize: 11, lineHeight: 17, textAlign: 'center', paddingHorizontal: 15 },
 });

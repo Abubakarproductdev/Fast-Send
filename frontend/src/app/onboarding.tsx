@@ -11,9 +11,9 @@ import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const SLIDES = [
-  { icon: 'images-outline' as const, eyebrow: '01 / COLLECT', title: 'Every moment,\nin one place.', subtitle: 'Fast Send turns a live event into a beautifully organized memory vault.' },
-  { icon: 'sparkles-outline' as const, eyebrow: '02 / MATCH', title: 'The right photos\nfind the right people.', subtitle: 'Our AI quietly recognizes guests so the gallery feels personal from the start.' },
-  { icon: 'qr-code-outline' as const, eyebrow: '03 / SHARE', title: 'Share the moment\nwhile it is happening.', subtitle: 'Create a trip, show one code, and let every guest step into the story.' },
+  { icon: 'add-circle-outline' as const, eyebrow: 'BEFORE YOUR TRIP', title: 'Create a trip\nbefore you go.', subtitle: 'Open Fast Send, tap "Create a trip", give it a name — and you\'re done. Takes 10 seconds.' },
+  { icon: 'camera-outline' as const, eyebrow: 'DURING YOUR TRIP', title: 'Just enjoy\nthe moment.', subtitle: 'Take photos like you normally would. Fast Send runs in the background. No extra steps.' },
+  { icon: 'qr-code-outline' as const, eyebrow: 'AFTER YOUR TRIP', title: 'Everyone gets\ntheir photos.', subtitle: 'Show your QR code. Anyone who scans it gets their photos delivered straight to them.' },
 ];
 
 export default function OnboardingScreen() {
@@ -70,7 +70,7 @@ export default function OnboardingScreen() {
                   <View style={styles.artCenter}>
                     <Animated.View style={[styles.artOrb, { transform: [{ translateX: orbTranslate }] }]} />
                     <Animated.View style={[styles.iconTile, { transform: [{ scale: iconScale }, { rotate: iconRotate }] }]}>
-                      <Ionicons name={slide.icon} size={42} color={colors.paper} />
+                      <Ionicons name={slide.icon} size={42} color="#FFFDF8" />
                     </Animated.View>
                     <View style={styles.artLineShort} /><View style={styles.artLineLong} />
                   </View>
@@ -87,7 +87,7 @@ export default function OnboardingScreen() {
         </Animated.ScrollView>
         <View style={styles.navArea}>
           <View style={styles.dotsContainer}>{SLIDES.map((slide, index) => <View key={slide.eyebrow} style={[styles.dot, activeIndex === index && styles.dotActive]} />)}</View>
-          <PrimaryButton title="Get Started" onPress={() => router.push('/register')} />
+          <PrimaryButton title="Create a free account" onPress={() => router.push('/register')} />
           <TouchableOpacity onPress={() => router.push('/login')} style={styles.linkButton} activeOpacity={0.7}>
             <Text style={styles.linkText}>Already have an account? <Text style={styles.linkTextAccent}>Sign in</Text></Text>
           </TouchableOpacity>

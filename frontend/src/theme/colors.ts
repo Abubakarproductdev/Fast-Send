@@ -52,8 +52,8 @@ export const lightColors = {
 
 export const darkColors = {
   ...lightColors,
-  primary: '#F28B73',
-  primaryLight: '#8B4E43',
+  primary: '#934B40',
+  primaryLight: '#C87967',
   primaryDark: '#FFB19D',
   primaryGlow: 'rgba(242, 139, 115, 0.20)',
   bg: '#121917',
@@ -77,16 +77,16 @@ export const darkColors = {
   ink: '#F8F3EB',
   paper: '#1B2421',
   sage: '#2E4940',
-  sageDark: '#8FC2AB',
-  coral: '#F28B73',
-  amber: '#F28B73',
-  amberLight: '#8B4E43',
+  sageDark: '#24352E',
+  coral: '#934B40',
+  amber: '#934B40',
+  amberLight: '#6D3D36',
   amberDark: '#FFB19D',
   amberGlow: 'rgba(242, 139, 115, 0.20)',
   danger: '#F28A7E',
   bgBase: '#121917',
   textBase: '#F8F3EB',
-  yellow: '#F28B73',
+  yellow: '#934B40',
   offWhite: '#1B2421',
 } as const;
 

@@ -32,7 +32,7 @@ export function UserAvatar({ name, imageUrl, size = 52 }: UserAvatarProps) {
           style={{ width: size, height: size, borderRadius: radius }}
         />
       ) : (
-        <Text style={[styles.initials, { fontSize: Math.max(14, size * 0.32), color: colors.paper }]}>{initialsFor(name)}</Text>
+        <Text style={[styles.initials, { fontSize: Math.max(14, size * 0.32), color: '#FFFDF8' }]}>{initialsFor(name)}</Text>
       )}
     </View>
   );

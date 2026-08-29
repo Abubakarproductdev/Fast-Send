@@ -39,7 +39,7 @@ export const PrimaryButton = ({
         disabled={disabled || loading}
         activeOpacity={0.9}
       >
-        {loading ? <ActivityIndicator color={type === 'primary' ? colors.paper : colors.primary} size="small" /> : (
+        {loading ? <ActivityIndicator color={type === 'primary' ? '#FFFDF8' : colors.primary} size="small" /> : (
           <Text style={[styles.text, textStyle]}>{title}</Text>
         )}
       </TouchableOpacity>
@@ -70,7 +70,7 @@ const makeStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet
   ghost: { backgroundColor: 'transparent' },
   disabled: { backgroundColor: colors.bgElevated, opacity: 0.55 },
   text: { fontSize: typography.size.sm, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase' },
-  primaryText: { color: colors.paper },
+  primaryText: { color: '#FFFDF8' },
   secondaryText: { color: colors.textPrimary },
   dangerText: { color: '#FFFFFF' },
   ghostText: { color: colors.primaryDark },

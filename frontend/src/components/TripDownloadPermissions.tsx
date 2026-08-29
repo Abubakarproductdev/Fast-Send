@@ -20,7 +20,7 @@ export function TripDownloadPermissions({ settings, onChange, disabled = false }
     <Text style={styles.intro}>This one permission controls both what guests see and what they can download.</Text>
     <View style={styles.optionList}>
       {options.map((option) => <TouchableOpacity key={option.value} style={[styles.option, settings.download_permission === option.value && styles.optionSelected, disabled && styles.disabled]} onPress={() => onChange({ download_permission: option.value })} disabled={disabled} activeOpacity={0.8}>
-        <View style={[styles.icon, settings.download_permission === option.value && styles.iconSelected]}><Ionicons name={option.icon} size={18} color={settings.download_permission === option.value ? colors.paper : colors.textSecondary} /></View>
+                <View style={[styles.icon, settings.download_permission === option.value && styles.iconSelected]}><Ionicons name={option.icon} size={18} color={settings.download_permission === option.value ? '#FFFDF8' : colors.textSecondary} /></View>
         <View style={styles.copy}><Text style={styles.title}>{option.title}</Text><Text style={styles.description}>{option.description}</Text></View>
         <View style={[styles.radio, settings.download_permission === option.value && styles.radioSelected]}>{settings.download_permission === option.value && <View style={styles.dot} />}</View>
       </TouchableOpacity>)}

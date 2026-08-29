@@ -48,7 +48,7 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <View style={styles.top}><BrandMark compact /><TouchableOpacity onPress={() => router.back()}><Ionicons name="close-outline" size={26} color={colors.textSecondary} /></TouchableOpacity></View>
-            <View style={styles.header}><Text style={styles.eyebrow}>GET STARTED</Text><Text style={styles.title}>Make room for more moments.</Text><Text style={styles.subtitle}>Set up your organizer profile and start sharing.</Text></View>
+            <View style={styles.header}><Text style={styles.eyebrow}>JOIN FAST SEND</Text><Text style={styles.title}>Create your account.</Text><Text style={styles.subtitle}>It only takes 30 seconds to get started.</Text></View>
             <View style={styles.form}>
               {errors.general && <View style={styles.errorBanner}><Ionicons name="warning-outline" size={18} color={colors.error} /><Text style={styles.errorText}>{errors.general}</Text></View>}
               <InputField label="Full name" placeholder="Ahmed Raza" autoCapitalize="words" value={name} onChangeText={(t) => { setName(t); setErrors(e => ({ ...e, name: undefined })); }} error={errors.name} />

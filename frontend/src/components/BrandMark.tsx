@@ -9,7 +9,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <View style={[styles.wrap, compact && styles.compactWrap]}>
       <View style={[styles.icon, compact && styles.compactIcon]}>
-        <Ionicons name="aperture-outline" size={compact ? 17 : 26} color={colors.paper} />
+        <Ionicons name="aperture-outline" size={compact ? 17 : 26} color="#FFFDF8" />
       </View>
       <Text style={[styles.wordmark, compact && styles.compactWordmark]}>FAST SEND</Text>
     </View>

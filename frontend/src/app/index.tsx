@@ -37,7 +37,7 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}>
-        <View style={styles.logoTile}><Ionicons name="aperture-outline" size={58} color={colors.paper} /></View>
+        <View style={styles.logoTile}><Ionicons name="aperture-outline" size={58} color="#FFFDF8" /></View>
         <View style={styles.ring} />
       </Animated.View>
       <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>

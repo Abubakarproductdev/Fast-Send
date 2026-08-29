@@ -74,7 +74,7 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <View style={styles.top}><BrandMark compact /><TouchableOpacity onPress={() => router.back()}><Ionicons name="close-outline" size={26} color={colors.textSecondary} /></TouchableOpacity></View>
-            <View style={styles.header}><Text style={styles.eyebrow}>WELCOME BACK</Text><Text style={styles.title}>Good to see you.</Text><Text style={styles.subtitle}>Your next collection is waiting.</Text></View>
+            <View style={styles.header}><Text style={styles.eyebrow}>WELCOME BACK</Text><Text style={styles.title}>Sign back in.</Text><Text style={styles.subtitle}>Your trips and photos are ready for you.</Text></View>
             <View style={styles.form}>
               {errors.general && <View style={styles.errorBanner}><Ionicons name="warning-outline" size={18} color={colors.error} /><Text style={styles.errorBannerText}>{errors.general}</Text></View>}
               <InputField label="Email address" placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} value={email} onChangeText={(t) => { setEmail(t); setErrors(e => ({ ...e, email: undefined })); }} error={errors.email} />

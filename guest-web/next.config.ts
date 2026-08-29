@@ -6,7 +6,9 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://20.244.11.161.nip.io/api/:path*', // Proxy to Backend
+        // Keep the Vercel-to-backend connection on HTTPS. This is the
+        // canonical backend host used by the mobile app configuration.
+        destination: 'https://20.244.11.161.nip.io/api/:path*',
       },
     ]
   },

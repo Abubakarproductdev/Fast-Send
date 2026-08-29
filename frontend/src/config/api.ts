@@ -1,3 +1,3 @@
-// Use the production Azure IP and Vercel URL
-export const API_BASE_URL = 'http://145.241.114.68';
-export const GUEST_WEBAPP_URL = 'https://fast-send-bgczrpi84-muhammad-abubakars-projects-39d48867.vercel.app/';
+// Use the HTTPS backend domain so native API calls remain secure on mobile.
+export const API_BASE_URL = 'https://145.241.114.68.nip.io';
+export const GUEST_WEBAPP_URL = 'https://fast-send-three.vercel.app';

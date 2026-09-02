@@ -8,7 +8,6 @@ import { ScreenShell } from '../../components/ScreenShell';
 import { UserAvatar } from '../../components/UserAvatar';
 import { radius } from '../../theme/spacing';
 import { useTheme } from '../../context/ThemeContext';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const STEPS = [
   { num: '1', icon: 'add-circle-outline' as const, title: 'Create a new trip', text: 'Give your trip a name and start collecting moments.', bg: '#E86F56', light: '#FCE5DD', dark: '#39231F', darkAccent: '#6B3A30' },
@@ -36,14 +35,6 @@ export default function HomeScreen() {
 
   return (
     <ScreenShell>
-      <View pointerEvents="none" style={styles.pageArtwork}>
-        <ImageBackground source={require('../../../assets/images/home-photo-strip.jpg')} resizeMode="cover" style={styles.pageArtworkImage} imageStyle={styles.pageArtworkImageStyle} />
-        <LinearGradient
-          colors={isDark ? ['rgba(18,25,23,0.16)', 'rgba(18,25,23,0.76)', colors.bg] : ['rgba(244,241,235,0.06)', 'rgba(244,241,235,0.70)', colors.bg]}
-          locations={[0, 0.64, 1]}
-          style={styles.pageArtworkFade}
-        />
-      </View>
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
@@ -123,10 +114,6 @@ export default function HomeScreen() {
 const makeStyles = (colors: ReturnType<typeof useTheme>['colors'], isDark: boolean) => StyleSheet.create({
   inner: { flex: 1 },
   scroll: { paddingTop: 9, paddingBottom: 116 },
-  pageArtwork: { position: 'absolute', top: 0, left: 0, right: 0, height: '54%', overflow: 'hidden' },
-  pageArtworkImage: { flex: 1 },
-  pageArtworkImageStyle: { opacity: isDark ? 0.50 : 0.80 },
-  pageArtworkFade: { ...StyleSheet.absoluteFillObject },
   // Header
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 26 },
   brand: { fontFamily: 'Inter_800ExtraBold', fontSize: 17, color: colors.primaryDark, letterSpacing: 2.6 },

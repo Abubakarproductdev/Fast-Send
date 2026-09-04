@@ -1,0 +1,25 @@
+# Dependencies & temporary files
+node_modules/
+.expo/
+.eas/
+package-lock.json
+*.log
+
+# Exclude backend and web apps from mobile build
+backend/
+frontend/
+frontend2/
+guest-web/
+guest-webapp/
+
+# Exclude frontend3 local dependencies and backups
+frontend3/node_modules/
+frontend3/mock-web-backup/
+frontend3/.expo/
+frontend3/dist/
+
+# System & docs
+.git/
+.DS_Store
+Thumbs.db
+*.md

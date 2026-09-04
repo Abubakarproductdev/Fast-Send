@@ -1,5 +1,5 @@
 {
-  "name": "Fast Send",
+  "name": "frontend",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.10",
+    "react-refresh": "^0.18.0",
     "typescript": "~5.9.2"
   },
   "scripts": {

@@ -5,16 +5,19 @@ import { Platform } from 'react-native';
 const NOTIFICATION_IDS_KEY = 'scheduled_notification_ids';
 const REMINDER_COUNT = 12;
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
   if (Platform.OS === 'android') {
     const channel = await Notifications.getNotificationChannelAsync('fastsend-reminders');
     if (!channel) {

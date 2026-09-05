@@ -1,11 +1,10 @@
 /**
  * Centralized API configuration.
  *
- * We now use an empty string "" so that all fetch() calls go to the SAME domain
- * (e.g. fast-send-three.vercel.app/api/v1/...).
- * Next.js (Vercel) will intercept these /api/ requests and proxy them securely
- * to the Azure backend, completely bypassing any mobile DNS blocking.
+ * In development, we call the real backend directly.
+ * In production (Vercel), we use an empty string so that Next.js rewrites
+ * the /api/* requests to the backend via next.config.ts (no CORS issues).
  */
-export const API_BASE_URL = process.env.NODE_ENV === "development" 
-  ? "https://145.241.114.68.nip.io" 
+export const API_BASE_URL = process.env.NODE_ENV === "development"
+  ? "https://145.241.114.68.nip.io"
   : "";

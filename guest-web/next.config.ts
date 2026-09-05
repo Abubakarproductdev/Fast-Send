@@ -1,16 +1,15 @@
 import type { NextConfig } from "next";
 
+const BACKEND_URL = "https://145.241.114.68.nip.io";
+
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['192.168.10.4'],
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        // Keep the Vercel-to-backend connection on HTTPS. This is the
-        // canonical backend host used by the mobile app configuration.
-        destination: 'https://20.244.11.161.nip.io/api/:path*',
+        destination: `${BACKEND_URL}/api/:path*`,
       },
-    ]
+    ];
   },
 };
 

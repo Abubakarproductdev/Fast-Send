@@ -5,27 +5,26 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ShieldCheck, FileText, Info } from 'lucide-react-native';
 import { StatusBar } from '../components/StatusBar';
-import { colors, neoShadow } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 type LegalDocument = 'privacy' | 'terms';
 
 const PRIVACY_SECTIONS: [string, string][] = [
   [
     'What FastSend handles',
-    'FastSend handles account information, trip details, the photos an organizer chooses to send, and—when a guest chooses to join—a clear selfie used to locate that guest’s eligible trip photos.',
+    'FastSend handles account information, trip details, the photos an organizer chooses to send, and—when a guest chooses to join—a clear selfie used to locate that guest\'s eligible trip photos.',
   ],
   [
     'Why we use it',
-    'We use this information to create trips, generate QR access, deliver the photos allowed by the organizer’s trip setting, keep the service secure, and support your account.',
+    'We use this information to create trips, generate QR access, deliver the photos allowed by the organizer\'s trip setting, keep the service secure, and support your account.',
   ],
   [
     'Photo matching and sharing',
-    'A guest joins with a selfie only for the trip they choose. The organizer’s photo-permission setting controls what a guest can see and download. Guests cannot use a filter or direct link to expand that permission.',
+    'A guest joins with a selfie only for the trip they choose. The organizer\'s photo-permission setting controls what a guest can see and download. Guests cannot use a filter or direct link to expand that permission.',
   ],
   [
     'Storage and deletion',
@@ -44,11 +43,11 @@ const TERMS_SECTIONS: [string, string][] = [
   ],
   [
     'Guest consent',
-    'Before using a guest’s selfie or making photos available to them, make sure the guest has chosen to participate and understands the trip’s photo-sharing purpose.',
+    'Before using a guest\'s selfie or making photos available to them, make sure the guest has chosen to participate and understands the trip\'s photo-sharing purpose.',
   ],
   [
     'Privacy settings matter',
-    'The organizer selects the trip’s download permission. Respect that setting: it defines the maximum set of photos a guest may view or download.',
+    'The organizer selects the trip\'s download permission. Respect that setting: it defines the maximum set of photos a guest may view or download.',
   ],
   [
     'Account security',
@@ -66,17 +65,88 @@ export default function LegalScreen() {
   const initialDoc: LegalDocument = params.doc === 'terms' ? 'terms' : 'privacy';
 
   const [doc, setDoc] = useState<LegalDocument>(initialDoc);
+  const { colors, neoShadow } = useTheme();
+
   const isPrivacy = doc === 'privacy';
   const sections = isPrivacy ? PRIVACY_SECTIONS : TERMS_SECTIONS;
+
+  const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.cream },
+    scrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 40 },
+    topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    backCircleBtn: {
+      width: 42, height: 42, borderRadius: 21, borderWidth: 2,
+      borderColor: colors.ink, backgroundColor: colors.white,
+      justifyContent: 'center', alignItems: 'center',
+    },
+    topTitle: {
+      fontSize: 17, fontFamily: 'Nunito_900Black', color: colors.ink,
+    },
+    topSpacer: { width: 42, height: 42 },
+    heroCard: {
+      backgroundColor: colors.leaf, borderRadius: 24, borderWidth: 2,
+      borderColor: colors.ink, padding: 22, marginTop: 16, marginBottom: 18,
+    },
+    iconCircle: {
+      width: 50, height: 50, borderRadius: 16, borderWidth: 2, borderColor: colors.ink,
+      backgroundColor: colors.brand, justifyContent: 'center', alignItems: 'center', marginBottom: 18,
+    },
+    heroEyebrow: {
+      fontSize: 11, fontFamily: 'Nunito_900Black',
+      letterSpacing: 1.8, color: 'rgba(248, 244, 233, 0.85)', marginBottom: 7,
+    },
+    heroTitle: {
+      fontSize: 26, fontFamily: 'Nunito_900Black',
+      lineHeight: 32, color: colors.cream, marginBottom: 7,
+    },
+    heroSubtitle: {
+      fontSize: 14, fontFamily: 'Nunito_600SemiBold',
+      lineHeight: 20, color: 'rgba(248, 244, 233, 0.85)',
+    },
+    switcherWrap: {
+      flexDirection: 'row', borderRadius: 999, borderWidth: 2,
+      borderColor: colors.ink, backgroundColor: colors.creamDeep,
+      padding: 4, marginBottom: 18,
+    },
+    tabBtn: { flex: 1, paddingVertical: 11, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+    tabActive: { borderWidth: 2, borderColor: colors.ink, backgroundColor: colors.brand },
+    tabInactive: { borderWidth: 2, borderColor: 'transparent', backgroundColor: 'transparent' },
+    tabText: { fontSize: 15, fontFamily: 'Nunito_900Black' },
+    tabTextActive: { color: colors.ink },
+    tabTextInactive: { color: colors.mut },
+    lastUpdated: {
+      fontSize: 11, fontFamily: 'Nunito_900Black',
+      letterSpacing: 1.8, color: colors.mut, marginBottom: 12, paddingHorizontal: 4,
+    },
+    sectionsContainer: { gap: 11, marginBottom: 16 },
+    sectionCard: {
+      backgroundColor: colors.white, borderRadius: 20, borderWidth: 2, borderColor: colors.ink, padding: 18,
+    },
+    sectionTitle: {
+      fontSize: 16, fontFamily: 'Nunito_900Black',
+      color: colors.ink, marginBottom: 7,
+    },
+    sectionBody: {
+      fontSize: 13, fontFamily: 'Nunito_600SemiBold',
+      lineHeight: 19, color: colors.textSecondary,
+    },
+    noticeCard: {
+      flexDirection: 'row', alignItems: 'flex-start', gap: 11,
+      borderRadius: 20, borderWidth: 2, borderColor: colors.ink,
+      backgroundColor: 'rgba(246, 197, 0, 0.25)', padding: 18, marginBottom: 16,
+    },
+    noticeIcon: { marginTop: 1, flexShrink: 0 },
+    noticeText: {
+      flex: 1, fontSize: 12, fontFamily: 'Nunito_700Bold',
+      lineHeight: 18, color: colors.textSecondary,
+    },
+  });
 
   return (
     <View style={styles.container}>
       <StatusBar />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Top bar */}
         <View style={styles.topBar}>
           <TouchableOpacity
@@ -85,12 +155,10 @@ export default function LegalScreen() {
             activeOpacity={0.8}
             accessibilityLabel="Back"
           >
-            <ChevronLeft size={18} strokeWidth={3} color={colors.ink} />
+            <ChevronLeft size={21} strokeWidth={3} color={colors.ink} />
           </TouchableOpacity>
 
           <Text style={styles.topTitle}>Legal</Text>
-
-          {/* Spacer to keep title centered */}
           <View style={styles.topSpacer} />
         </View>
 
@@ -98,9 +166,9 @@ export default function LegalScreen() {
         <View style={[styles.heroCard, neoShadow]}>
           <View style={styles.iconCircle}>
             {isPrivacy ? (
-              <ShieldCheck size={20} strokeWidth={2.6} color={colors.ink} />
+              <ShieldCheck size={24} strokeWidth={2.6} color={colors.ink} />
             ) : (
-              <FileText size={20} strokeWidth={2.6} color={colors.ink} />
+              <FileText size={24} strokeWidth={2.6} color={colors.ink} />
             )}
           </View>
 
@@ -119,36 +187,20 @@ export default function LegalScreen() {
         <View style={styles.switcherWrap}>
           <TouchableOpacity
             onPress={() => setDoc('privacy')}
-            style={[
-              styles.tabBtn,
-              isPrivacy ? [styles.tabActive, neoShadow] : styles.tabInactive,
-            ]}
+            style={[styles.tabBtn, isPrivacy ? [styles.tabActive, neoShadow] : styles.tabInactive]}
             activeOpacity={0.8}
           >
-            <Text
-              style={[
-                styles.tabText,
-                isPrivacy ? styles.tabTextActive : styles.tabTextInactive,
-              ]}
-            >
+            <Text style={[styles.tabText, isPrivacy ? styles.tabTextActive : styles.tabTextInactive]}>
               Privacy
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setDoc('terms')}
-            style={[
-              styles.tabBtn,
-              !isPrivacy ? [styles.tabActive, neoShadow] : styles.tabInactive,
-            ]}
+            style={[styles.tabBtn, !isPrivacy ? [styles.tabActive, neoShadow] : styles.tabInactive]}
             activeOpacity={0.8}
           >
-            <Text
-              style={[
-                styles.tabText,
-                !isPrivacy ? styles.tabTextActive : styles.tabTextInactive,
-              ]}
-            >
+            <Text style={[styles.tabText, !isPrivacy ? styles.tabTextActive : styles.tabTextInactive]}>
               Terms
             </Text>
           </TouchableOpacity>
@@ -168,7 +220,7 @@ export default function LegalScreen() {
 
         {/* Notice Card */}
         <View style={styles.noticeCard}>
-          <Info size={16} strokeWidth={2.6} color={colors.ink} style={styles.noticeIcon} />
+          <Info size={19} strokeWidth={2.6} color={colors.ink} style={styles.noticeIcon} />
           <Text style={styles.noticeText}>
             This in-app summary should be reviewed by the organization operating your FastSend
             deployment before public launch, especially for local privacy, biometric-data, and
@@ -179,172 +231,3 @@ export default function LegalScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.cream,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backCircleBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topTitle: {
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
-    fontSize: 15,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  topSpacer: {
-    width: 36,
-    height: 36,
-  },
-  heroCard: {
-    backgroundColor: colors.leaf,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    padding: 20,
-    marginTop: 14,
-    marginBottom: 16,
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.brand,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroEyebrow: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1.8,
-    color: 'rgba(248, 244, 233, 0.8)',
-    marginBottom: 6,
-  },
-  heroTitle: {
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
-    fontSize: 22,
-    fontWeight: '900',
-    lineHeight: 28,
-    color: colors.cream,
-    marginBottom: 6,
-  },
-  heroSubtitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    lineHeight: 18,
-    color: 'rgba(248, 244, 233, 0.85)',
-  },
-  switcherWrap: {
-    flexDirection: 'row',
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.creamDeep,
-    padding: 4,
-    marginBottom: 16,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 9,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabActive: {
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.brand,
-  },
-  tabInactive: {
-    borderWidth: 2,
-    borderColor: 'transparent',
-    backgroundColor: 'transparent',
-  },
-  tabText: {
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  tabTextActive: {
-    color: colors.ink,
-  },
-  tabTextInactive: {
-    color: 'rgba(16, 16, 16, 0.5)',
-  },
-  lastUpdated: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1.8,
-    color: colors.mut,
-    marginBottom: 10,
-    paddingHorizontal: 4,
-  },
-  sectionsContainer: {
-    gap: 10,
-    marginBottom: 14,
-  },
-  sectionCard: {
-    backgroundColor: colors.white,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    padding: 16,
-  },
-  sectionTitle: {
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
-    fontSize: 14,
-    fontWeight: '900',
-    color: colors.ink,
-    marginBottom: 6,
-  },
-  sectionBody: {
-    fontSize: 11.5,
-    fontWeight: '600',
-    lineHeight: 18,
-    color: 'rgba(16, 16, 16, 0.65)',
-  },
-  noticeCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: 'rgba(246, 197, 0, 0.25)',
-    padding: 16,
-    marginBottom: 14,
-  },
-  noticeIcon: {
-    marginTop: 1,
-    flexShrink: 0,
-  },
-  noticeText: {
-    flex: 1,
-    fontSize: 10.5,
-    fontWeight: '700',
-    lineHeight: 16,
-    color: 'rgba(16, 16, 16, 0.7)',
-  },
-});

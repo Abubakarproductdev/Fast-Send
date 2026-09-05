@@ -7,11 +7,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useTripModal } from '../../context/TripModalContext';
 import { api } from '../../services/api';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 const POLL_INTERVAL_MS = 15000;
 
 export default function TabLayout() {
+  const { colors, neoShadow } = useTheme();
   const insets = useSafeAreaInsets();
   const { organizerId } = useAuth();
   const { openCreateTrip } = useTripModal();
@@ -36,6 +37,79 @@ export default function TabLayout() {
     return () => clearInterval(interval);
   }, [organizerId]);
 
+  const styles = StyleSheet.create({
+    navContainer: {
+      backgroundColor: colors.white,
+      borderTopWidth: 2,
+      borderTopColor: colors.ink,
+      paddingTop: 6,
+    },
+    navRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      paddingHorizontal: 8,
+    },
+    tabItem: {
+      minWidth: 58,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 3,
+      paddingVertical: 4,
+    },
+    iconBox: {
+      position: 'relative',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tabLabel: {
+      fontSize: 12,
+      lineHeight: 14,
+    },
+    tabLabelActive: {
+      fontFamily: 'Nunito_900Black',
+      fontWeight: '900',
+      color: colors.ink,
+    },
+    tabLabelInactive: {
+      fontFamily: 'Nunito_700Bold',
+      fontWeight: '700',
+      color: colors.mut,
+    },
+    badge: {
+      position: 'absolute',
+      top: -5,
+      right: -10,
+      backgroundColor: colors.flame,
+      borderRadius: 8,
+      borderWidth: 1.5,
+      borderColor: colors.ink,
+      minWidth: 16,
+      height: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 3,
+    },
+    badgeText: {
+      fontSize: 10,
+      fontFamily: 'Nunito_900Black',
+      fontWeight: '900',
+      color: colors.cream,
+    },
+    centerBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.brand,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: -8,
+      ...neoShadow,
+    },
+  });
+
   return (
     <Tabs
       screenOptions={{
@@ -49,7 +123,8 @@ export default function TabLayout() {
             style={[
               styles.navContainer,
               {
-                paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 16) : 12,
+                // Adjust the number 28 below to increase/decrease the bottom margin on Android
+                paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 16) : Math.max(insets.bottom, 18),
               },
             ]}
           >
@@ -61,9 +136,9 @@ export default function TabLayout() {
                 activeOpacity={0.7}
               >
                 <LayoutGrid
-                  size={19}
+                  size={22}
                   strokeWidth={currentRoute === 'index' ? 2.8 : 2.2}
-                  color={currentRoute === 'index' ? colors.ink : '#BCB8AD'}
+                  color={currentRoute === 'index' ? colors.ink : colors.mut}
                 />
                 <Text
                   style={[
@@ -82,9 +157,9 @@ export default function TabLayout() {
                 activeOpacity={0.7}
               >
                 <Archive
-                  size={19}
+                  size={22}
                   strokeWidth={currentRoute === 'archive' ? 2.8 : 2.2}
-                  color={currentRoute === 'archive' ? colors.ink : '#BCB8AD'}
+                  color={currentRoute === 'archive' ? colors.ink : colors.mut}
                 />
                 <Text
                   style={[
@@ -102,13 +177,13 @@ export default function TabLayout() {
                 style={styles.centerBtn}
                 activeOpacity={0.8}
               >
-                <Svg viewBox="0 0 40 40" width={22} height={22}>
+                <Svg viewBox="0 0 40 40" width={26} height={26}>
                   <Path
                     d="M14 9h12l3 5h5a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4h5l3-5z"
-                    fill="#101010"
+                    fill={colors.ink}
                   />
-                  <Circle cx="20" cy="23" r="7" fill="#F6C500" />
-                  <Circle cx="20" cy="23" r="3" fill="#101010" />
+                  <Circle cx="20" cy="23" r="7" fill={colors.brand} />
+                  <Circle cx="20" cy="23" r="3" fill={colors.ink} />
                 </Svg>
               </TouchableOpacity>
 
@@ -120,9 +195,9 @@ export default function TabLayout() {
               >
                 <View style={styles.iconBox}>
                   <Bell
-                    size={19}
+                    size={22}
                     strokeWidth={currentRoute === 'inbox' ? 2.8 : 2.2}
-                    color={currentRoute === 'inbox' ? colors.ink : '#BCB8AD'}
+                    color={currentRoute === 'inbox' ? colors.ink : colors.mut}
                   />
                   {unreadCount > 0 ? (
                     <View style={styles.badge}>
@@ -149,9 +224,9 @@ export default function TabLayout() {
                 activeOpacity={0.7}
               >
                 <UserRound
-                  size={19}
+                  size={22}
                   strokeWidth={currentRoute === 'profile' ? 2.8 : 2.2}
-                  color={currentRoute === 'profile' ? colors.ink : '#BCB8AD'}
+                  color={currentRoute === 'profile' ? colors.ink : colors.mut}
                 />
                 <Text
                   style={[
@@ -174,77 +249,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  navContainer: {
-    backgroundColor: colors.white,
-    borderTopWidth: 2,
-    borderTopColor: colors.ink,
-    paddingTop: 6,
-  },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-  },
-  tabItem: {
-    minWidth: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    paddingVertical: 4,
-  },
-  iconBox: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabLabel: {
-    fontSize: 10,
-    lineHeight: 12,
-  },
-  tabLabelActive: {
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  tabLabelInactive: {
-    fontWeight: '700',
-    color: '#BCB8AD',
-  },
-  badge: {
-    position: 'absolute',
-    top: -5,
-    right: -10,
-    backgroundColor: colors.flame,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: colors.ink,
-    minWidth: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    fontSize: 8,
-    fontWeight: '900',
-    color: colors.cream,
-  },
-  centerBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.brand,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -8,
-    shadowColor: 'rgba(16, 16, 16, 0.9)',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-  },
-});

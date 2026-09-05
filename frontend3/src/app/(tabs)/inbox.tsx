@@ -12,7 +12,7 @@ import { Sparkles, Check, BellOff } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { api, AppNotification } from '../../services/api';
 import { StatusBar } from '../../components/StatusBar';
-import { colors, neoShadow } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 const formatNoticeDate = (iso: string) => {
   const d = new Date(iso);
@@ -21,6 +21,7 @@ const formatNoticeDate = (iso: string) => {
 };
 
 export default function InboxScreen() {
+  const { colors, neoShadow } = useTheme();
   const router = useRouter();
   const { organizerId } = useAuth();
   const [notices, setNotices] = useState<AppNotification[]>([]);
@@ -51,6 +52,135 @@ export default function InboxScreen() {
       router.push(`/trip-details?tripId=${notice.trip_id}`);
     }
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.cream,
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      marginBottom: 16,
+    },
+    eyebrow: {
+      fontSize: 12,
+      fontFamily: 'Nunito_900Black',
+      fontWeight: '900',
+      textTransform: 'uppercase',
+      letterSpacing: 2,
+      color: colors.flame,
+      marginBottom: 4,
+    },
+    title: {
+      fontSize: 36,
+      fontFamily: 'Nunito_900Black',
+      fontWeight: '900',
+      color: colors.ink,
+    },
+    listSection: {
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    noticeCard: {
+      borderRadius: 20,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.flameSoft,
+      padding: 14,
+    },
+    noticeRead: {
+      opacity: 0.55,
+    },
+    cardRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    avatarWrap: {
+      position: 'relative',
+    },
+    iconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.leaf,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    cardCopy: {
+      flex: 1,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      gap: 8,
+    },
+    noticeTitle: {
+      flex: 1,
+      fontSize: 15,
+      fontFamily: 'Nunito_900Black',
+      fontWeight: '900',
+      color: colors.ink,
+    },
+    noticeDate: {
+      fontSize: 11,
+      fontFamily: 'Nunito_700Bold',
+      fontWeight: '700',
+      color: colors.mut,
+    },
+    noticeBody: {
+      fontSize: 13,
+      fontFamily: 'Nunito_700Bold',
+      fontWeight: '700',
+      lineHeight: 18,
+      color: 'rgba(16, 16, 16, 0.65)',
+      marginTop: 6,
+    },
+    emptyCard: {
+      borderRadius: 22,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: 'rgba(16, 16, 16, 0.25)',
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      padding: 28,
+      alignItems: 'center',
+      marginTop: 10,
+    },
+    emptyTitle: {
+      fontSize: 17,
+      fontFamily: 'Nunito_900Black',
+      fontWeight: '900',
+      color: colors.ink,
+      marginTop: 8,
+    },
+    emptySub: {
+      fontSize: 13,
+      fontFamily: 'Nunito_700Bold',
+      fontWeight: '700',
+      color: colors.mut,
+      marginTop: 4,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -90,11 +220,11 @@ export default function InboxScreen() {
                 <View style={styles.cardRow}>
                   <View style={styles.avatarWrap}>
                     <View style={styles.iconCircle}>
-                      <Sparkles size={14} strokeWidth={2.6} color={colors.flame} />
+                      <Sparkles size={17} strokeWidth={2.6} color={colors.flame} />
                     </View>
                     {isRead ? (
                       <View style={styles.checkBadge}>
-                        <Check size={9} strokeWidth={4} color={colors.cream} />
+                        <Check size={11} strokeWidth={4} color={colors.cream} />
                       </View>
                     ) : null}
                   </View>
@@ -117,7 +247,7 @@ export default function InboxScreen() {
 
           {!loading && notices.length === 0 ? (
             <View style={styles.emptyCard}>
-              <BellOff size={20} strokeWidth={2.6} color={colors.mut} />
+              <BellOff size={24} strokeWidth={2.6} color={colors.mut} />
               <Text style={styles.emptyTitle}>All caught up</Text>
               <Text style={styles.emptySub}>
                 Trip reminders and updates will land here.
@@ -129,125 +259,3 @@ export default function InboxScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.cream,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    marginBottom: 16,
-  },
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: colors.flame,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  listSection: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  noticeCard: {
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.flameSoft,
-    padding: 14,
-  },
-  noticeRead: {
-    opacity: 0.55,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  avatarWrap: {
-    position: 'relative',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.leaf,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardCopy: {
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    gap: 8,
-  },
-  noticeTitle: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  noticeDate: {
-    fontSize: 9.5,
-    fontWeight: '700',
-    color: colors.mut,
-  },
-  noticeBody: {
-    fontSize: 11,
-    fontWeight: '700',
-    lineHeight: 16,
-    color: 'rgba(16, 16, 16, 0.65)',
-    marginTop: 6,
-  },
-  emptyCard: {
-    borderRadius: 22,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(16, 16, 16, 0.25)',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    padding: 28,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: colors.ink,
-    marginTop: 8,
-  },
-  emptySub: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.mut,
-    marginTop: 4,
-  },
-});

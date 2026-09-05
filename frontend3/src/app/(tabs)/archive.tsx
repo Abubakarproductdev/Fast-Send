@@ -19,7 +19,7 @@ import { NeoSheet } from '../../components/ui/NeoSheet';
 import { NeoField } from '../../components/ui/NeoField';
 import { NeoInput } from '../../components/ui/NeoInput';
 import { NeoButton } from '../../components/ui/NeoButton';
-import { colors, neoShadow } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 const PAGE_SIZE = 6;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -34,6 +34,7 @@ export default function ArchiveScreen() {
   const router = useRouter();
   const { organizerId } = useAuth();
   const { openCreateTrip, showToast } = useTripModal();
+  const { colors, neoShadow } = useTheme();
 
   const [trips, setTrips] = useState<TripDetail[]>([]);
   const [renames, setRenames] = useState<Record<string, string>>({});
@@ -103,6 +104,236 @@ export default function ArchiveScreen() {
     return renames[t.id] || t.name || 'Untitled Trip';
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.cream,
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      marginBottom: 12,
+    },
+    eyebrow: {
+      fontSize: 12,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      textTransform: 'uppercase',
+      letterSpacing: 2,
+      color: colors.flame,
+      marginBottom: 4,
+    },
+    title: {
+      fontSize: 36,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    searchSection: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    searchBox: {
+      position: 'relative',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    searchIconWrap: {
+      position: 'absolute',
+      left: 16,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      zIndex: 1,
+    },
+    searchInput: {
+      paddingLeft: 50,
+      backgroundColor: colors.creamDeep,
+      borderRadius: 999,
+    },
+    listSection: {
+      paddingHorizontal: 16,
+      gap: 14,
+    },
+    loadingWrap: {
+      paddingVertical: 40,
+      alignItems: 'center',
+      gap: 12,
+    },
+    loadingText: {
+      fontSize: 15,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+    },
+    errorCard: {
+      borderRadius: 22,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.flameSoft,
+      padding: 24,
+      alignItems: 'center',
+    },
+    errorTitle: {
+      fontSize: 17,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+      marginTop: 8,
+    },
+    errorSub: {
+      fontSize: 13,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.ink,
+      opacity: 0.6,
+      marginTop: 4,
+      textAlign: 'center',
+    },
+    retryBtn: {
+      marginTop: 14,
+    },
+    emptyCard: {
+      borderRadius: 22,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: 'rgba(16, 16, 16, 0.25)',
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      padding: 28,
+      alignItems: 'center',
+    },
+    emptyTitle: {
+      fontSize: 17,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    emptySub: {
+      fontSize: 13,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+      marginTop: 4,
+      textAlign: 'center',
+    },
+    createBtnWrap: {
+      marginTop: 16,
+    },
+    tripCard: {
+      borderRadius: 22,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      padding: 16,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    statusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+    statusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+    },
+    statusText: {
+      fontSize: 10,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      textTransform: 'uppercase',
+      letterSpacing: 1.4,
+    },
+    dateText: {
+      fontSize: 12,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+    },
+    nameRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 10,
+      gap: 8,
+    },
+    tripName: {
+      flex: 1,
+      fontSize: 24,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    pencilBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.flame,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    inviteCodeText: {
+      fontSize: 11,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      textTransform: 'uppercase',
+      letterSpacing: 1.6,
+      color: colors.mut,
+      marginTop: 4,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      marginTop: 12,
+      paddingVertical: 10,
+    },
+    statCell: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 6,
+    },
+    statDivider: {
+      width: 2,
+      backgroundColor: 'rgba(16, 16, 16, 0.15)',
+    },
+    statNumber: {
+      fontSize: 15,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+    },
+    showMoreWrap: {
+      marginTop: 4,
+    },
+    renameBtnWrap: {
+      marginTop: 12,
+      marginBottom: 8,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar />
@@ -119,7 +350,9 @@ export default function ArchiveScreen() {
         {/* Search */}
         <View style={styles.searchSection}>
           <View style={styles.searchBox}>
-            <Search size={15} strokeWidth={2.8} color="rgba(16, 16, 16, 0.5)" />
+            <View style={styles.searchIconWrap}>
+              <Search size={18} strokeWidth={2.8} color={colors.mut} />
+            </View>
             <NeoInput
               value={query}
               onChangeText={setQuery}
@@ -140,7 +373,7 @@ export default function ArchiveScreen() {
 
           {!loading && error ? (
             <View style={[styles.errorCard, neoShadow]}>
-              <CloudOff size={24} strokeWidth={2.6} color={colors.flame} />
+              <CloudOff size={28} strokeWidth={2.6} color={colors.flame} />
               <Text style={styles.errorTitle}>Couldn't load trips</Text>
               <Text style={styles.errorSub}>{error}</Text>
               <View style={styles.retryBtn}>
@@ -165,7 +398,7 @@ export default function ArchiveScreen() {
                     title="Create a new trip"
                     onPress={openCreateTrip}
                     size="sm"
-                    icon={<Plus size={14} strokeWidth={3.2} color={colors.ink} />}
+                    icon={<Plus size={17} strokeWidth={3.2} color={colors.ink} />}
                   />
                 </View>
               ) : null}
@@ -221,7 +454,7 @@ export default function ArchiveScreen() {
                         style={[styles.pencilBtn, neoShadow]}
                         activeOpacity={0.8}
                       >
-                        <Pencil size={13} strokeWidth={2.8} color={colors.cream} />
+                        <Pencil size={15} strokeWidth={2.8} color={colors.cream} />
                       </TouchableOpacity>
                     </View>
 
@@ -232,13 +465,13 @@ export default function ArchiveScreen() {
                     {/* Stats */}
                     <View style={styles.statsGrid}>
                       <View style={styles.statCell}>
-                        <Users size={13} strokeWidth={2.6} color={colors.flame} />
+                        <Users size={15} strokeWidth={2.6} color={colors.flame} />
                         <Text style={styles.statNumber}>{trip.attendee_count ?? 0}</Text>
                         <Text style={styles.statLabel}>Guests</Text>
                       </View>
                       <View style={styles.statDivider} />
                       <View style={styles.statCell}>
-                        <ImageIcon size={13} strokeWidth={2.6} color={colors.sky} />
+                        <ImageIcon size={15} strokeWidth={2.6} color={colors.sky} />
                         <Text style={styles.statNumber}>{trip.media_count ?? 0}</Text>
                         <Text style={styles.statLabel}>Photos</Text>
                       </View>
@@ -283,211 +516,3 @@ export default function ArchiveScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.cream,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    marginBottom: 12,
-  },
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: colors.flame,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  searchSection: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  searchBox: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  searchInput: {
-    paddingLeft: 40,
-    backgroundColor: 'rgba(240, 234, 217, 0.7)',
-    borderRadius: 999,
-  },
-  listSection: {
-    paddingHorizontal: 16,
-    gap: 14,
-  },
-  loadingWrap: {
-    paddingVertical: 40,
-    alignItems: 'center',
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.mut,
-  },
-  errorCard: {
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.flameSoft,
-    padding: 24,
-    alignItems: 'center',
-  },
-  errorTitle: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: colors.ink,
-    marginTop: 8,
-  },
-  errorSub: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: 'rgba(16, 16, 16, 0.6)',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  retryBtn: {
-    marginTop: 14,
-  },
-  emptyCard: {
-    borderRadius: 22,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(16, 16, 16, 0.25)',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    padding: 28,
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  emptySub: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.mut,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  createBtnWrap: {
-    marginTop: 16,
-  },
-  tripCard: {
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    padding: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusText: {
-    fontSize: 8.5,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1.4,
-  },
-  dateText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.mut,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-    gap: 8,
-  },
-  tripName: {
-    flex: 1,
-    fontSize: 21,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  pencilBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.flame,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  inviteCodeText: {
-    fontSize: 9,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1.6,
-    color: colors.mut,
-    marginTop: 4,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    marginTop: 12,
-    paddingVertical: 10,
-  },
-  statCell: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statDivider: {
-    width: 2,
-    backgroundColor: 'rgba(16, 16, 16, 0.15)',
-  },
-  statNumber: {
-    fontSize: 12.5,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.mut,
-  },
-  showMoreWrap: {
-    marginTop: 4,
-  },
-  renameBtnWrap: {
-    marginTop: 12,
-    marginBottom: 8,
-  },
-});

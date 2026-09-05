@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { CameraBadge } from '../components/CameraBadge';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function SplashScreen() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0.82)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -38,10 +39,49 @@ export default function SplashScreen() {
     return () => clearTimeout(timer);
   }, [isLoading, user]);
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.brand,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    copy: {
+      marginTop: 24,
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      letterSpacing: 4,
+      color: colors.ink,
+    },
+    subtitle: {
+      fontSize: 12,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      textTransform: 'uppercase',
+      letterSpacing: 2,
+      color: colors.flame,
+      marginTop: 8,
+    },
+    footer: {
+      position: 'absolute',
+      bottom: 30,
+      fontSize: 11,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      textTransform: 'uppercase',
+      letterSpacing: 1.8,
+      color: colors.mut,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: opacityAnim }}>
-        <CameraBadge size={84} />
+        <CameraBadge size={100} />
       </Animated.View>
 
       <Animated.View style={[styles.copy, { opacity: opacityAnim }]}>
@@ -53,39 +93,3 @@ export default function SplashScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.cream,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  copy: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: 4,
-    color: colors.ink,
-  },
-  subtitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: colors.flame,
-    marginTop: 8,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    fontSize: 9,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.8,
-    color: colors.mut,
-  },
-});

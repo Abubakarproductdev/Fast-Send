@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, TextInputProps } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 export const NeoInput: React.FC<TextInputProps> = ({
   style,
@@ -8,6 +8,26 @@ export const NeoInput: React.FC<TextInputProps> = ({
   ...props
 }) => {
   const [focused, setFocused] = useState(false);
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    input: {
+      width: '100%',
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      fontFamily: 'Nunito_700Bold',
+      fontWeight: '700',
+      color: colors.ink,
+    },
+    inputFocused: {
+      backgroundColor: 'rgba(246, 197, 0, 0.1)',
+    },
+  });
 
   return (
     <TextInput
@@ -29,21 +49,3 @@ export const NeoInput: React.FC<TextInputProps> = ({
     />
   );
 };
-
-const styles = StyleSheet.create({
-  input: {
-    width: '100%',
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.ink,
-  },
-  inputFocused: {
-    backgroundColor: 'rgba(246, 197, 0, 0.1)',
-  },
-});

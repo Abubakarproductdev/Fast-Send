@@ -8,7 +8,7 @@ import {
   TextStyle,
   View,
 } from 'react-native';
-import { colors, neoShadowLg, neoShadow } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 interface NeoButtonProps {
   title: string;
@@ -33,6 +33,75 @@ export const NeoButton: React.FC<NeoButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const { colors, neoShadow, neoShadowLg } = useTheme();
+
+  const styles = StyleSheet.create({
+    baseBtn: {
+      borderRadius: 999,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    innerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconWrap: {
+      marginRight: 8,
+    },
+    baseText: {
+      fontFamily: 'Nunito_800ExtraBold',
+      fontWeight: '800',
+      textAlign: 'center',
+    },
+    primaryBtn: {
+      backgroundColor: colors.brand,
+    },
+    primaryText: {
+      color: colors.ink,
+      fontSize: 16,
+    },
+    secondaryBtn: {
+      backgroundColor: colors.white,
+    },
+    secondaryText: {
+      color: colors.ink,
+      fontSize: 15,
+    },
+    dangerBtn: {
+      backgroundColor: colors.flame,
+    },
+    dangerText: {
+      color: colors.cream,
+      fontSize: 15,
+    },
+    ghostBtn: {
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+    },
+    ghostText: {
+      color: colors.ink,
+      fontSize: 15,
+    },
+    smBtn: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    mdBtn: {
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+    },
+    lgBtn: {
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+    },
+    disabledBtn: {
+      opacity: 0.55,
+    },
+  });
+
   const getVariantStyle = () => {
     switch (variant) {
       case 'secondary':
@@ -103,69 +172,3 @@ export const NeoButton: React.FC<NeoButtonProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  baseBtn: {
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  innerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrap: {
-    marginRight: 8,
-  },
-  baseText: {
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  primaryBtn: {
-    backgroundColor: colors.brand,
-  },
-  primaryText: {
-    color: colors.ink,
-    fontSize: 14,
-  },
-  secondaryBtn: {
-    backgroundColor: colors.white,
-  },
-  secondaryText: {
-    color: colors.ink,
-    fontSize: 13,
-  },
-  dangerBtn: {
-    backgroundColor: colors.flame,
-  },
-  dangerText: {
-    color: colors.cream,
-    fontSize: 13,
-  },
-  ghostBtn: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-  },
-  ghostText: {
-    color: colors.ink,
-    fontSize: 13,
-  },
-  smBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  mdBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  lgBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-  },
-  disabledBtn: {
-    opacity: 0.55,
-  },
-});

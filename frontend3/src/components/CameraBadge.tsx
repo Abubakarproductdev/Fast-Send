@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { colors, neoShadowLg } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export const CameraBadge: React.FC<{ size?: number }> = ({ size = 64 }) => {
+  const { neoShadowLg } = useTheme();
   const iconSize = size * 0.55;
+
   return (
     <View
       style={[
@@ -31,9 +33,9 @@ export const CameraBadge: React.FC<{ size?: number }> = ({ size = 64 }) => {
 
 const styles = StyleSheet.create({
   badge: {
-    backgroundColor: colors.brand,
+    backgroundColor: '#F6C500',
     borderWidth: 2,
-    borderColor: colors.ink,
+    borderColor: '#101010',
     justifyContent: 'center',
     alignItems: 'center',
   },

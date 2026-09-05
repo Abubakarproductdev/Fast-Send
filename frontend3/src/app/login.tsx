@@ -21,10 +21,11 @@ import { StatusBar } from '../components/StatusBar';
 import { NeoField } from '../components/ui/NeoField';
 import { NeoInput } from '../components/ui/NeoInput';
 import { NeoButton } from '../components/ui/NeoButton';
-import { colors, neoShadow } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { colors, neoShadow } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -68,6 +69,108 @@ export default function LoginScreen() {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.cream,
+    },
+    scroll: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 40,
+    },
+    topNav: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    backBtn: {
+      width: 43,
+      height: 43,
+      borderRadius: 22,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    spacer: {
+      width: 43,
+    },
+    headerTitles: {
+      marginBottom: 24,
+    },
+    kicker: {
+      fontSize: 12,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      letterSpacing: 2,
+      color: colors.flame,
+      marginBottom: 6,
+    },
+    title: {
+      fontSize: 36,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    errorBox: {
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.flameSoft,
+      padding: 12,
+      marginBottom: 16,
+    },
+    errorText: {
+      fontSize: 14,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      color: colors.ink,
+    },
+    infoBox: {
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.leafSoft,
+      padding: 12,
+      marginBottom: 16,
+    },
+    infoText: {
+      fontSize: 14,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      color: colors.ink,
+    },
+    forgotBtn: {
+      marginBottom: 24,
+    },
+    forgotText: {
+      fontSize: 14,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+    },
+    btnWrapper: {
+      marginBottom: 18,
+    },
+    switchLink: {
+      alignItems: 'center',
+    },
+    switchText: {
+      fontSize: 14,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+    },
+    switchHighlight: {
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.flame,
+    },
+  });
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -86,9 +189,9 @@ export default function LoginScreen() {
             style={[styles.backBtn, neoShadow]}
             activeOpacity={0.8}
           >
-            <ChevronLeft size={16} strokeWidth={3} color={colors.ink} />
+            <ChevronLeft size={19} strokeWidth={3} color={colors.ink} />
           </TouchableOpacity>
-          <CameraBadge size={40} />
+          <CameraBadge size={48} />
           <View style={styles.spacer} />
         </View>
 
@@ -163,98 +266,3 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.cream,
-  },
-  scroll: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  topNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  spacer: {
-    width: 36,
-  },
-  headerTitles: {
-    marginBottom: 24,
-  },
-  kicker: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 2,
-    color: colors.flame,
-    marginBottom: 6,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  errorBox: {
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.flameSoft,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  infoBox: {
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.leafSoft,
-    padding: 12,
-    marginBottom: 16,
-  },
-  infoText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  forgotBtn: {
-    marginBottom: 24,
-  },
-  forgotText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: colors.mut,
-  },
-  btnWrapper: {
-    marginBottom: 18,
-  },
-  switchLink: {
-    alignItems: 'center',
-  },
-  switchText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(16, 16, 16, 0.65)',
-  },
-  switchHighlight: {
-    fontWeight: '900',
-    color: colors.flame,
-  },
-});

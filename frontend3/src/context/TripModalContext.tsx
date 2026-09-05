@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { Text, StyleSheet, View } from 'react-native';
 import { NeoSheet } from '../components/ui/NeoSheet';
 import { NeoField } from '../components/ui/NeoField';
 import { NeoInput } from '../components/ui/NeoInput';
@@ -7,8 +8,7 @@ import { NeoButton } from '../components/ui/NeoButton';
 import { useAuth } from './AuthContext';
 import { api } from '../services/api';
 import { getErrorMessage } from '../utils/errors';
-import { Text, StyleSheet, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 interface TripModalContextType {
   openCreateTrip: () => void;
@@ -25,6 +25,8 @@ const TripModalContext = createContext<TripModalContextType>({
 export const TripModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const { organizerId, setActiveTripId, setTripStartTime } = useAuth();
+  const { colors } = useTheme();
+
   const [isOpen, setIsOpen] = useState(false);
   const [tripName, setTripName] = useState('');
   const [busy, setBusy] = useState(false);
@@ -76,6 +78,42 @@ export const TripModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const styles = StyleSheet.create({
+    toastWrap: {
+      position: 'absolute',
+      left: 20,
+      right: 20,
+      bottom: 95,
+      zIndex: 9999,
+      alignItems: 'center',
+    },
+    toastBox: {
+      borderRadius: 999,
+      borderWidth: 2,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 0,
+      elevation: 5,
+      backgroundColor: colors.ink,
+      borderColor: colors.ink,
+    },
+    toastText: {
+      fontSize: 13,
+      fontFamily: 'Nunito_800ExtraBold',
+      textAlign: 'center',
+      color: colors.cream,
+    },
+    errorText: {
+      fontSize: 13,
+      fontFamily: 'Nunito_800ExtraBold',
+      color: colors.flame,
+      marginBottom: 12,
+    }
+  });
+
   return (
     <TripModalContext.Provider value={{ openCreateTrip, closeCreateTrip, showToast }}>
       {children}
@@ -98,9 +136,13 @@ export const TripModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           />
         </NeoField>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? (
+          <Text style={styles.errorText}>
+            {error}
+          </Text>
+        ) : null}
 
-        <View style={styles.btnWrap}>
+        <View style={{ marginTop: 8, marginBottom: 14 }}>
           <NeoButton
             title={busy ? 'Creating…' : 'Create a new trip'}
             onPress={handleCreateTrip}
@@ -122,43 +164,3 @@ export const TripModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 export const useTripModal = () => useContext(TripModalContext);
-
-const styles = StyleSheet.create({
-  errorText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.flame,
-    marginBottom: 12,
-  },
-  btnWrap: {
-    marginTop: 8,
-    marginBottom: 14,
-  },
-  toastWrap: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 95,
-    zIndex: 9999,
-    alignItems: 'center',
-  },
-  toastBox: {
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.ink,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 0,
-    elevation: 5,
-  },
-  toastText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: colors.cream,
-    textAlign: 'center',
-  },
-});

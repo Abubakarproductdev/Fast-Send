@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { X } from 'lucide-react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 interface NeoSheetProps {
   open: boolean;
@@ -28,6 +28,76 @@ export const NeoSheet: React.FC<NeoSheetProps> = ({
   subtitle,
   children,
 }) => {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'transparent',
+    },
+    sheetContainer: {
+      backgroundColor: colors.cream,
+      borderTopWidth: 2,
+      borderLeftWidth: 2,
+      borderRightWidth: 2,
+      borderColor: colors.ink,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      maxHeight: '86%',
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: Platform.OS === 'ios' ? 34 : 24,
+    },
+    dragHandle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: 'rgba(16, 16, 16, 0.2)',
+      marginBottom: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    headerCopy: {
+      flex: 1,
+      paddingRight: 12,
+    },
+    title: {
+      fontFamily: 'Nunito_800ExtraBold',
+      fontSize: 23,
+      fontWeight: '800',
+      color: colors.ink,
+    },
+    subtitle: {
+      fontFamily: 'Nunito_600SemiBold',
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.mut,
+      marginTop: 4,
+    },
+    closeBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    content: {
+      paddingBottom: 20,
+    },
+  });
+
   return (
     <Modal
       visible={open}
@@ -56,7 +126,7 @@ export const NeoSheet: React.FC<NeoSheetProps> = ({
               style={styles.closeBtn}
               activeOpacity={0.8}
             >
-              <X size={14} strokeWidth={3} color={colors.ink} />
+              <X size={17} strokeWidth={3} color={colors.ink} />
             </TouchableOpacity>
           </View>
 
@@ -72,70 +142,3 @@ export const NeoSheet: React.FC<NeoSheetProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(16, 16, 16, 0.45)',
-  },
-  sheetContainer: {
-    backgroundColor: colors.cream,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderColor: colors.ink,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    maxHeight: '86%',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
-  },
-  dragHandle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(16, 16, 16, 0.2)',
-    marginBottom: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  headerCopy: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  title: {
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  subtitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.mut,
-    marginTop: 4,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    paddingBottom: 20,
-  },
-});

@@ -18,6 +18,7 @@ import {
   FileText,
   LogOut,
   BadgeCheck,
+  MoonStar,
 } from 'lucide-react-native';
 import {
   signOut,
@@ -37,23 +38,25 @@ import { NeoSheet } from '../../components/ui/NeoSheet';
 import { NeoField } from '../../components/ui/NeoField';
 import { NeoInput } from '../../components/ui/NeoInput';
 import { NeoButton } from '../../components/ui/NeoButton';
-import { colors, neoShadow } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 const SYNC_OPTIONS = ['1 hour', '6 hours', '12 hours', '24 hours'];
 const MODE_OPTIONS = ['Wi-Fi only', 'Wi-Fi + cellular'];
 const QUALITY_OPTIONS = ['High (1080p)', 'Medium (720p)', 'Original (4K)'];
+const THEME_OPTIONS = ['light', 'dark', 'system'];
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, organizerId, refreshUser } = useAuth();
   const { showToast } = useTripModal();
+  const { mode, setMode, colors, neoShadow } = useTheme();
 
   const [sync, setSync] = useState('6 hours');
   const [uploadMode, setUploadMode] = useState('Wi-Fi + cellular');
   const [quality, setQuality] = useState('High (1080p)');
 
   const [activeSheet, setActiveSheet] = useState<
-    null | 'sync' | 'mode' | 'quality' | 'name' | 'password' | 'signout'
+    null | 'sync' | 'mode' | 'quality' | 'name' | 'password' | 'signout' | 'appearance'
   >(null);
 
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'Organizer';
@@ -115,6 +118,11 @@ export default function ProfileScreen() {
     await storage.setImageQuality(opt);
     setActiveSheet(null);
     showToast(`Image quality set to ${opt}`);
+  };
+
+  const handlePickTheme = (opt: string) => {
+    setMode(opt as any);
+    setActiveSheet(null);
   };
 
   const handleSaveName = async () => {
@@ -184,6 +192,179 @@ export default function ProfileScreen() {
     } catch {}
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.cream,
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      marginBottom: 12,
+    },
+    eyebrow: {
+      fontSize: 12,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      textTransform: 'uppercase',
+      letterSpacing: 2,
+      color: colors.flame,
+      marginBottom: 4,
+    },
+    title: {
+      fontSize: 36,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    sectionWrap: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    sectionHeader: {
+      fontSize: 12,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      textTransform: 'uppercase',
+      letterSpacing: 1.6,
+      color: colors.mut,
+      marginBottom: 8,
+    },
+    userCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      borderRadius: 22,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      padding: 16,
+    },
+    avatarCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.brand,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarText: {
+      fontSize: 17,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    userCopy: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: 19,
+      fontWeight: '900',
+      fontFamily: 'Nunito_900Black',
+      color: colors.ink,
+    },
+    userEmail: {
+      fontSize: 13,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+      marginTop: 2,
+    },
+    groupCard: {
+      borderRadius: 18,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      overflow: 'hidden',
+    },
+    rowItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 13,
+    },
+    rowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    rowIconBox: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.creamDeep,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    rowTitle: {
+      fontSize: 15,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      color: colors.ink,
+    },
+    rowRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    rowValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      fontFamily: 'Nunito_700Bold',
+      color: colors.mut,
+      textTransform: 'capitalize',
+    },
+    rowDivider: {
+      height: 2,
+      backgroundColor: colors.cream,
+    },
+    optionsWrap: {
+      gap: 10,
+      paddingTop: 8,
+      paddingBottom: 12,
+    },
+    optionItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: colors.ink,
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    optionItemActive: {
+      backgroundColor: colors.brand,
+    },
+    optionText: {
+      fontSize: 15,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      color: colors.ink,
+      textTransform: 'capitalize',
+    },
+    sheetBtnWrap: {
+      marginTop: 10,
+      marginBottom: 8,
+    },
+    errorText: {
+      fontSize: 13,
+      fontWeight: '800',
+      fontFamily: 'Nunito_800ExtraBold',
+      color: colors.flame,
+      marginBottom: 10,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar />
@@ -210,6 +391,29 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Appearance Group */}
+        <View style={styles.sectionWrap}>
+          <Text style={styles.sectionHeader}>APPEARANCE</Text>
+          <View style={[styles.groupCard, neoShadow]}>
+            <TouchableOpacity
+              onPress={() => setActiveSheet('appearance')}
+              style={styles.rowItem}
+              activeOpacity={0.7}
+            >
+              <View style={styles.rowLeft}>
+                <View style={styles.rowIconBox}>
+                  <MoonStar size={17} strokeWidth={2.6} color={colors.ink} />
+                </View>
+                <Text style={styles.rowTitle}>Theme</Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.rowValue}>{mode}</Text>
+                <ChevronRight size={17} color={colors.mut} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Photo Sync Group */}
         <View style={styles.sectionWrap}>
           <Text style={styles.sectionHeader}>PHOTO SYNC</Text>
@@ -221,13 +425,13 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <Clock3 size={14} strokeWidth={2.6} color={colors.ink} />
+                  <Clock3 size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Sync interval</Text>
               </View>
               <View style={styles.rowRight}>
                 <Text style={styles.rowValue}>{sync}</Text>
-                <ChevronRight size={14} color={colors.mut} />
+                <ChevronRight size={17} color={colors.mut} />
               </View>
             </TouchableOpacity>
 
@@ -240,13 +444,13 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <Wifi size={14} strokeWidth={2.6} color={colors.ink} />
+                  <Wifi size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Upload mode</Text>
               </View>
               <View style={styles.rowRight}>
                 <Text style={styles.rowValue}>{uploadMode}</Text>
-                <ChevronRight size={14} color={colors.mut} />
+                <ChevronRight size={17} color={colors.mut} />
               </View>
             </TouchableOpacity>
 
@@ -259,13 +463,13 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <ImageIcon size={14} strokeWidth={2.6} color={colors.ink} />
+                  <ImageIcon size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Image quality</Text>
               </View>
               <View style={styles.rowRight}>
                 <Text style={styles.rowValue}>{quality}</Text>
-                <ChevronRight size={14} color={colors.mut} />
+                <ChevronRight size={17} color={colors.mut} />
               </View>
             </TouchableOpacity>
           </View>
@@ -286,11 +490,11 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <UserRound size={14} strokeWidth={2.6} color={colors.ink} />
+                  <UserRound size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Display name</Text>
               </View>
-              <ChevronRight size={14} color={colors.mut} />
+              <ChevronRight size={17} color={colors.mut} />
             </TouchableOpacity>
 
             <View style={styles.rowDivider} />
@@ -308,11 +512,11 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <KeyRound size={14} strokeWidth={2.6} color={colors.ink} />
+                  <KeyRound size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Change password</Text>
               </View>
-              <ChevronRight size={14} color={colors.mut} />
+              <ChevronRight size={17} color={colors.mut} />
             </TouchableOpacity>
 
             <View style={styles.rowDivider} />
@@ -324,11 +528,11 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <ShieldCheck size={14} strokeWidth={2.6} color={colors.ink} />
+                  <ShieldCheck size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Privacy Policy</Text>
               </View>
-              <ChevronRight size={14} color={colors.mut} />
+              <ChevronRight size={17} color={colors.mut} />
             </TouchableOpacity>
 
             <View style={styles.rowDivider} />
@@ -340,11 +544,11 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={styles.rowIconBox}>
-                  <FileText size={14} strokeWidth={2.6} color={colors.ink} />
+                  <FileText size={17} strokeWidth={2.6} color={colors.ink} />
                 </View>
                 <Text style={styles.rowTitle}>Terms of Service</Text>
               </View>
-              <ChevronRight size={14} color={colors.mut} />
+              <ChevronRight size={17} color={colors.mut} />
             </TouchableOpacity>
           </View>
         </View>
@@ -359,15 +563,40 @@ export default function ProfileScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.rowIconBox, { backgroundColor: colors.flameSoft }]}>
-                  <LogOut size={14} strokeWidth={2.6} color={colors.flame} />
+                  <LogOut size={17} strokeWidth={2.6} color={colors.flame} />
                 </View>
                 <Text style={[styles.rowTitle, { color: colors.flame }]}>Sign out</Text>
               </View>
-              <ChevronRight size={14} color={colors.flame} />
+              <ChevronRight size={17} color={colors.flame} />
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+
+      {/* Appearance Sheet */}
+      <NeoSheet
+        open={activeSheet === 'appearance'}
+        onClose={() => setActiveSheet(null)}
+        title="App Theme"
+        subtitle="Choose a color scheme for Fast Send."
+      >
+        <View style={styles.optionsWrap}>
+          {THEME_OPTIONS.map((opt) => (
+            <TouchableOpacity
+              key={opt}
+              onPress={() => handlePickTheme(opt)}
+              style={[
+                styles.optionItem,
+                mode === opt && styles.optionItemActive,
+              ]}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.optionText}>{opt}</Text>
+              {mode === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </NeoSheet>
 
       {/* Sync Interval Sheet */}
       <NeoSheet
@@ -388,7 +617,7 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <Text style={styles.optionText}>{opt}</Text>
-              {sync === opt ? <BadgeCheck size={16} color={colors.ink} strokeWidth={2.8} /> : null}
+              {sync === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
             </TouchableOpacity>
           ))}
         </View>
@@ -413,7 +642,7 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <Text style={styles.optionText}>{opt}</Text>
-              {uploadMode === opt ? <BadgeCheck size={16} color={colors.ink} strokeWidth={2.8} /> : null}
+              {uploadMode === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
             </TouchableOpacity>
           ))}
         </View>
@@ -438,7 +667,7 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <Text style={styles.optionText}>{opt}</Text>
-              {quality === opt ? <BadgeCheck size={16} color={colors.ink} strokeWidth={2.8} /> : null}
+              {quality === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
             </TouchableOpacity>
           ))}
         </View>
@@ -534,164 +763,3 @@ export default function ProfileScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.cream,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    marginBottom: 12,
-  },
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: colors.flame,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  sectionWrap: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    fontSize: 10,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1.6,
-    color: colors.mut,
-    marginBottom: 8,
-  },
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    padding: 16,
-  },
-  avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.brand,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  userCopy: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 17,
-    fontWeight: '900',
-    color: colors.ink,
-  },
-  userEmail: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.mut,
-    marginTop: 2,
-  },
-  groupCard: {
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    overflow: 'hidden',
-  },
-  rowItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-  },
-  rowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.creamDeep,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rowTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  rowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  rowValue: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: colors.mut,
-  },
-  rowDivider: {
-    height: 2,
-    backgroundColor: colors.cream,
-  },
-  optionsWrap: {
-    gap: 10,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  optionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  optionItemActive: {
-    backgroundColor: colors.brand,
-  },
-  optionText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  sheetBtnWrap: {
-    marginTop: 10,
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.flame,
-    marginBottom: 10,
-  },
-});

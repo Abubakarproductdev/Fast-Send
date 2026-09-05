@@ -83,6 +83,8 @@ async def create_trip(body: TripCreate):
         return _trip_to_response(trip)
     except trip_service.ActiveTripExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except trip_service.DuplicateTripNameError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.get(

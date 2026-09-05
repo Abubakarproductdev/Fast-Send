@@ -47,10 +47,7 @@ export default function InboxScreen() {
       );
       api.markNotificationRead(notice.id).catch(() => {});
     }
-
-    if (notice.trip_id) {
-      router.push(`/trip-details?tripId=${notice.trip_id}`);
-    }
+    // Removed redirect logic as requested
   };
 
   const styles = StyleSheet.create({

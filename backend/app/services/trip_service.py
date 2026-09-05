@@ -44,6 +44,9 @@ class TripAlreadyActiveError(Exception):
 class ActiveTripExistsError(Exception):
     """Raised when an organizer tries to create a trip but already has a live one."""
 
+class DuplicateTripNameError(Exception):
+    """Raised when an organizer tries to create a trip with a name that already exists."""
+
 
 class TripOwnershipError(Exception):
     """Raised when an action targets another organizer's trip."""
@@ -73,6 +76,16 @@ async def create_trip(
     if active_count > 0:
         raise ActiveTripExistsError("You already have an active trip. Please end it before creating a new one.")
 
+    # Prevent duplicate trip names
+    trip_name = name.strip() or "Untitled trip"
+    existing_name_count = await Trip.find(
+        Trip.organizer_id == organizer_id,
+        Trip.name == trip_name
+    ).count()
+
+    if existing_name_count > 0:
+        raise DuplicateTripNameError(f"You already have a trip named '{trip_name}'. Please choose a unique name.")
+
     max_retries = 3
 
     for attempt in range(max_retries):
@@ -80,7 +93,7 @@ async def create_trip(
         invite_code = secrets.token_hex(4).upper()
         trip = Trip(
             organizer_id=organizer_id,
-            name=name.strip() or "Untitled trip",
+            name=trip_name,
             invite_code=invite_code,
             settings=settings or TripSettings(),
         )

@@ -323,7 +323,8 @@ export default function TripDetailsScreen() {
     },
     qrCard: {
       backgroundColor: colors.leaf,
-      borderRadius: 24, borderWidth: 2, borderColor: colors.ink,
+      borderRadius: 24, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink,
       padding: 22, alignItems: 'center', marginBottom: 14,
     },
     qrInnerBox: {
@@ -342,7 +343,8 @@ export default function TripDetailsScreen() {
     },
     statsRow: {
       flexDirection: 'row', backgroundColor: colors.white,
-      borderRadius: 20, borderWidth: 2, borderColor: colors.ink,
+      borderRadius: 20, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink,
       paddingVertical: 16, marginBottom: 14,
     },
     statCol: { flex: 1, alignItems: 'center', gap: 4 },
@@ -351,7 +353,8 @@ export default function TripDetailsScreen() {
     statDivider: { width: 2, backgroundColor: 'rgba(16, 16, 16, 0.12)' },
     uploadProgressBox: {
       backgroundColor: colors.skySoft, borderRadius: 20,
-      borderWidth: 2, borderColor: colors.ink, padding: 16, marginBottom: 14,
+      borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink, padding: 16, marginBottom: 14,
     },
     progressHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     progressText: { fontSize: 13, fontFamily: 'Nunito_900Black', color: colors.ink },
@@ -387,7 +390,8 @@ export default function TripDetailsScreen() {
     permissionsList: { gap: 9, marginBottom: 18 },
     permissionCard: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      borderRadius: 16, borderWidth: 2, borderColor: colors.ink, paddingHorizontal: 16, paddingVertical: 14,
+      borderRadius: 16, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink, paddingHorizontal: 16, paddingVertical: 14,
     },
     permissionCardSelected: { backgroundColor: colors.brand },
     permissionCardUnselected: { backgroundColor: colors.white },
@@ -396,7 +400,8 @@ export default function TripDetailsScreen() {
     permissionSub: { fontSize: 12, fontFamily: 'Nunito_700Bold', marginTop: 2, lineHeight: 16 },
     toggleRow: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      borderRadius: 16, borderWidth: 2, borderColor: colors.ink,
+      borderRadius: 16, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink,
       backgroundColor: colors.white, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20,
     },
     toggleLabel: { fontSize: 15, fontFamily: 'Nunito_900Black', color: colors.ink },
@@ -409,7 +414,8 @@ export default function TripDetailsScreen() {
     deleteBtnOutlineText: { fontSize: 15, fontFamily: 'Nunito_900Black', color: colors.flame },
     infoBanner: {
       flexDirection: 'row', alignItems: 'center', gap: 11,
-      borderRadius: 16, borderWidth: 2, borderColor: colors.ink,
+      borderRadius: 16, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink,
       backgroundColor: colors.flameSoft, padding: 14, marginBottom: 16,
     },
     infoBannerText: { flex: 1, fontSize: 13, fontFamily: 'Nunito_700Bold', lineHeight: 18, color: colors.textSecondary },

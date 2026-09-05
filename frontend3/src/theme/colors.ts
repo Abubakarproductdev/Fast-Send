@@ -27,11 +27,11 @@ export const lightColors = {
 
 // Warm dark palette
 export const darkColors = {
-  brand: '#F6C500',
+  brand: '#e7b900',
   brandDeep: '#DFB100',
-  cream: '#141210',
-  creamDeep: '#1E1B17',
-  ink: '#F0EAD9',
+  cream: '#0e0e0e',
+  creamDeep: '#2b2926',
+  ink: '#f4e7c5',
   mut: '#7A7268',
   leaf: '#00C49A',
   leafSoft: 'rgba(0, 196, 154, 0.18)',
@@ -41,7 +41,7 @@ export const darkColors = {
   flameSoft: 'rgba(255, 107, 53, 0.18)',
   sky: '#5ACAED',
   skySoft: 'rgba(90, 202, 237, 0.18)',
-  white: '#252117',
+  white: '#1b1a17',
   border: '#F0EAD9',
   cardBg: '#252117',
   textPrimary: '#F0EAD9',

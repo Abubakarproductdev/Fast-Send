@@ -84,7 +84,8 @@ export default function LegalScreen() {
     },
     topSpacer: { width: 42, height: 42 },
     heroCard: {
-      backgroundColor: colors.leaf, borderRadius: 24, borderWidth: 2,
+      backgroundColor: colors.leaf, borderRadius: 24, borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink, padding: 22, marginTop: 16, marginBottom: 18,
     },
     iconCircle: {
@@ -120,7 +121,8 @@ export default function LegalScreen() {
     },
     sectionsContainer: { gap: 11, marginBottom: 16 },
     sectionCard: {
-      backgroundColor: colors.white, borderRadius: 20, borderWidth: 2, borderColor: colors.ink, padding: 18,
+      backgroundColor: colors.white, borderRadius: 20, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink, padding: 18,
     },
     sectionTitle: {
       fontSize: 16, fontFamily: 'Nunito_900Black',
@@ -132,7 +134,8 @@ export default function LegalScreen() {
     },
     noticeCard: {
       flexDirection: 'row', alignItems: 'flex-start', gap: 11,
-      borderRadius: 20, borderWidth: 2, borderColor: colors.ink,
+      borderRadius: 20, borderWidth: 1.5,
+      borderTopWidth: 4, borderColor: colors.ink,
       backgroundColor: 'rgba(246, 197, 0, 0.25)', padding: 18, marginBottom: 16,
     },
     noticeIcon: { marginTop: 1, flexShrink: 0 },

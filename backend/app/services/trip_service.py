@@ -41,6 +41,10 @@ class TripAlreadyActiveError(Exception):
     """Raised when an organizer tries to relive an already-live trip."""
 
 
+class ActiveTripExistsError(Exception):
+    """Raised when an organizer tries to create a trip but already has a live one."""
+
+
 class TripOwnershipError(Exception):
     """Raised when an action targets another organizer's trip."""
 
@@ -60,6 +64,15 @@ async def create_trip(
     display. On the rare collision (caught by the unique index on ``invite_code``),
     we regenerate and retry up to three times.
     """
+    # Restrict to only 1 active trip per organizer
+    active_count = await Trip.find(
+        Trip.organizer_id == organizer_id,
+        Trip.is_active == True
+    ).count()
+    
+    if active_count > 0:
+        raise ActiveTripExistsError("You already have an active trip. Please end it before creating a new one.")
+
     max_retries = 3
 
     for attempt in range(max_retries):

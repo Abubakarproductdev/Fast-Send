@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
 
 export const NeoToast: React.FC<{ msg: string | null }> = ({ msg }) => {
+  const { colors } = useTheme();
   if (!msg) return null;
+
   return (
     <View pointerEvents="none" style={styles.container}>
-      <View style={styles.toast}>
-        <Text style={styles.text}>{msg}</Text>
+      <View style={[styles.toast, { borderColor: colors.ink, backgroundColor: colors.ink }]}>
+        <Text style={[styles.text, { color: colors.cream }]}>{msg}</Text>
       </View>
     </View>
   );
@@ -25,10 +27,8 @@ const styles = StyleSheet.create({
   toast: {
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: colors.ink,
-    backgroundColor: colors.ink,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
@@ -36,9 +36,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   text: {
-    fontSize: 11,
+    fontSize: 13,
+    fontFamily: 'Nunito_800ExtraBold',
     fontWeight: '800',
-    color: colors.cream,
     textAlign: 'center',
   },
 });

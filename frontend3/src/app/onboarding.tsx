@@ -97,7 +97,8 @@ export default function OnboardingScreen() {
     },
     card: {
       borderRadius: 24,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       padding: 24,
     },

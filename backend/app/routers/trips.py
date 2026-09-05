@@ -69,21 +69,20 @@ def _attendee_to_response(attendee) -> AttendeeResponse:
 # ── Trip endpoints ────────────────────────────────────────────────────
 
 
-@router.post(
-    "",
-    response_model=TripResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new trip",
-)
+@router.post("", response_model=TripResponse, status_code=status.HTTP_201_CREATED)
 async def create_trip(body: TripCreate):
     """Create a trip and generate a unique invite code for QR sharing."""
     from app.models.trip import TripSettings
-    trip = await trip_service.create_trip(
-        PydanticObjectId(body.organizer_id),
-        body.name,
-        TripSettings.model_validate(body.settings.model_dump()),
-    )
-    return _trip_to_response(trip)
+    
+    try:
+        trip = await trip_service.create_trip(
+            PydanticObjectId(body.organizer_id),
+            body.name,
+            TripSettings.model_validate(body.settings.model_dump()),
+        )
+        return _trip_to_response(trip)
+    except trip_service.ActiveTripExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.get(

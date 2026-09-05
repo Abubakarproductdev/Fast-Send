@@ -42,7 +42,6 @@ import { useTheme } from '../../theme/ThemeContext';
 
 const SYNC_OPTIONS = ['1 hour', '6 hours', '12 hours', '24 hours'];
 const MODE_OPTIONS = ['Wi-Fi only', 'Wi-Fi + cellular'];
-const QUALITY_OPTIONS = ['High (1080p)', 'Medium (720p)', 'Original (4K)'];
 const THEME_OPTIONS = ['light', 'dark', 'system'];
 
 export default function ProfileScreen() {
@@ -53,10 +52,9 @@ export default function ProfileScreen() {
 
   const [sync, setSync] = useState('6 hours');
   const [uploadMode, setUploadMode] = useState('Wi-Fi + cellular');
-  const [quality, setQuality] = useState('High (1080p)');
 
   const [activeSheet, setActiveSheet] = useState<
-    null | 'sync' | 'mode' | 'quality' | 'name' | 'password' | 'signout' | 'appearance'
+    null | 'sync' | 'mode' | 'name' | 'password' | 'signout' | 'appearance'
   >(null);
 
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'Organizer';
@@ -73,7 +71,6 @@ export default function ProfileScreen() {
   const [pwBusy, setPwBusy] = useState(false);
 
   useEffect(() => {
-    storage.getImageQuality().then(setQuality);
     storage.getUploadMode().then((m) => {
       setUploadMode(m === 'wifi_only' ? 'Wi-Fi only' : 'Wi-Fi + cellular');
     });
@@ -111,13 +108,6 @@ export default function ProfileScreen() {
     }
     setActiveSheet(null);
     showToast(`Upload mode set to ${opt}`);
-  };
-
-  const handlePickQuality = async (opt: string) => {
-    setQuality(opt);
-    await storage.setImageQuality(opt);
-    setActiveSheet(null);
-    showToast(`Image quality set to ${opt}`);
   };
 
   const handlePickTheme = (opt: string) => {
@@ -238,7 +228,8 @@ export default function ProfileScreen() {
       alignItems: 'center',
       gap: 12,
       borderRadius: 22,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       backgroundColor: colors.white,
       padding: 16,
@@ -277,7 +268,8 @@ export default function ProfileScreen() {
     },
     groupCard: {
       borderRadius: 18,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       backgroundColor: colors.white,
       overflow: 'hidden',
@@ -453,25 +445,6 @@ export default function ProfileScreen() {
                 <ChevronRight size={17} color={colors.mut} />
               </View>
             </TouchableOpacity>
-
-            <View style={styles.rowDivider} />
-
-            <TouchableOpacity
-              onPress={() => setActiveSheet('quality')}
-              style={styles.rowItem}
-              activeOpacity={0.7}
-            >
-              <View style={styles.rowLeft}>
-                <View style={styles.rowIconBox}>
-                  <ImageIcon size={17} strokeWidth={2.6} color={colors.ink} />
-                </View>
-                <Text style={styles.rowTitle}>Image quality</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text style={styles.rowValue}>{quality}</Text>
-                <ChevronRight size={17} color={colors.mut} />
-              </View>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -643,31 +616,6 @@ export default function ProfileScreen() {
             >
               <Text style={styles.optionText}>{opt}</Text>
               {uploadMode === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </NeoSheet>
-
-      {/* Image Quality Sheet */}
-      <NeoSheet
-        open={activeSheet === 'quality'}
-        onClose={() => setActiveSheet(null)}
-        title="Image quality"
-        subtitle="Resolution for photos pushed to the guest gallery."
-      >
-        <View style={styles.optionsWrap}>
-          {QUALITY_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt}
-              onPress={() => handlePickQuality(opt)}
-              style={[
-                styles.optionItem,
-                quality === opt && styles.optionItemActive,
-              ]}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.optionText}>{opt}</Text>
-              {quality === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
             </TouchableOpacity>
           ))}
         </View>

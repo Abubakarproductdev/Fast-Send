@@ -31,6 +31,9 @@ export const NeoSheet: React.FC<NeoSheetProps> = ({
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
+    modal: {
+      flex: 1,
+    },
     overlay: {
       flex: 1,
       justifyContent: 'flex-end',
@@ -104,39 +107,49 @@ export const NeoSheet: React.FC<NeoSheetProps> = ({
       transparent
       animationType="slide"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
+      {/* 
+        KeyboardAvoidingView wraps the whole modal.
+        - iOS: 'padding' shifts the sheet up as the keyboard rises.
+        - Android: 'height' shrinks the available height so the sheet fits above the keyboard.
+      */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.overlay}
+        style={styles.modal}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
       >
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View style={styles.backdrop} />
-        </TouchableWithoutFeedback>
+        <View style={styles.overlay}>
+          {/* Tap outside to close */}
+          <TouchableWithoutFeedback onPress={onClose}>
+            <View style={styles.backdrop} />
+          </TouchableWithoutFeedback>
 
-        <View style={styles.sheetContainer}>
-          <View style={styles.dragHandle} />
+          <View style={styles.sheetContainer}>
+            <View style={styles.dragHandle} />
 
-          <View style={styles.header}>
-            <View style={styles.headerCopy}>
-              <Text style={styles.title}>{title}</Text>
-              {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            <View style={styles.header}>
+              <View style={styles.headerCopy}>
+                <Text style={styles.title}>{title}</Text>
+                {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+              </View>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.closeBtn}
+                activeOpacity={0.8}
+              >
+                <X size={17} strokeWidth={3} color={colors.ink} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeBtn}
-              activeOpacity={0.8}
-            >
-              <X size={17} strokeWidth={3} color={colors.ink} />
-            </TouchableOpacity>
-          </View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-          >
-            {children}
-          </ScrollView>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+            >
+              {children}
+            </ScrollView>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>

@@ -87,7 +87,8 @@ export default function InboxScreen() {
     },
     noticeCard: {
       borderRadius: 20,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       backgroundColor: colors.flameSoft,
       padding: 14,
@@ -158,7 +159,8 @@ export default function InboxScreen() {
     },
     emptyCard: {
       borderRadius: 22,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderStyle: 'dashed',
       borderColor: 'rgba(16, 16, 16, 0.25)',
       backgroundColor: 'rgba(255, 255, 255, 0.5)',

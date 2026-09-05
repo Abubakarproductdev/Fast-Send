@@ -198,7 +198,8 @@ export default function ArchiveScreen() {
     },
     emptyCard: {
       borderRadius: 22,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderStyle: 'dashed',
       borderColor: 'rgba(16, 16, 16, 0.25)',
       backgroundColor: 'rgba(255, 255, 255, 0.5)',
@@ -224,7 +225,8 @@ export default function ArchiveScreen() {
     },
     tripCard: {
       borderRadius: 22,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       backgroundColor: colors.white,
       padding: 16,

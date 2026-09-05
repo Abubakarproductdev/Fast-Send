@@ -25,7 +25,7 @@ import { useTheme } from '../../theme/ThemeContext';
 export default function HomeScreen() {
   const { colors, neoShadow, neoShadowLg } = useTheme();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, activeTripId } = useAuth();
   const { openCreateTrip } = useTripModal();
 
   const STEPS = [
@@ -33,8 +33,8 @@ export default function HomeScreen() {
       icon: Plus,
       solidBg: colors.flame,
       softBg: colors.flameSoft,
-      title: 'Create a new trip',
-      body: 'Give your trip a name and start collecting moments.',
+      title: activeTripId ? 'Manage your trip' : 'Create a new trip',
+      body: activeTripId ? 'Your trip is live. Tap above to manage settings.' : 'Give your trip a name and start collecting moments.',
     },
     {
       icon: Camera,
@@ -83,6 +83,14 @@ export default function HomeScreen() {
       .join('') || 'FS';
   };
 
+  const handleHeroAction = () => {
+    if (activeTripId) {
+      router.push(`/trip-details?tripId=${activeTripId}`);
+    } else {
+      openCreateTrip();
+    }
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -128,7 +136,8 @@ export default function HomeScreen() {
     },
     heroCard: {
       borderRadius: 24,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       backgroundColor: colors.leaf,
       padding: 20,
@@ -258,7 +267,8 @@ export default function HomeScreen() {
       alignItems: 'center',
       gap: 12,
       borderRadius: 20,
-      borderWidth: 2,
+      borderWidth: 1.5,
+      borderTopWidth: 4,
       borderColor: colors.ink,
       padding: 14,
     },
@@ -334,8 +344,12 @@ export default function HomeScreen() {
           <View style={[styles.heroCard, neoShadowLg]}>
             <View style={styles.heroTopRow}>
               <View style={styles.heroCopy}>
-                <Text style={styles.heroEyebrow}>Share photos with everyone</Text>
-                <Text style={styles.heroTitle}>Create a trip{'\n'}before you go.</Text>
+                <Text style={styles.heroEyebrow}>
+                  {activeTripId ? 'Your trip is live' : 'Share photos with everyone'}
+                </Text>
+                <Text style={styles.heroTitle}>
+                  {activeTripId ? 'Manage your\nactive trip.' : 'Create a trip\nbefore you go.'}
+                </Text>
               </View>
               <View style={[styles.sparkleBadge, neoShadow]}>
                 <Sparkles size={24} strokeWidth={2.6} color={colors.ink} />
@@ -343,22 +357,28 @@ export default function HomeScreen() {
             </View>
 
             <Text style={styles.heroSub}>
-              Start a trip, take photos, and every guest gets their photos — automatically.
+              {activeTripId 
+                ? 'Your guests can join and upload photos to this trip right now.' 
+                : 'Start a trip, take photos, and every guest gets their photos — automatically.'}
             </Text>
 
             <View style={styles.tagWrap}>
               <View style={styles.pillTag}>
                 <View style={styles.dot} />
-                <Text style={styles.pillText}>Moments, made easy</Text>
+                <Text style={styles.pillText}>
+                  {activeTripId ? 'Trip is live' : 'Moments, made easy'}
+                </Text>
               </View>
             </View>
 
             <TouchableOpacity
-              onPress={openCreateTrip}
+              onPress={handleHeroAction}
               style={[styles.heroBtn, neoShadowLg]}
               activeOpacity={0.8}
             >
-              <Text style={styles.heroBtnText}>Create a new trip</Text>
+              <Text style={styles.heroBtnText}>
+                {activeTripId ? 'MANAGE LIVE TRIP' : 'CREATE A NEW TRIP'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

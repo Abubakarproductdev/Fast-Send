@@ -7,5 +7,5 @@
  * to the Azure backend, completely bypassing any mobile DNS blocking.
  */
 export const API_BASE_URL = process.env.NODE_ENV === "development" 
-  ? "http://192.168.10.4:8000" 
+  ? "https://145.241.114.68.nip.io" 
   : "";

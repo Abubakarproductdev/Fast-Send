@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account & Data Deletion - Fast Send</title>
+  <meta name="description" content="Official data and account deletion request portal for Fast Send. Request permanent erasure of your photos, facial embeddings, and account data.">
+  
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-badge">
+          <img src="assets/images/icon.png" alt="Fast Send Logo">
+        </div>
+        <span>FAST SEND</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="index.html#pillars" class="nav-link">Features</a></li>
+        <li><a href="privacy.html" class="nav-link">Privacy Policy</a></li>
+        <li><a href="terms.html" class="nav-link">Terms</a></li>
+        <li><a href="data-deletion.html" class="nav-link" style="background-color: var(--color-brand); border: 1px solid var(--color-ink);">Data Deletion</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="index.html" class="neo-btn neo-btn-secondary neo-btn-sm">← Back Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Title Banner -->
+  <div class="legal-page-header">
+    <div class="container container-narrow">
+      <div class="neo-pill" style="background-color: var(--color-white);">Google Play Compliance • User Rights</div>
+      <h1>Account &amp; Data Deletion</h1>
+      <p class="legal-meta">Request permanent erasure of your account, photos, and facial data</p>
+    </div>
+  </div>
+
+  <!-- Main Legal Document -->
+  <main class="legal-body">
+    <div class="container container-narrow">
+      <div class="legal-card">
+
+        <div class="legal-alert">
+          <strong>Google Play User Data Compliance:</strong> In accordance with Google Play Developer Policy, Fast Send provides a clear, accessible mechanism for all users (both registered organizers and event guests) to request the permanent deletion of their account and all associated personal data.
+        </div>
+
+        <h2>How to Delete Your Data</h2>
+        <p>You can delete your data through either of the two methods below:</p>
+
+        <!-- Method 1: In-App -->
+        <div style="background: var(--color-white); border: var(--border-md); border-radius: var(--radius-md); padding: 1.75rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+          <div class="neo-pill neo-pill-yellow">Method 1: In-App (For Organizers)</div>
+          <h3 style="margin-top: 0.5rem;">Delete Directly Inside the Android App</h3>
+          <p style="margin-bottom: 1rem;">If you have the Fast Send mobile application installed, you can immediately delete your account and all associated trips at any time:</p>
+          <ol style="padding-left: 1.5rem; margin-bottom: 0;">
+            <li style="margin-bottom: 0.5rem;">Open the <strong>Fast Send</strong> app on your Android device.</li>
+            <li style="margin-bottom: 0.5rem;">Tap the <strong>Profile</strong> tab on the bottom navigation bar.</li>
+            <li style="margin-bottom: 0.5rem;">Scroll down to the <strong>Account Settings</strong> section.</li>
+            <li style="margin-bottom: 0.5rem;">Tap <strong>Delete Account &amp; All Data</strong>.</li>
+            <li>Confirm your password. Your account, trips, photos, and facial recognition vectors will be immediately and irreversibly purged from our servers.</li>
+          </ol>
+        </div>
+
+        <!-- Method 2: Web Request Form -->
+        <div style="background: var(--color-white); border: var(--border-md); border-radius: var(--radius-md); padding: 1.75rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+          <div class="neo-pill neo-pill-leaf">Method 2: Web Request (For Guests &amp; Organizers)</div>
+          <h3 style="margin-top: 0.5rem;">Submit a Web Deletion Request</h3>
+          <p style="margin-bottom: 1.5rem;">If you are an event guest who accessed the web portal, or an organizer who no longer has the app installed, submit this request form. Our systems will process your request within <strong>48 hours</strong>.</p>
+
+          <form id="deletion-request-form">
+            <div class="form-group">
+              <label class="form-label" for="user-email">Your Email or Registered Phone Number *</label>
+              <input type="text" id="user-email" class="form-input" placeholder="e.g. name@example.com or +1234567890" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="user-type">I am requesting deletion as:</label>
+              <select id="user-type" class="form-input" style="cursor: pointer;">
+                <option value="guest">Event Guest (Attendee who took a selfie)</option>
+                <option value="organizer">Event Organizer (Account holder)</option>
+                <option value="both">Both / General User</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="trip-code">Trip Name or Invite Code (Optional)</label>
+              <input type="text" id="trip-code" class="form-input" placeholder="e.g. Northern Tour or ABC123">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="deletion-notes">Additional Details / Notes (Optional)</label>
+              <textarea id="deletion-notes" class="form-textarea" rows="3" placeholder="Specify any specific photos or event dates you want removed..."></textarea>
+            </div>
+
+            <button type="submit" class="neo-btn neo-btn-flame" style="width: 100%;">
+              Submit Deletion Request 🗑️
+            </button>
+          </form>
+
+          <div id="deletion-success-alert" class="legal-alert success" style="display: none; margin-top: 1.5rem;">
+            <strong>Request Received!</strong> Your data deletion ticket has been registered. You will receive a confirmation once all photos, selfies, and biometric embedding records have been permanently expunged from our database and cloud storage.
+          </div>
+        </div>
+
+        <h2>What Data Is Deleted?</h2>
+        <p>When an account or guest record deletion is processed, our system permanently purges:</p>
+        <ul>
+          <li><strong>Biometric Embeddings:</strong> All 512-dimensional facial recognition vectors associated with your face.</li>
+          <li><strong>Selfie Reference Images:</strong> The reference selfie photo you captured during registration.</li>
+          <li><strong>Uploaded Event Photos:</strong> If you are an organizer deleting a trip or account, all original high-resolution assets stored in Microsoft Azure Blob Storage are permanently destroyed.</li>
+          <li><strong>Profile &amp; Contact Records:</strong> Your email address, Firebase authentication UID, name, phone number, and sync tokens.</li>
+          <li><strong>Notification Records:</strong> All push notifications and delivery logs.</li>
+        </ul>
+
+        <h2>Data Retention Policy</h2>
+        <p>
+          Fast Send does not retain user data indefinitely:
+        </p>
+        <ul>
+          <li><strong>Guest Selfies &amp; Vectors:</strong> Stored only while the corresponding trip is active. When the organizer archives or deletes the trip, all attendee vectors for that trip are automatically purged.</li>
+          <li><strong>Cloud Backups:</strong> System backups containing residual deleted records are overwritten and permanently destroyed within 30 days.</li>
+        </ul>
+
+        <h2>Need Assistance?</h2>
+        <p>
+          You may also request data deletion by emailing our support team directly:
+        </p>
+        <p>
+          <strong>Data Protection Contact:</strong><br>
+          Email: <a href="mailto:support@fastsend.app" style="font-weight: 700; text-decoration: underline;">support@fastsend.app</a><br>
+          Subject Line: <em>Data Deletion Request</em><br>
+          Response Timeframe: Within 48 hours
+        </p>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <p>&copy; 2026 Fast Send. All rights reserved.</p>
+        <div style="display: flex; gap: 1.5rem;">
+          <a href="index.html">Home</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="data-deletion.html" style="color: var(--color-brand);">Data Deletion</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

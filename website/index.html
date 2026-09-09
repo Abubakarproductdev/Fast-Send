@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fast Send - AI Event & Trip Photo Sharing</title>
+  <meta name="description" content="Fast Send is an AI-powered photo delivery platform for trips, weddings, tours, and events. Organizers upload event photos, guests scan a QR code, and AI delivers their photos instantly.">
+  <meta name="keywords" content="photo sharing, trip photos, face recognition photo delivery, event photo sharing, AI photo sorting, wedding photos">
+  
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fast Send - Memories Delivered Instantly">
+  <meta property="og:description" content="Never scroll through thousands of event photos again. Take a selfie and let AI deliver only your moments.">
+  <meta property="og:image" content="assets/images/icon.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  
+  <!-- Fonts: Nunito & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       Header & Navigation
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-badge">
+          <img src="assets/images/icon.png" alt="Fast Send Logo">
+        </div>
+        <span>FAST SEND</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#pillars" class="nav-link">Features</a></li>
+        <li><a href="#architecture" class="nav-link">Architecture</a></li>
+        <li><a href="#security" class="nav-link">Privacy & Security</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+        <li><a href="privacy.html" class="nav-link">Privacy Policy</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="#download" class="neo-btn neo-btn-primary neo-btn-sm">Get The App</a>
+        <button class="mobile-menu-btn" aria-label="Toggle navigation">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       Hero Section
+       ========================================================================= -->
+  <section class="hero-section">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="neo-pill neo-pill-yellow">
+          ⚡ AI-Powered Event Photo Delivery
+        </div>
+        <h1>Memories Delivered. <span class="highlight">Instantly.</span></h1>
+        <p class="hero-lead">
+          Stop scrolling through 2,000 photos on Google Drive or dealing with compressed WhatsApp groups. 
+          Event organizers upload in high resolution, guests scan a QR code and snap a selfie, and our AI delivers only the photos they appear in.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#download" class="neo-btn neo-btn-primary neo-btn-lg">
+            <span>Download for Android</span> 🚀
+          </a>
+          <a href="#how-it-works" class="neo-btn neo-btn-secondary neo-btn-lg">
+            <span>See How It Works</span> ↓
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">512-D</span>
+            <span class="stat-label">Neural Face Embeddings</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">0 Apps</span>
+            <span class="stat-label">Required For Guests</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">1-Click</span>
+            <span class="stat-label">Full Res Batch ZIP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Visual / App Mockup -->
+      <div class="hero-visual">
+        <div class="hero-phone-mockup">
+          <div class="mockup-inner">
+            <div class="mockup-header">
+              <span style="font-family: var(--font-heading); font-weight: 900;">TRIP / 01 • ACTIVE</span>
+              <span class="mockup-pulse-badge">● LIVE SYNC</span>
+            </div>
+            
+            <div class="mockup-qr-box">
+              <p style="font-weight: 800; font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase;">
+                Northern Trip 2026
+              </p>
+              <div class="mockup-qr-placeholder">
+                QR CODE
+              </div>
+              <p style="font-size: 0.8rem; color: var(--color-ink-muted); margin-bottom: 0;">
+                Guests scan to get their personal AI gallery instantly
+              </p>
+            </div>
+
+            <div style="background: var(--color-white); border: var(--border-sm); border-radius: var(--radius-md); padding: 1rem; box-shadow: var(--shadow-sm);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-weight: 800; font-size: 0.85rem;">PHOTOS PROCESSED</span>
+                <span style="font-family: var(--font-heading); font-weight: 900; color: var(--color-leaf-dark);">142 / 142</span>
+              </div>
+              <div style="background: var(--color-leaf-soft); border: 1.5px solid var(--color-leaf-dark); border-radius: 999px; height: 12px; overflow: hidden;">
+                <div style="background: var(--color-leaf); width: 100%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       The Problem We Solve (Old Way vs Fast Send Way)
+       ========================================================================= -->
+  <section class="comparison-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="neo-pill neo-pill-flame">The Difference</div>
+        <h2>Why Traditional Photo Sharing Is Broken</h2>
+        <p>Whether you're organizing a tour, wedding, retreat, or party, getting photos to attendees has always been a painful chore.</p>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- Old Way Card -->
+        <div class="comparison-card old-way">
+          <div class="neo-pill" style="background-color: #E0E0E0; border-color: #888;">The Frustrating Old Way</div>
+          <h3 style="font-size: 1.6rem; margin: 0.75rem 0;">Google Drive & WhatsApp Chaos</h3>
+          <ul class="comparison-list">
+            <li>
+              <span class="comparison-icon icon-cross">✕</span>
+              <span><strong>Endless scrolling:</strong> Guests must comb through 2,000+ random photos just to find the 5 photos they appear in.</span>
+            </li>
+            <li>
+              <span class="comparison-icon icon-cross">✕</span>
+              <span><strong>Crushed quality:</strong> Chat apps heavily compress high-res DSLR and smartphone photos into blurry files.</span>
+            </li>
+            <li>
+              <span class="comparison-icon icon-cross">✕</span>
+              <span><strong>AirDrop limitations:</strong> Only works in close physical proximity and fails completely across Android and iPhone users.</span>
+            </li>
+            <li>
+              <span class="comparison-icon icon-cross">✕</span>
+              <span><strong>Privacy concerns:</strong> Everyone has to browse through everyone else's personal pictures.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Fast Send Way Card -->
+        <div class="comparison-card fast-send-way">
+          <div class="neo-pill neo-pill-leaf">The Fast Send Way</div>
+          <h3 style="font-size: 1.6rem; margin: 0.75rem 0;">Effortless AI Face Delivery</h3>
+          <ul class="comparison-list">
+            <li>
+              <span class="comparison-icon icon-check">✓</span>
+              <span><strong>Instant personal gallery:</strong> Guests take one selfie, and AI immediately surfaces every photo containing their face.</span>
+            </li>
+            <li>
+              <span class="comparison-icon icon-check">✓</span>
+              <span><strong>Full original resolution:</strong> Photos are streamed directly from cloud storage with zero compression.</span>
+            </li>
+            <li>
+              <span class="comparison-icon icon-check">✓</span>
+              <span><strong>Zero guest app installs:</strong> Works natively in mobile browsers (Safari, Chrome, Samsung Internet) via QR code.</span>
+            </li>
+            <li>
+              <span class="comparison-icon icon-check">✓</span>
+              <span><strong>AI Trip Insights:</strong> Calculates solo shots, group photos, and identifies your most frequent photo partner.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       How It Works (3 Steps)
+       ========================================================================= -->
+  <section id="how-it-works" class="how-it-works-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="neo-pill neo-pill-yellow">How It Works</div>
+        <h2>Three Simple Steps to Magic</h2>
+        <p>From camera to attendee in seconds without anyone asking "Can you send me that picture?"</p>
+      </div>
+
+      <div class="steps-grid">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3>Organizer Creates & Uploads</h3>
+          <p>
+            The organizer opens the Fast Send mobile app, creates a new trip with a unique name, and selects event photos from their gallery or camera. The app automatically pushes original assets to secure Azure cloud storage.
+          </p>
+          <span class="step-tag">Mobile App • Organizer</span>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3>Guest Scans & Selfies</h3>
+          <p>
+            Guests scan the trip's dynamic QR code using any smartphone camera. No app download required! They enter their name and snap a quick reference selfie to authenticate their face.
+          </p>
+          <span class="step-tag">Web Portal • Zero App Install</span>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3>Instant AI Delivery & Download</h3>
+          <p>
+            Our deep learning face engine matches the selfie against all uploaded assets using 512-D vector embeddings. Within seconds, guests get their personalized gallery with 1-click batch ZIP download!
+          </p>
+          <span class="step-tag">FastAPI & InsightFace • Real-Time</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       The Three Pillars of Fast Send
+       ========================================================================= -->
+  <section id="pillars" class="pillars-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="neo-pill neo-pill-leaf">Deep Dive</div>
+        <h2>Engineered for Scale and Simplicity</h2>
+        <p>Fast Send is powered by a synchronized trio of modern mobile, cloud AI, and web systems.</p>
+      </div>
+
+      <!-- Pillar 1: Mobile App (frontend3) -->
+      <div class="pillar-card">
+        <div class="pillar-content">
+          <div class="neo-pill neo-pill-yellow">Pillar 1: Organizer App</div>
+          <h3>Built with React Native & Expo</h3>
+          <p>
+            The official organizer application features a custom Neobrutalist design system with full Light and Dark mode adaptation.
+          </p>
+          <ul class="pillar-features-list">
+            <li>✓ <strong>Dynamic QR Code Generation:</strong> Instant sharing for live events.</li>
+            <li>✓ <strong>Duplicate Trip Protection:</strong> Enforces unique event naming per organizer.</li>
+            <li>✓ <strong>Trip Archive & Search:</strong> Instantly filter past trips by name or invite code.</li>
+            <li>✓ <strong>Real-time Notification Center:</strong> Track uploads, guest registrations, and photo matches.</li>
+            <li>✓ <strong>Granular Trip Settings:</strong> Toggle guest permissions to download nature photos or all event media.</li>
+          </ul>
+        </div>
+        <div class="pillar-display">
+          <h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">⚡ Mobile Tech Stack (frontend3)</h4>
+          <div class="code-box">
+• Framework: React Native 0.81 + Expo SDK 54
+• Router: Expo Router v6 (File-based routing)
+• Auth: Google Firebase Authentication
+• UI: Custom Neobrutalism Design System
+• Icons: Lucide Icons & Custom SVG Assets
+• Engine: Hermes JS Engine with Edge-to-Edge display
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillar 2: Backend & AI Engine (backend) -->
+      <div class="pillar-card" id="architecture">
+        <div class="pillar-content">
+          <div class="neo-pill neo-pill-flame">Pillar 2: AI & Cloud Pipeline</div>
+          <h3>High-Concurrency Face Matching</h3>
+          <p>
+            The backend pipeline processes photos in parallel without degrading server performance or buffering huge files into RAM.
+          </p>
+          <ul class="pillar-features-list">
+            <li>✓ <strong>InsightFace 512-D Vectors:</strong> Extracts high-precision facial embeddings via ONNX runtime.</li>
+            <li>✓ <strong>Smart Photo Tagging:</strong> Classifies assets into solo portraits, group photos, and nature landscapes.</li>
+            <li>✓ <strong>Direct Azure Streaming:</strong> Generates time-limited SAS tokens for zero-RAM memory streaming.</li>
+            <li>✓ <strong>Celery Distributed Tasks:</strong> Asynchronous background photo indexing backed by Redis.</li>
+            <li>✓ <strong>HEIC & RAW Decoding:</strong> Full cross-platform image compatibility via Pillow-HEIF.</li>
+          </ul>
+        </div>
+        <div class="pillar-display">
+          <h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">🧠 AI & Cloud Stack (backend)</h4>
+          <div class="code-box">
+• Web Framework: FastAPI (Asynchronous Python 3.11)
+• Database: MongoDB with Beanie Async ODM & Motor
+• Task Worker: Celery + Redis message broker
+• Face Engine: InsightFace / Buffalo_l model
+• Cloud Storage: Microsoft Azure Blob Storage (SAS)
+• Streaming: Zipstream-ng for zero-RAM memory streams
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillar 3: Guest Web Portal (guest-web) -->
+      <div class="pillar-card">
+        <div class="pillar-content">
+          <div class="neo-pill neo-pill-leaf">Pillar 3: Guest Web Portal</div>
+          <h3>Zero-Install Browser Experience</h3>
+          <p>
+            Event guests never have to install an app from the app store. They simply tap the link or scan the QR code to access their personalized event portal.
+          </p>
+          <ul class="pillar-features-list">
+            <li>✓ <strong>Instant Browser Access:</strong> Works across iOS Safari, Android Chrome, and desktop.</li>
+            <li>✓ <strong>Smart Filter Tabs:</strong> Switch between "My Photos", "Group Photos", and "Nature & Scenic".</li>
+            <li>✓ <strong>AI Trip Insights Card:</strong> Shows download size, solo photo count, and "Most Seen With" friend.</li>
+            <li>✓ <strong>High-Speed ZIP Download:</strong> Download all matched photos in one packaged archive.</li>
+            <li>✓ <strong>Tokenized Security:</strong> Guest tokens strictly limit access to the designated event only.</li>
+          </ul>
+        </div>
+        <div class="pillar-display">
+          <h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">🌐 Web App Stack (guest-web)</h4>
+          <div class="code-box">
+• Framework: Next.js (App Router) + React
+• Deployment: Vercel Global Edge Network
+• Styling: Responsive Tailwind CSS
+• Camera: Web MediaDevices API for instant selfie capture
+• Download: Chunked streaming blob downloads
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Security & Privacy Guarantee
+       ========================================================================= -->
+  <section id="security" class="security-banner">
+    <div class="container security-grid">
+      <div>
+        <div class="neo-pill neo-pill-yellow">Privacy First</div>
+        <h2 style="font-size: 2.3rem; margin-bottom: 1rem;">Our Biometric & Privacy Promise</h2>
+        <p style="font-size: 1.1rem; color: var(--color-ink-soft); margin-bottom: 1.5rem;">
+          We treat biometric data with utmost care and transparency. Facial recognition is used strictly to match event photos and deliver your memories.
+        </p>
+        <a href="privacy.html" class="neo-btn neo-btn-secondary">
+          Read Full Privacy Policy →
+        </a>
+      </div>
+
+      <div class="security-guarantees">
+        <div class="guarantee-box">
+          <h4>🔒 Never Sold or Shared</h4>
+          <p>We will never monetize, sell, or rent your biometric data, selfies, or event photos to third parties or advertisers.</p>
+        </div>
+        <div class="guarantee-box">
+          <h4>🎯 Strictly Event-Scoped</h4>
+          <p>Your selfie is only compared against photos from the specific trip you registered for, never across the global web.</p>
+        </div>
+        <div class="guarantee-box">
+          <h4>🛡️ Encrypted Cloud Storage</h4>
+          <p>High-resolution originals are stored in encrypted Microsoft Azure Blob Storage with time-limited SAS tokens.</p>
+        </div>
+        <div class="guarantee-box">
+          <h4>🗑️ Easy Data Deletion</h4>
+          <p>Organizers and guests can request complete deletion of their account, photos, and facial vectors at any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       FAQ Section
+       ========================================================================= -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="neo-pill neo-pill-leaf">Common Questions</div>
+        <h2>Frequently Asked Questions</h2>
+        <p>Everything you need to know about how Fast Send works and protects your data.</p>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Do event guests have to install the Fast Send app?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p><strong>No!</strong> Guests never need to download or install anything from an app store. They simply point their smartphone camera at the event's QR code (or click an invite link), and the web portal opens immediately in their default browser (Safari, Chrome, etc.).</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does the AI face matching work?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>When an organizer uploads event photos, our deep learning engine detects faces and converts them into mathematical representations called 512-dimensional vectors. When a guest registers with a selfie, the AI extracts their vector and performs ultra-fast cosine similarity matching to find all photos containing their face.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Are my event photos compressed or downscaled?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p><strong>No.</strong> Unlike messaging apps that aggressively compress photos, Fast Send stores and serves your original high-resolution assets directly from Microsoft Azure Blob Storage. When guests download photos, they receive the full original quality.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>What happens if there are photos without any people (scenery, food, nature)?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Our AI classifies photos with 0 detected faces into a dedicated "Nature & Scenic" category. Organizers can choose whether guests are allowed to view and download these photos, ensuring attendees can grab scenic event shots along with their personal portraits.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How do I delete my photos or account?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Organizers can delete trips or their entire account directly from the app settings. Guests can request immediate deletion of their selfies, facial vectors, and photos through our dedicated <a href="data-deletion.html" style="text-decoration: underline; font-weight: 700;">Account & Data Deletion Portal</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Download CTA Section
+       ========================================================================= -->
+  <section id="download" class="download-cta">
+    <div class="container cta-box">
+      <div class="neo-pill neo-pill-leaf">Available on Android</div>
+      <h2>Ready to share memories the smart way?</h2>
+      <p>Download Fast Send for Android today and create your first AI-powered photo sharing trip in minutes.</p>
+      
+      <div class="download-badges">
+        <a href="#" class="neo-btn neo-btn-secondary neo-btn-lg" style="background-color: var(--color-ink); color: var(--color-white);">
+          <span>📱 Google Play Store</span>
+        </a>
+        <a href="privacy.html" class="neo-btn neo-btn-secondary neo-btn-lg">
+          <span>🔒 Read Privacy Policy</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Footer
+       ========================================================================= -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div class="logo-badge" style="width: 34px; height: 34px;">
+              <img src="assets/images/icon.png" alt="Fast Send Logo" style="width: 22px; height: 22px;">
+            </div>
+            <h3 style="margin-bottom: 0;">FAST SEND</h3>
+          </div>
+          <p>The AI-powered photo sharing platform delivering personal event memories directly to attendees.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#pillars">Features</a></li>
+            <li><a href="#architecture">Tech Stack</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Legal & Policy</h4>
+          <ul class="footer-links">
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Service</a></li>
+            <li><a href="data-deletion.html">Data Deletion Request</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Support & Contact</h4>
+          <ul class="footer-links">
+            <li><a href="mailto:support@fastsend.app">support@fastsend.app</a></li>
+            <li><a href="data-deletion.html">Delete My Data</a></li>
+            <li><span style="color: #8C867A; font-size: 0.85rem;">Developer: Muhammad Abubakar</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Fast Send. All rights reserved.</p>
+        <p>Built with React Native, FastAPI, InsightFace & Azure Cloud.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+</body>
+</html>

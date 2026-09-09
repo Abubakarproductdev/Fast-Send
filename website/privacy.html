@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Fast Send</title>
+  <meta name="description" content="Official Privacy Policy for Fast Send. Comprehensive disclosure on biometric facial data, Android device permissions, cloud security, and data deletion rights.">
+  
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-badge">
+          <img src="assets/images/icon.png" alt="Fast Send Logo">
+        </div>
+        <span>FAST SEND</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="index.html#pillars" class="nav-link">Features</a></li>
+        <li><a href="index.html#security" class="nav-link">Security</a></li>
+        <li><a href="privacy.html" class="nav-link" style="background-color: var(--color-brand); border: 1px solid var(--color-ink);">Privacy Policy</a></li>
+        <li><a href="terms.html" class="nav-link">Terms</a></li>
+        <li><a href="data-deletion.html" class="nav-link">Data Deletion</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="index.html" class="neo-btn neo-btn-secondary neo-btn-sm">← Back Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Title Banner -->
+  <div class="legal-page-header">
+    <div class="container container-narrow">
+      <div class="neo-pill" style="background-color: var(--color-white);">Google Play Compliance • Legal Disclosure</div>
+      <h1>Privacy Policy</h1>
+      <p class="legal-meta">Effective Date: September 9, 2026 • Version 1.0</p>
+    </div>
+  </div>
+
+  <!-- Main Legal Document -->
+  <main class="legal-body">
+    <div class="container container-narrow">
+      <div class="legal-card">
+        
+        <div class="legal-alert success">
+          <strong>Summary for Users & Regulators:</strong> Fast Send uses artificial intelligence exclusively to match event attendees with their own photos taken during trips, weddings, retreats, and group events. We <strong>never</strong> sell your biometric data, <strong>never</strong> share it with third-party advertisers, and you retain complete ownership and deletion rights over your photos and selfies at all times.
+        </div>
+
+        <h2>1. Introduction</h2>
+        <p>
+          This Privacy Policy explains how <strong>Fast Send</strong> ("we," "us," or "our"), developed by Muhammad Abubakar, collects, uses, processes, stores, and protects information when you use:
+        </p>
+        <ul>
+          <li>The <strong>Fast Send Mobile Application</strong> (available on Google Play for event organizers);</li>
+          <li>The <strong>Fast Send Guest Web Portal</strong> (accessed via browser at our official web domain);</li>
+          <li>Our associated cloud backend API services, storage services, and websites.</li>
+        </ul>
+        <p>
+          By downloading, accessing, or using Fast Send, you acknowledge that you have read and understood this Privacy Policy.
+        </p>
+
+        <h2>2. Special Disclosure: Biometric & Facial Recognition Data</h2>
+        <p>
+          Because Fast Send provides automated face-matching photo delivery, we process biometric identifiers under strict safeguards and transparent policies in accordance with Google Play Developer Policies and global privacy regulations (GDPR, CCPA/CPRA, BIPA):
+        </p>
+        
+        <div class="legal-alert">
+          <strong>How We Process Facial Data:</strong>
+          <ol>
+            <li><strong>Selfie Reference Image:</strong> When an event attendee registers on the Guest Web Portal, they provide a single reference selfie.</li>
+            <li><strong>Mathematical Vector Generation:</strong> Our backend AI model (InsightFace neural network) detects the face and calculates a 512-dimensional numerical embedding vector (a mathematical representation of facial landmarks). <em>No raw facial biometrics are ever converted into biometric templates for external identity tracking.</em></li>
+            <li><strong>Cosine Similarity Matching:</strong> The embedding vector from the guest's selfie is compared against the pre-calculated embedding vectors of people appearing in the event's uploaded photo collection. When the similarity exceeds a strict threshold (cosine similarity &gt; 0.35), the photo is flagged as a match.</li>
+            <li><strong>Purpose Limitation:</strong> Biometric vectors are used <strong>exclusively</strong> to identify which event photos the guest appears in. They are <strong>never</strong> used for advertising, behavioral tracking, cross-event surveillance, or sold to any third party.</li>
+            <li><strong>Data Retention & Purging:</strong> Facial vectors and reference selfies are retained only for the duration of the active trip. Once a trip is deleted or archived by the organizer, or upon individual request via our <a href="data-deletion.html" style="text-decoration: underline; font-weight: 700;">Data Deletion Portal</a>, all facial embeddings are permanently wiped from our database.</li>
+          </ol>
+        </div>
+
+        <h2>3. Device Permissions (Android Mobile App)</h2>
+        <p>
+          To function properly, the Fast Send Android application requests the following runtime permissions. Each permission is requested with clear in-app rationale:
+        </p>
+        <ul>
+          <li>
+            <strong><code>android.permission.CAMERA</code>:</strong>  
+            Used by organizers to capture new event photos directly within the app, and used on the web portal by guests to capture their reference selfie. The camera is never accessed in the background or without explicit user interaction.
+          </li>
+          <li>
+            <strong><code>android.permission.READ_MEDIA_IMAGES</code> & <code>READ_EXTERNAL_STORAGE</code>:</strong>  
+            Allows event organizers to select and batch-upload high-resolution event photos from their device gallery to the trip album. Fast Send only accesses the specific photos selected by the user.
+          </li>
+          <li>
+            <strong><code>android.permission.ACCESS_MEDIA_LOCATION</code>:</strong>  
+            Allows the app to read geographic and timestamp metadata embedded within selected photos so event photos can be arranged chronologically.
+          </li>
+          <li>
+            <strong><code>android.permission.POST_NOTIFICATIONS</code>:</strong>  
+            Used to send timely system alerts to organizers when a background photo upload finishes, when guests register, or when trip archives are ready. Users may disable notifications at any time in system settings.
+          </li>
+        </ul>
+
+        <h2>4. Information We Collect</h2>
+        <h3>A. Information Provided by Organizers</h3>
+        <ul>
+          <li><strong>Account Credentials:</strong> Email address and authentication UID managed securely through Google Firebase Authentication.</li>
+          <li><strong>Trip Details:</strong> Event titles, descriptions, custom sharing settings (e.g. allowing nature photos, public downloads).</li>
+          <li><strong>Event Media:</strong> High-resolution photos and videos uploaded by the organizer for sharing with attendees.</li>
+        </ul>
+
+        <h3>B. Information Provided by Guests</h3>
+        <ul>
+          <li><strong>Identity Details:</strong> Guest name and phone number (if provided for notification or gallery lookup).</li>
+          <li><strong>Selfie Image:</strong> A single photo captured via web browser solely for face matching.</li>
+        </ul>
+
+        <h3>C. Automatically Collected Technical Data</h3>
+        <ul>
+          <li>Device type, operating system version, app version, network state, and basic crash diagnostics collected solely to ensure stable app performance.</li>
+        </ul>
+
+        <h2>5. How We Store and Protect Your Data</h2>
+        <p>
+          We employ enterprise-grade security protocols to protect all user photos, database records, and biometric vectors:
+        </p>
+        <ul>
+          <li><strong>Microsoft Azure Blob Storage:</strong> Original high-resolution photos are stored in secure cloud containers with HTTPS/TLS 1.3 encryption in transit and 256-bit AES encryption at rest.</li>
+          <li><strong>Secure Streaming with SAS Tokens:</strong> Photos and ZIP download archives are delivered via time-limited Shared Access Signature (SAS) tokens that expire automatically after 1 hour. Photos are not publicly indexable by search engines.</li>
+          <li><strong>MongoDB Atlas Database:</strong> Metadata, trip settings, and mathematical face vectors are housed in encrypted database clusters protected by strict firewall rules and authentication credentials.</li>
+          <li><strong>Google Firebase Authentication:</strong> User passwords and authentication sessions are secured by Google's industry-standard infrastructure. Fast Send never sees or stores plaintext passwords.</li>
+        </ul>
+
+        <h2>6. Third-Party Service Providers</h2>
+        <p>
+          We work only with vetted, reputable cloud infrastructure providers necessary to operate our service:
+        </p>
+        <ul>
+          <li><strong>Google Firebase (Google LLC):</strong> User identity and authentication management. (<a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy Policy</a>)</li>
+          <li><strong>Microsoft Azure (Microsoft Corporation):</strong> Cloud object storage for high-resolution event media. (<a href="https://privacy.microsoft.com/en-us/privacystatement" target="_blank" rel="noopener">Microsoft Privacy Statement</a>)</li>
+          <li><strong>MongoDB Atlas (MongoDB Inc.):</strong> Cloud database infrastructure. (<a href="https://www.mongodb.com/legal/privacy-policy" target="_blank" rel="noopener">MongoDB Privacy Policy</a>)</li>
+          <li><strong>Vercel Inc.:</strong> Hosting infrastructure for the Guest Web Portal. (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel Privacy Policy</a>)</li>
+        </ul>
+        <p>We do not use third-party advertising SDKs or data brokers.</p>
+
+        <h2>7. Data Retention and Account Deletion</h2>
+        <p>
+          You have full control over your data. In accordance with Google Play's User Data Policy:
+        </p>
+        <ul>
+          <li><strong>Organizer Account Deletion:</strong> Organizers can delete their account directly within the Fast Send mobile app under <em>Profile &gt; Settings &gt; Delete Account</em>. Doing so immediately deletes their profile, active trips, and associated photo records.</li>
+          <li><strong>Guest Data Deletion:</strong> Guests who registered for an event can request immediate removal of their name, selfie, and facial embedding vectors using our public <a href="data-deletion.html" style="text-decoration: underline; font-weight: 700;">Account &amp; Data Deletion Portal</a> or by emailing support.</li>
+          <li><strong>Manual Inquiries:</strong> Any user can request complete erasure of their personal information by contacting <code>support@fastsend.app</code>. Deletion requests are fulfilled within 48 hours.</li>
+        </ul>
+
+        <h2>8. Children's Privacy (COPPA Compliance)</h2>
+        <p>
+          Fast Send is not intended for use by children under 13 years of age (or under 16 in the European Union). We do not knowingly collect personal or biometric information from children. If an organizer uploads photos containing minors, the organizer must have obtained appropriate parental or guardian consent. If we become aware that personal data of a child under 13 was collected without parental consent, we will promptly delete it.
+        </p>
+
+        <h2>9. Changes to This Privacy Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time to reflect changes in legal requirements or our technology. When changes occur, the updated policy will be posted on this page with an updated "Effective Date." Continued use of our app or web portal constitutes acceptance of the updated policy.
+        </p>
+
+        <h2>10. Contact Information</h2>
+        <p>
+          If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, please reach out to our team:
+        </p>
+        <div style="background: var(--color-white); border: var(--border-sm); border-radius: var(--radius-sm); padding: 1.25rem; margin-top: 1rem;">
+          <p style="margin-bottom: 0.25rem;"><strong>Developer / Lead:</strong> Muhammad Abubakar</p>
+          <p style="margin-bottom: 0.25rem;"><strong>App Name:</strong> Fast Send</p>
+          <p style="margin-bottom: 0.25rem;"><strong>Support Email:</strong> <a href="mailto:support@fastsend.app" style="font-weight: 700; text-decoration: underline;">support@fastsend.app</a> (or <a href="mailto:sshaiy2255@gmail.com" style="font-weight: 700; text-decoration: underline;">sshaiy2255@gmail.com</a>)</p>
+          <p style="margin-bottom: 0;"><strong>Official Website:</strong> Fast Send Event Portal</p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <p>&copy; 2026 Fast Send. All rights reserved.</p>
+        <div style="display: flex; gap: 1.5rem;">
+          <a href="index.html">Home</a>
+          <a href="privacy.html" style="color: var(--color-brand);">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="data-deletion.html">Data Deletion</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

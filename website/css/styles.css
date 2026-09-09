@@ -250,6 +250,8 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: nowrap;
 }
 
 .brand-logo {
@@ -260,6 +262,8 @@ img {
   font-weight: 900;
   font-size: 1.35rem;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .logo-badge {
@@ -284,19 +288,22 @@ img {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
+  gap: 1.25rem;
   list-style: none;
+  flex-wrap: nowrap;
 }
 
 .nav-link {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.65rem;
   border-radius: var(--radius-sm);
   transition: var(--transition-quick);
+  white-space: nowrap;
+  display: inline-block;
 }
 
 .nav-link:hover {
@@ -309,6 +316,8 @@ img {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .mobile-menu-btn {
@@ -1004,6 +1013,14 @@ img {
    Responsive Media Queries
    -------------------------------------------------------------------------- */
 @media (max-width: 992px) {
+  .nav-links {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+  }
+
   .hero-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -1032,14 +1049,6 @@ img {
 }
 
 @media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-
-  .mobile-menu-btn {
-    display: flex;
-  }
-
   .hero-content h1 {
     font-size: 2.5rem;
   }

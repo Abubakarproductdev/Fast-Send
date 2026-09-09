@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close mobile menu when a link is clicked
     navLinks.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 992) {
           navLinks.style.display = 'none';
         }
       });

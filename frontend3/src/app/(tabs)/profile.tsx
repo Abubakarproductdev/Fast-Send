@@ -18,7 +18,6 @@ import {
   FileText,
   LogOut,
   BadgeCheck,
-  MoonStar,
 } from 'lucide-react-native';
 import {
   signOut,
@@ -42,19 +41,18 @@ import { useTheme } from '../../theme/ThemeContext';
 
 const SYNC_OPTIONS = ['1 hour', '6 hours', '12 hours', '24 hours'];
 const MODE_OPTIONS = ['Wi-Fi only', 'Wi-Fi + cellular'];
-const THEME_OPTIONS = ['light', 'dark', 'system'];
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, organizerId, refreshUser } = useAuth();
   const { showToast } = useTripModal();
-  const { mode, setMode, colors, neoShadow } = useTheme();
+  const { colors, neoShadow } = useTheme();
 
   const [sync, setSync] = useState('6 hours');
   const [uploadMode, setUploadMode] = useState('Wi-Fi + cellular');
 
   const [activeSheet, setActiveSheet] = useState<
-    null | 'sync' | 'mode' | 'name' | 'password' | 'signout' | 'appearance'
+    null | 'sync' | 'mode' | 'name' | 'password' | 'signout'
   >(null);
 
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'Organizer';
@@ -108,11 +106,6 @@ export default function ProfileScreen() {
     }
     setActiveSheet(null);
     showToast(`Upload mode set to ${opt}`);
-  };
-
-  const handlePickTheme = (opt: string) => {
-    setMode(opt as any);
-    setActiveSheet(null);
   };
 
   const handleSaveName = async () => {
@@ -383,29 +376,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Appearance Group */}
-        <View style={styles.sectionWrap}>
-          <Text style={styles.sectionHeader}>APPEARANCE</Text>
-          <View style={[styles.groupCard, neoShadow]}>
-            <TouchableOpacity
-              onPress={() => setActiveSheet('appearance')}
-              style={styles.rowItem}
-              activeOpacity={0.7}
-            >
-              <View style={styles.rowLeft}>
-                <View style={styles.rowIconBox}>
-                  <MoonStar size={17} strokeWidth={2.6} color={colors.ink} />
-                </View>
-                <Text style={styles.rowTitle}>Theme</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text style={styles.rowValue}>{mode}</Text>
-                <ChevronRight size={17} color={colors.mut} />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Photo Sync Group */}
         <View style={styles.sectionWrap}>
           <Text style={styles.sectionHeader}>PHOTO SYNC</Text>
@@ -545,31 +515,6 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
-
-      {/* Appearance Sheet */}
-      <NeoSheet
-        open={activeSheet === 'appearance'}
-        onClose={() => setActiveSheet(null)}
-        title="App Theme"
-        subtitle="Choose a color scheme for Fast Send."
-      >
-        <View style={styles.optionsWrap}>
-          {THEME_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt}
-              onPress={() => handlePickTheme(opt)}
-              style={[
-                styles.optionItem,
-                mode === opt && styles.optionItemActive,
-              ]}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.optionText}>{opt}</Text>
-              {mode === opt ? <BadgeCheck size={19} color={colors.ink} strokeWidth={2.8} /> : null}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </NeoSheet>
 
       {/* Sync Interval Sheet */}
       <NeoSheet

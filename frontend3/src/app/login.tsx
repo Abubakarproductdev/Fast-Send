@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const { colors, neoShadow } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
@@ -169,6 +170,20 @@ export default function LoginScreen() {
       fontFamily: 'Nunito_900Black',
       color: colors.flame,
     },
+    passwordWrapper: {
+      position: 'relative',
+      justifyContent: 'center',
+    },
+    passwordInput: {
+      paddingRight: 48,
+    },
+    eyeBtn: {
+      position: 'absolute',
+      right: 14,
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 
   return (
@@ -224,12 +239,27 @@ export default function LoginScreen() {
         </NeoField>
 
         <NeoField label="Password">
-          <NeoInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            secureTextEntry
-          />
+          <View style={styles.passwordWrapper}>
+            <NeoInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              secureTextEntry={!showPassword}
+              style={styles.passwordInput}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              style={styles.eyeBtn}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              {showPassword ? (
+                <EyeOff size={20} strokeWidth={2.4} color={colors.ink} />
+              ) : (
+                <Eye size={20} strokeWidth={2.4} color={colors.ink} />
+              )}
+            </TouchableOpacity>
+          </View>
         </NeoField>
 
         <TouchableOpacity
